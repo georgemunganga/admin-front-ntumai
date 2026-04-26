@@ -1,25 +1,32 @@
 export const routes = {
   dashboard: "/",
   sales: {
+    overview: "/sales",
     home: "/sales/invoices",
     orders: "/sales/orders",
     invoices: "/sales/invoices",
     customers: "/sales/customers",
     refunds: "/sales/refunds",
+    payouts: "/sales/payouts",
   },
   logistics: {
+    overview: "/logistics",
     home: "/logistics",
     shipments: "/logistics/shipments",
     tracking: "/logistics/tracking",
     drivers: "/logistics/drivers",
+    exceptions: "/logistics/exceptions",
   },
   marketplace: {
+    overview: "/marketplace",
     home: "/marketplace",
     products: "/marketplace/products",
     vendors: "/marketplace/vendors",
     categories: "/marketplace/categories",
+    reviews: "/marketplace/reviews",
   },
   supportDesk: {
+    overview: "/support",
     home: "/support/inbox",
     inbox: "/support/inbox",
     tickets: "/support/tickets",

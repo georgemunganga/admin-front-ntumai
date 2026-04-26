@@ -28,6 +28,18 @@ export const crudPages: Record<string, CrudPageConfig> = {
       { id: "DRV-507", primary: "Verified riders", secondary: "Ready for dispatch", tertiary: "Activation", status: "stable", owner: "Onboarding", updatedAt: "Apr 26, 07:41" },
     ],
   },
+  logisticsExceptions: {
+    title: "Exceptions",
+    breadcrumb: ["Home", "Logistics", "Exceptions"],
+    searchPlaceholder: "Search exceptions...",
+    rows: [
+      { id: "EX-204", primary: "Failed handoff", secondary: "Recipient unavailable on second attempt", tertiary: "Delivery disputes", status: "at_risk", owner: "Recovery team", updatedAt: "Apr 26, 09:18" },
+      { id: "EX-198", primary: "Stacked route overload", secondary: "3 orders shifted off one courier", tertiary: "Dispatch", status: "review", owner: "Dispatch pod", updatedAt: "Apr 26, 08:51" },
+      { id: "EX-194", primary: "Vehicle issue", secondary: "Bike battery swap required", tertiary: "Fleet care", status: "monitoring", owner: "Fleet ops", updatedAt: "Apr 26, 08:29" },
+      { id: "EX-191", primary: "Cold chain warning", secondary: "Temperature threshold exceeded", tertiary: "Pharmacy lane", status: "queued", owner: "Compliance", updatedAt: "Apr 26, 08:06" },
+      { id: "EX-188", primary: "Address mismatch", secondary: "Manual verification needed", tertiary: "Support assist", status: "live", owner: "Ops desk", updatedAt: "Apr 26, 07:37" },
+    ],
+  },
   marketplaceVendors: {
     title: "Vendors",
     breadcrumb: ["Home", "Marketplace", "Vendors"],
@@ -50,6 +62,18 @@ export const crudPages: Record<string, CrudPageConfig> = {
       { id: "CAT-199", primary: "Pharmacy category", secondary: "Restricted items", tertiary: "Health", status: "monitoring", owner: "Compliance", updatedAt: "Apr 26, 08:16" },
       { id: "CAT-198", primary: "Electronics", secondary: "Image cleanup", tertiary: "Accessories", status: "queued", owner: "Content ops", updatedAt: "Apr 26, 07:58" },
       { id: "CAT-197", primary: "Quick meals", secondary: "Menu refresh", tertiary: "Food", status: "stable", owner: "Partner ops", updatedAt: "Apr 26, 07:42" },
+    ],
+  },
+  marketplaceReviews: {
+    title: "Reviews",
+    breadcrumb: ["Home", "Marketplace", "Reviews"],
+    searchPlaceholder: "Search reviews...",
+    rows: [
+      { id: "REV-611", primary: "QuickBite lunch menu", secondary: "4.8 avg after campaign", tertiary: "Food", status: "live", owner: "Growth", updatedAt: "Apr 26, 09:07" },
+      { id: "REV-610", primary: "CityCare pharmacy listing", secondary: "Compliance concern raised", tertiary: "Health", status: "review", owner: "Trust team", updatedAt: "Apr 26, 08:44" },
+      { id: "REV-609", primary: "Fresh produce quality feedback", secondary: "Delivery bruising complaints", tertiary: "Groceries", status: "monitoring", owner: "Vendor success", updatedAt: "Apr 26, 08:23" },
+      { id: "REV-608", primary: "HomeBox household bundle", secondary: "Out-of-stock complaints", tertiary: "Retail", status: "queued", owner: "Catalog ops", updatedAt: "Apr 26, 07:58" },
+      { id: "REV-607", primary: "Digital Point accessories", secondary: "Strong satisfaction trend", tertiary: "Electronics", status: "stable", owner: "Marketplace ops", updatedAt: "Apr 26, 07:34" },
     ],
   },
   salesOrders: {
@@ -86,6 +110,18 @@ export const crudPages: Record<string, CrudPageConfig> = {
       { id: "REF-299", primary: "Duplicate charge review", secondary: "Payment gateway", tertiary: "Payments", status: "queued", owner: "Billing desk", updatedAt: "Apr 26, 08:19" },
       { id: "REF-298", primary: "Cancelled basket claim", secondary: "Customer callback", tertiary: "Resolution", status: "live", owner: "Care pod", updatedAt: "Apr 26, 07:55" },
       { id: "REF-297", primary: "Delayed SLA compensation", secondary: "Auto-rule", tertiary: "Service credits", status: "stable", owner: "Revenue ops", updatedAt: "Apr 26, 07:28" },
+    ],
+  },
+  salesPayouts: {
+    title: "Payouts",
+    breadcrumb: ["Home", "Sales", "Payouts"],
+    searchPlaceholder: "Search payouts...",
+    rows: [
+      { id: "PAY-221", primary: "Green Basket weekly settlement", secondary: "Bank transfer queued", tertiary: "Vendors", status: "queued", owner: "Finance ops", updatedAt: "Apr 26, 09:12" },
+      { id: "PAY-220", primary: "QuickBite payout release", secondary: "Reconciliation hold", tertiary: "Food vendors", status: "review", owner: "Revenue ops", updatedAt: "Apr 26, 08:57" },
+      { id: "PAY-219", primary: "Driver incentive cycle", secondary: "Bonus cleared", tertiary: "Fleet", status: "live", owner: "Payroll desk", updatedAt: "Apr 26, 08:35" },
+      { id: "PAY-218", primary: "Refund ledger top-up", secondary: "Wallet reserve", tertiary: "Customers", status: "monitoring", owner: "Billing", updatedAt: "Apr 26, 08:12" },
+      { id: "PAY-217", primary: "Merchant recovery charge", secondary: "Manual adjustment", tertiary: "Finance", status: "stable", owner: "Collections", updatedAt: "Apr 26, 07:49" },
     ],
   },
   orders: {

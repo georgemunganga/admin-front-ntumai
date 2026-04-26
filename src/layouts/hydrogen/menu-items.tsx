@@ -31,10 +31,12 @@ export const menuItems: MenuItem[] = [
     icon: <PiReceiptDuotone />,
     badge: "LIVE",
     dropdownItems: [
+      { name: "Overview", href: routes.sales.overview },
       { name: "Orders", href: routes.sales.orders },
       { name: "Invoices", href: routes.sales.invoices },
       { name: "Customers", href: routes.sales.customers },
       { name: "Refunds", href: routes.sales.refunds },
+      { name: "Payouts", href: routes.sales.payouts },
     ],
   },
   {
@@ -42,9 +44,11 @@ export const menuItems: MenuItem[] = [
     href: routes.marketplace.home,
     icon: <PiStackDuotone />,
     dropdownItems: [
+      { name: "Overview", href: routes.marketplace.overview },
       { name: "Products", href: routes.marketplace.products },
       { name: "Vendors", href: routes.marketplace.vendors },
       { name: "Categories", href: routes.marketplace.categories },
+      { name: "Reviews", href: routes.marketplace.reviews },
     ],
   },
   { name: "Operations" },
@@ -54,9 +58,11 @@ export const menuItems: MenuItem[] = [
     icon: <PiMapTrifoldDuotone />,
     badge: "OPS",
     dropdownItems: [
+      { name: "Overview", href: routes.logistics.overview },
       { name: "Shipments", href: routes.logistics.shipments },
       { name: "Tracking", href: routes.logistics.tracking },
       { name: "Drivers", href: routes.logistics.drivers },
+      { name: "Exceptions", href: routes.logistics.exceptions },
     ],
   },
   { name: "Service" },
@@ -65,6 +71,7 @@ export const menuItems: MenuItem[] = [
     href: routes.supportDesk.home,
     icon: <PiChatsCircleDuotone />,
     dropdownItems: [
+      { name: "Overview", href: routes.supportDesk.overview },
       { name: "Inbox", href: routes.supportDesk.inbox },
       { name: "Tickets", href: routes.supportDesk.tickets },
       { name: "Escalations", href: routes.supportDesk.escalations },
