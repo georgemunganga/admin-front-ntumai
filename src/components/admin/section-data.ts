@@ -972,6 +972,87 @@ export const salesRows = [
   },
 ];
 
+export const salesPaymentRows = [
+  {
+    primary: "Failed payment retries",
+    secondary: "Customer charges waiting for rerun or wallet fallback handling",
+    tertiary: "Payments ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Chargeback investigation batch",
+    secondary: "Card disputes grouped for finance and fraud review",
+    tertiary: "Finance risk",
+    status: "review",
+  },
+  {
+    primary: "Settlement confirmation queue",
+    secondary: "Payment-side events pending reconciliation against internal ledgers",
+    tertiary: "Settlement desk",
+    status: "queued",
+  },
+  {
+    primary: "Healthy payment lane",
+    secondary: "Transactions clearing without exceptions across normal flows",
+    tertiary: "Payments platform",
+    status: "stable",
+  },
+];
+
+export const salesPayoutRows = [
+  {
+    primary: "Driver payout batch",
+    secondary: "Supply settlements waiting for final approval and release",
+    tertiary: "Payroll ops",
+    status: "review",
+  },
+  {
+    primary: "Merchant settlement queue",
+    secondary: "Vendor and partner payouts blocked on reconciliation gaps",
+    tertiary: "Finance ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Failed transfer retries",
+    secondary: "Bank-side errors requiring payout reruns or account checks",
+    tertiary: "Settlement support",
+    status: "queued",
+  },
+  {
+    primary: "Cleared payout cycle",
+    secondary: "Weekly settlements processed inside expected operating window",
+    tertiary: "Treasury",
+    status: "stable",
+  },
+];
+
+export const salesRefundRows = [
+  {
+    primary: "Auto-refund validation",
+    secondary: "Claims flowing through automated policy thresholds for confirmation",
+    tertiary: "Refund ops",
+    status: "review",
+  },
+  {
+    primary: "Manual exception refunds",
+    secondary: "Customer cases outside standard policy bands requiring operator judgment",
+    tertiary: "Finance support",
+    status: "monitoring",
+  },
+  {
+    primary: "Partial credit queue",
+    secondary: "Service recovery adjustments waiting for payment or wallet execution",
+    tertiary: "Support finance",
+    status: "queued",
+  },
+  {
+    primary: "Resolved claims lane",
+    secondary: "Refunds closed with confirmed disbursement and customer notice",
+    tertiary: "Recovery desk",
+    status: "stable",
+  },
+];
+
 export const marketplaceRows = [
   {
     primary: "Low-stock catalog lane",
