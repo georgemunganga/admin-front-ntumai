@@ -945,6 +945,87 @@ export const supportDeskRows = [
   },
 ];
 
+export const supportTicketRows = [
+  {
+    primary: "Billing complaint queue",
+    secondary: "Customer tickets tied to failed reversals and wallet mismatches",
+    tertiary: "Finance support",
+    status: "review",
+  },
+  {
+    primary: "Late delivery cluster",
+    secondary: "High-volume zone issues pushing tickets into SLA watch",
+    tertiary: "Tier 1 care",
+    status: "monitoring",
+  },
+  {
+    primary: "Merchant support batch",
+    secondary: "Partner-facing service tickets waiting for ops feedback",
+    tertiary: "Partner care",
+    status: "queued",
+  },
+  {
+    primary: "Routine resolution lane",
+    secondary: "Tickets moving cleanly through normal support workflow",
+    tertiary: "Support pods",
+    status: "stable",
+  },
+];
+
+export const supportEscalationRows = [
+  {
+    primary: "Trust escalation wave",
+    secondary: "High-sensitivity cases pushed from frontline support to senior review",
+    tertiary: "Escalation desk",
+    status: "review",
+  },
+  {
+    primary: "VIP recovery cases",
+    secondary: "Premium customers needing executive-level service intervention",
+    tertiary: "Customer success",
+    status: "monitoring",
+  },
+  {
+    primary: "Merchant outage escalations",
+    secondary: "Partner incidents requiring operations and platform coordination",
+    tertiary: "Ops + support",
+    status: "queued",
+  },
+  {
+    primary: "Resolved escalations",
+    secondary: "High-priority cases cleared after multi-team response",
+    tertiary: "Senior support",
+    status: "stable",
+  },
+];
+
+export const supportDisputeRows = [
+  {
+    primary: "Fare dispute review",
+    secondary: "Trip and order complaints needing commercial recalculation",
+    tertiary: "Dispute desk",
+    status: "review",
+  },
+  {
+    primary: "Refund approval queue",
+    secondary: "Claims awaiting finance or policy confirmation before release",
+    tertiary: "Finance support",
+    status: "monitoring",
+  },
+  {
+    primary: "Driver-rider complaint cases",
+    secondary: "Two-sided disputes needing evidence and service-rule interpretation",
+    tertiary: "Support governance",
+    status: "queued",
+  },
+  {
+    primary: "Partial refund lane",
+    secondary: "Claims resolved through calibrated, non-full reimbursement rules",
+    tertiary: "Service recovery",
+    status: "stable",
+  },
+];
+
 export const settingsRows = [
   {
     primary: "Fees and commissions",
