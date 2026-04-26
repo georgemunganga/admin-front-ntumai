@@ -16,6 +16,42 @@ export type CrudPageConfig = {
 };
 
 export const crudPages: Record<string, CrudPageConfig> = {
+  salesOrders: {
+    title: "Orders",
+    breadcrumb: ["Home", "Sales", "Orders"],
+    searchPlaceholder: "Search sales orders...",
+    rows: [
+      { id: "SAL-1042", primary: "Priority grocery basket", secondary: "Card paid", tertiary: "Lusaka Central", status: "live", owner: "Sales ops", updatedAt: "Apr 26, 09:15" },
+      { id: "SAL-1041", primary: "Late-night meal order", secondary: "ETA complaint", tertiary: "Woodlands", status: "monitoring", owner: "Recovery desk", updatedAt: "Apr 26, 09:02" },
+      { id: "SAL-1040", primary: "Corporate office restock", secondary: "Pricing override", tertiary: "Longacres", status: "review", owner: "Revenue ops", updatedAt: "Apr 26, 08:44" },
+      { id: "SAL-1039", primary: "Pharmacy refill request", secondary: "Awaiting pickup", tertiary: "Roma", status: "queued", owner: "Merchant desk", updatedAt: "Apr 26, 08:31" },
+      { id: "SAL-1038", primary: "Fresh produce order", secondary: "Packing complete", tertiary: "Kabulonga", status: "stable", owner: "Partner success", updatedAt: "Apr 26, 08:11" },
+    ],
+  },
+  salesCustomers: {
+    title: "Customers",
+    breadcrumb: ["Home", "Sales", "Customers"],
+    searchPlaceholder: "Search sales customers...",
+    rows: [
+      { id: "CRM-881", primary: "VIP retention cohort", secondary: "Recent inactivity", tertiary: "High value", status: "monitoring", owner: "Growth desk", updatedAt: "Apr 26, 09:04" },
+      { id: "CRM-880", primary: "Wallet verification", secondary: "Manual KYC", tertiary: "Trust review", status: "review", owner: "Finance care", updatedAt: "Apr 26, 08:50" },
+      { id: "CRM-879", primary: "High-frequency households", secondary: "Healthy cadence", tertiary: "Weekly repeat", status: "stable", owner: "Lifecycle", updatedAt: "Apr 26, 08:21" },
+      { id: "CRM-878", primary: "Refund follow-up", secondary: "17 callbacks", tertiary: "Refunds", status: "at_risk", owner: "Customer care", updatedAt: "Apr 26, 08:00" },
+      { id: "CRM-877", primary: "Referral campaign users", secondary: "Newly onboarded", tertiary: "Growth", status: "live", owner: "Acquisition", updatedAt: "Apr 26, 07:39" },
+    ],
+  },
+  salesRefunds: {
+    title: "Refunds",
+    breadcrumb: ["Home", "Sales", "Refunds"],
+    searchPlaceholder: "Search refunds...",
+    rows: [
+      { id: "REF-301", primary: "Failed drop-off compensation", secondary: "Wallet credit", tertiary: "Customer", status: "review", owner: "Finance ops", updatedAt: "Apr 26, 09:06" },
+      { id: "REF-300", primary: "Stock-out refund batch", secondary: "Merchant chargeback", tertiary: "Partners", status: "monitoring", owner: "Risk + finance", updatedAt: "Apr 26, 08:43" },
+      { id: "REF-299", primary: "Duplicate charge review", secondary: "Payment gateway", tertiary: "Payments", status: "queued", owner: "Billing desk", updatedAt: "Apr 26, 08:19" },
+      { id: "REF-298", primary: "Cancelled basket claim", secondary: "Customer callback", tertiary: "Resolution", status: "live", owner: "Care pod", updatedAt: "Apr 26, 07:55" },
+      { id: "REF-297", primary: "Delayed SLA compensation", secondary: "Auto-rule", tertiary: "Service credits", status: "stable", owner: "Revenue ops", updatedAt: "Apr 26, 07:28" },
+    ],
+  },
   orders: {
     title: "Orders",
     breadcrumb: ["Home", "Operations", "Orders"],
@@ -98,6 +134,30 @@ export const crudPages: Record<string, CrudPageConfig> = {
       { id: "SUP-071", primary: "Cancellation appeals", secondary: "8 callbacks", tertiary: "Resolutions", status: "queued", owner: "Care pod", updatedAt: "Apr 26, 08:22" },
       { id: "SUP-070", primary: "Merchant support line", secondary: "Within SLA", tertiary: "Partners", status: "stable", owner: "Partner care", updatedAt: "Apr 26, 07:57" },
       { id: "SUP-069", primary: "Refund escalations", secondary: "Clearing", tertiary: "Refunds", status: "live", owner: "Support lead", updatedAt: "Apr 26, 07:30" },
+    ],
+  },
+  supportTickets: {
+    title: "Tickets",
+    breadcrumb: ["Home", "Support", "Tickets"],
+    searchPlaceholder: "Search support tickets...",
+    rows: [
+      { id: "TKT-073", primary: "Late delivery complaints", secondary: "Peak-hour spike", tertiary: "Customer care", status: "monitoring", owner: "Tier 1", updatedAt: "Apr 26, 09:10" },
+      { id: "TKT-072", primary: "Wallet disputes", secondary: "Finance review", tertiary: "Payments", status: "review", owner: "Finance ops", updatedAt: "Apr 26, 08:48" },
+      { id: "TKT-071", primary: "Cancellation appeals", secondary: "8 callbacks", tertiary: "Resolutions", status: "queued", owner: "Care pod", updatedAt: "Apr 26, 08:22" },
+      { id: "TKT-070", primary: "Merchant support line", secondary: "Within SLA", tertiary: "Partners", status: "stable", owner: "Partner care", updatedAt: "Apr 26, 07:57" },
+      { id: "TKT-069", primary: "Refund escalations", secondary: "Clearing", tertiary: "Refunds", status: "live", owner: "Support lead", updatedAt: "Apr 26, 07:30" },
+    ],
+  },
+  supportEscalations: {
+    title: "Escalations",
+    breadcrumb: ["Home", "Support", "Escalations"],
+    searchPlaceholder: "Search escalations...",
+    rows: [
+      { id: "ESC-041", primary: "Driver abuse investigation", secondary: "Legal follow-up", tertiary: "Trust & safety", status: "at_risk", owner: "Ops lead", updatedAt: "Apr 26, 09:18" },
+      { id: "ESC-040", primary: "Pharmacy order compliance", secondary: "Restricted item dispute", tertiary: "Compliance", status: "review", owner: "Risk control", updatedAt: "Apr 26, 08:51" },
+      { id: "ESC-039", primary: "Payment reversal backlog", secondary: "Manual release", tertiary: "Finance", status: "monitoring", owner: "Billing lead", updatedAt: "Apr 26, 08:29" },
+      { id: "ESC-038", primary: "VIP customer recovery", secondary: "Executive callback", tertiary: "Retention", status: "live", owner: "Customer success", updatedAt: "Apr 26, 08:06" },
+      { id: "ESC-037", primary: "Failed merchant handoff", secondary: "Multi-order impact", tertiary: "Merchant ops", status: "queued", owner: "Partner lead", updatedAt: "Apr 26, 07:37" },
     ],
   },
   settings: {
