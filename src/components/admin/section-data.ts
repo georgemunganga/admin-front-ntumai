@@ -1080,6 +1080,87 @@ export const marketplaceRows = [
   },
 ];
 
+export const marketplaceVendorRows = [
+  {
+    primary: "Activation-ready vendors",
+    secondary: "Partners waiting for final launch approval and catalog release",
+    tertiary: "Partner growth",
+    status: "review",
+  },
+  {
+    primary: "Compliance watchlist",
+    secondary: "Merchants with license, policy, or category risks needing follow-up",
+    tertiary: "Merchant governance",
+    status: "monitoring",
+  },
+  {
+    primary: "Operationally healthy partners",
+    secondary: "Vendors clearing order quality and fulfillment expectations",
+    tertiary: "Marketplace ops",
+    status: "stable",
+  },
+  {
+    primary: "Support-heavy merchants",
+    secondary: "Partners generating high ticket volume or service recovery cost",
+    tertiary: "Partner care",
+    status: "queued",
+  },
+];
+
+export const marketplaceCategoryRows = [
+  {
+    primary: "Misclassified products",
+    secondary: "Items still mapped into the wrong browse or policy buckets",
+    tertiary: "Merchandising",
+    status: "review",
+  },
+  {
+    primary: "Restricted category review",
+    secondary: "Listings under tighter governance before release",
+    tertiary: "Catalog compliance",
+    status: "monitoring",
+  },
+  {
+    primary: "Seasonal collection launch",
+    secondary: "New browse structures prepared for promotional rollout",
+    tertiary: "Growth merch",
+    status: "stable",
+  },
+  {
+    primary: "Legacy category cleanup",
+    secondary: "Old navigation branches queued for deprecation and migration",
+    tertiary: "Catalog ops",
+    status: "queued",
+  },
+];
+
+export const marketplaceReviewRows = [
+  {
+    primary: "Vendor feedback moderation",
+    secondary: "Partner reviews needing trust or quality decisions",
+    tertiary: "Marketplace care",
+    status: "review",
+  },
+  {
+    primary: "Product quality complaints",
+    secondary: "Item-level issues surfacing across repeat customer feedback",
+    tertiary: "Catalog QA",
+    status: "monitoring",
+  },
+  {
+    primary: "Positive trend cohort",
+    secondary: "High-performing products and vendors showing strong satisfaction lift",
+    tertiary: "Growth insights",
+    status: "stable",
+  },
+  {
+    primary: "Escalated review cases",
+    secondary: "Feedback disputes requiring support, trust, or merchant input",
+    tertiary: "Review desk",
+    status: "queued",
+  },
+];
+
 export const supportDeskRows = [
   {
     primary: "Late delivery escalation wave",
