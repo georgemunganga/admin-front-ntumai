@@ -648,6 +648,87 @@ export const riskRows = [
   },
 ];
 
+export const riskFraudRows = [
+  {
+    primary: "Promo abuse cluster",
+    secondary: "Linked accounts repeatedly triggering incentive and referral anomalies",
+    tertiary: "Fraud desk",
+    status: "monitoring",
+  },
+  {
+    primary: "GPS spoofing review",
+    secondary: "Trip movement signatures inconsistent with route and time expectations",
+    tertiary: "Realtime risk",
+    status: "review",
+  },
+  {
+    primary: "Chargeback watchlist",
+    secondary: "Customers and drivers tied to repeated payment disputes or reversals",
+    tertiary: "Finance risk",
+    status: "queued",
+  },
+  {
+    primary: "Device-link investigation",
+    secondary: "Multiple accounts mapped to overlapping device or identity patterns",
+    tertiary: "Trust systems",
+    status: "at_risk",
+  },
+];
+
+export const riskEmergencyRows = [
+  {
+    primary: "Open SOS incidents",
+    secondary: "Safety cases still awaiting operator closure or city-team response",
+    tertiary: "Safety ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Accident response queue",
+    secondary: "Trip incidents needing documentation, contact logs, and disposition",
+    tertiary: "Incident desk",
+    status: "review",
+  },
+  {
+    primary: "Unsafe trip reports",
+    secondary: "Customer and driver safety complaints escalated for urgent action",
+    tertiary: "Trust response",
+    status: "queued",
+  },
+  {
+    primary: "Emergency callback backlog",
+    secondary: "Post-incident follow-ups still pending final notes and sign-off",
+    tertiary: "Support safety",
+    status: "stable",
+  },
+];
+
+export const riskComplianceRows = [
+  {
+    primary: "Driver KYC reviews",
+    secondary: "Verification cases waiting for final governance approval",
+    tertiary: "Compliance team",
+    status: "review",
+  },
+  {
+    primary: "Merchant license expiry",
+    secondary: "Regulated vendors approaching compliance cutoffs in live markets",
+    tertiary: "Merchant governance",
+    status: "monitoring",
+  },
+  {
+    primary: "Restricted goods queue",
+    secondary: "Products and categories blocked pending policy and regulatory review",
+    tertiary: "Catalog compliance",
+    status: "queued",
+  },
+  {
+    primary: "Audit pack preparation",
+    secondary: "Records being assembled for internal and external reporting needs",
+    tertiary: "Regulatory ops",
+    status: "stable",
+  },
+];
+
 export const platformRows = [
   {
     primary: "Weekly revenue reporting pack",
