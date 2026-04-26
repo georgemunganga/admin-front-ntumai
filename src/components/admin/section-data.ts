@@ -594,6 +594,87 @@ export const platformRows = [
   },
 ];
 
+export const platformReportRows = [
+  {
+    primary: "Revenue reporting pack",
+    secondary: "Daily and weekly finance exports queued for leadership review",
+    tertiary: "BI desk",
+    status: "stable",
+  },
+  {
+    primary: "Trip performance analysis",
+    secondary: "Cancellation and SLA summaries waiting for ops commentary",
+    tertiary: "Operations analytics",
+    status: "review",
+  },
+  {
+    primary: "Support KPI digest",
+    secondary: "Ticket resolution trends flagged for service leadership",
+    tertiary: "Support reporting",
+    status: "monitoring",
+  },
+  {
+    primary: "Zone performance rollout",
+    secondary: "A new city dashboard is queued for stakeholder release",
+    tertiary: "Analytics enablement",
+    status: "queued",
+  },
+];
+
+export const platformContentRows = [
+  {
+    primary: "Homepage banner rotation",
+    secondary: "Campaign assets pending publish scheduling and review",
+    tertiary: "Content ops",
+    status: "review",
+  },
+  {
+    primary: "FAQ article refresh",
+    secondary: "Support content updates tied to new payment and refund flows",
+    tertiary: "Help center",
+    status: "stable",
+  },
+  {
+    primary: "Policy page legal check",
+    secondary: "Terms and rider safety copy awaiting final compliance sign-off",
+    tertiary: "Legal ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Merchant spotlight queue",
+    secondary: "Promotional placements stacked behind copy and image approval",
+    tertiary: "Growth content",
+    status: "queued",
+  },
+];
+
+export const platformHealthRows = [
+  {
+    primary: "Payment gateway latency",
+    secondary: "Intermittent slowdown affecting reversal confirmations",
+    tertiary: "Infra control",
+    status: "monitoring",
+  },
+  {
+    primary: "SMS provider failover",
+    secondary: "Backup route activated for notification delivery coverage",
+    tertiary: "Messaging ops",
+    status: "review",
+  },
+  {
+    primary: "Queue backlog sweep",
+    secondary: "Background jobs catching up after peak processing load",
+    tertiary: "Platform jobs",
+    status: "queued",
+  },
+  {
+    primary: "Map API health",
+    secondary: "Routing calls are back inside normal latency bounds",
+    tertiary: "Maps stack",
+    status: "stable",
+  },
+];
+
 export const growthRows = [
   {
     primary: "Promo campaign launch",
