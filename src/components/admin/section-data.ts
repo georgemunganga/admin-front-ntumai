@@ -864,6 +864,87 @@ export const growthRows = [
   },
 ];
 
+export const growthPromotionRows = [
+  {
+    primary: "City discount campaign",
+    secondary: "Region-targeted delivery fee promotion waiting for final release",
+    tertiary: "Growth marketing",
+    status: "review",
+  },
+  {
+    primary: "Referral reward wave",
+    secondary: "Customer invite incentives active but under abuse monitoring",
+    tertiary: "Acquisition desk",
+    status: "monitoring",
+  },
+  {
+    primary: "Merchant co-promo queue",
+    secondary: "Partner-funded offers stacked behind commercial approval",
+    tertiary: "Marketplace growth",
+    status: "queued",
+  },
+  {
+    primary: "Retention offer lane",
+    secondary: "Win-back promotions flowing to dormant user segments",
+    tertiary: "CRM growth",
+    status: "stable",
+  },
+];
+
+export const growthIncentiveRows = [
+  {
+    primary: "Peak-hour bonus cohort",
+    secondary: "Driver incentives active in high-demand zones this week",
+    tertiary: "Supply growth",
+    status: "live",
+  },
+  {
+    primary: "Quest payout validation",
+    secondary: "Performance reward cases waiting for commercial confirmation",
+    tertiary: "Growth finance",
+    status: "review",
+  },
+  {
+    primary: "Low-uptake zone campaign",
+    secondary: "One region’s incentive offer is underperforming against supply targets",
+    tertiary: "Ops planning",
+    status: "monitoring",
+  },
+  {
+    primary: "Weekly target reset",
+    secondary: "Next incentive cycle queued behind budget and rules refresh",
+    tertiary: "Campaign ops",
+    status: "queued",
+  },
+];
+
+export const growthNotificationRows = [
+  {
+    primary: "Push campaign schedule",
+    secondary: "Customer lifecycle messages prepared for the next engagement window",
+    tertiary: "CRM messaging",
+    status: "stable",
+  },
+  {
+    primary: "SMS fallback queue",
+    secondary: "Delivery and promo notifications staged through alternate messaging paths",
+    tertiary: "Messaging ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Broadcast approval lane",
+    secondary: "Operational announcements waiting for copy and final sign-off",
+    tertiary: "Comms desk",
+    status: "review",
+  },
+  {
+    primary: "Version alert rollout",
+    secondary: "Force-update and release notices queued for segmented delivery",
+    tertiary: "Platform comms",
+    status: "queued",
+  },
+];
+
 export const salesRows = [
   {
     primary: "Daily revenue snapshot",
