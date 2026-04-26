@@ -405,6 +405,114 @@ export const platformRows = [
   },
 ];
 
+export const growthRows = [
+  {
+    primary: "Promo campaign launch",
+    secondary: "City-based discount campaign waiting for final publish",
+    tertiary: "Growth marketing",
+    status: "review",
+  },
+  {
+    primary: "Driver bonus rollout",
+    secondary: "Peak-hour incentive cohorts actively targeted this week",
+    tertiary: "Supply growth",
+    status: "live",
+  },
+  {
+    primary: "Push segmentation refresh",
+    secondary: "Retention audiences being recalculated for lifecycle messaging",
+    tertiary: "CRM desk",
+    status: "monitoring",
+  },
+  {
+    primary: "Referral abuse cleanup",
+    secondary: "Suspicious reward claims paused pending trust sign-off",
+    tertiary: "Growth ops",
+    status: "queued",
+  },
+];
+
+export const salesRows = [
+  {
+    primary: "Daily revenue snapshot",
+    secondary: "Transaction totals and settlement deltas under review",
+    tertiary: "Finance ops",
+    status: "stable",
+  },
+  {
+    primary: "Refund approvals",
+    secondary: "Customer claims waiting for payment-side clearance",
+    tertiary: "Support finance",
+    status: "review",
+  },
+  {
+    primary: "Payout exception batch",
+    secondary: "Merchant and driver transfer failures grouped for retry",
+    tertiary: "Settlement desk",
+    status: "monitoring",
+  },
+  {
+    primary: "Invoice aging queue",
+    secondary: "Open business and merchant invoices moving beyond target terms",
+    tertiary: "Collections",
+    status: "queued",
+  },
+];
+
+export const marketplaceRows = [
+  {
+    primary: "Low-stock catalog lane",
+    secondary: "Products at risk of going unavailable in active zones",
+    tertiary: "Catalog ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Vendor onboarding review",
+    secondary: "New marketplace partners waiting for activation checks",
+    tertiary: "Partner growth",
+    status: "review",
+  },
+  {
+    primary: "Category mapping cleanup",
+    secondary: "Merchandising fixes queued for misclassified items",
+    tertiary: "Merchandising",
+    status: "queued",
+  },
+  {
+    primary: "Review moderation queue",
+    secondary: "Product and vendor feedback requiring trust or quality action",
+    tertiary: "Marketplace ops",
+    status: "live",
+  },
+];
+
+export const supportDeskRows = [
+  {
+    primary: "Late delivery escalation wave",
+    secondary: "Support load elevated in two zones after route congestion",
+    tertiary: "Tier 1 care",
+    status: "monitoring",
+  },
+  {
+    primary: "Refund disputes",
+    secondary: "Ticket cluster tied to billing and trip cancellation complaints",
+    tertiary: "Finance support",
+    status: "review",
+  },
+  {
+    primary: "Merchant complaint queue",
+    secondary: "Partner-facing tickets waiting for operations feedback",
+    tertiary: "Partner care",
+    status: "queued",
+  },
+  {
+    primary: "Escalation backlog",
+    secondary: "High-priority tickets being pushed to senior support leads",
+    tertiary: "Escalation desk",
+    status: "live",
+  },
+];
+
 export const settingsRows = [
   {
     primary: "Fees and commissions",
