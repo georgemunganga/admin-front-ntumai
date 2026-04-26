@@ -297,6 +297,87 @@ export const dispatchRows = [
   },
 ];
 
+export const dispatchLiveMapRows = [
+  {
+    primary: "Lusaka CBD heat cluster",
+    secondary: "Demand is outpacing available drivers in the central zone",
+    tertiary: "Realtime map",
+    status: "at_risk",
+  },
+  {
+    primary: "Airport corridor supply",
+    secondary: "Reserve drivers positioned for scheduled arrivals",
+    tertiary: "Dispatch map",
+    status: "stable",
+  },
+  {
+    primary: "Woodlands surge watch",
+    secondary: "Elevated ETAs tied to traffic and incomplete batching",
+    tertiary: "Zone control",
+    status: "monitoring",
+  },
+  {
+    primary: "Incident pin review",
+    secondary: "Operator notes pending on two stuck-trip alerts",
+    tertiary: "Safety feed",
+    status: "review",
+  },
+];
+
+export const scheduledRideRows = [
+  {
+    primary: "Morning airport runs",
+    secondary: "Advance bookings waiting for final driver lock-in",
+    tertiary: "Planning desk",
+    status: "review",
+  },
+  {
+    primary: "Corporate evening block",
+    secondary: "Grouped rides for one business client due after 17:00",
+    tertiary: "B2B dispatch",
+    status: "stable",
+  },
+  {
+    primary: "Recurring medical drop-offs",
+    secondary: "Weekly jobs need route smoothing for driver capacity",
+    tertiary: "Scheduling lane",
+    status: "monitoring",
+  },
+  {
+    primary: "Missed prep alerts",
+    secondary: "Advance rides where assigned supply is at risk of churn",
+    tertiary: "Ops control",
+    status: "queued",
+  },
+];
+
+export const manualDispatchRows = [
+  {
+    primary: "Unmatched premium booking",
+    secondary: "Operator intervention required after repeated auto-match failures",
+    tertiary: "Dispatch pod",
+    status: "at_risk",
+  },
+  {
+    primary: "Force reassignment wave",
+    secondary: "Trips manually moved after driver-side cancellations",
+    tertiary: "Control room",
+    status: "live",
+  },
+  {
+    primary: "Priority merchant run",
+    secondary: "One high-value order flow is being protected from delay",
+    tertiary: "Merchant ops",
+    status: "review",
+  },
+  {
+    primary: "Batching override queue",
+    secondary: "Operators are separating trips that auto-stacking handled poorly",
+    tertiary: "Realtime ops",
+    status: "monitoring",
+  },
+];
+
 export const fleetRows = [
   {
     primary: "Pending driver applications",
