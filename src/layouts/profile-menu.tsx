@@ -3,8 +3,9 @@
 import { Title, Text, Avatar, Button, Popover } from "rizzui";
 import cn from "@/utils/class-names";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 
 const menuItems = [
   {
@@ -21,7 +22,7 @@ const menuItems = [
   },
 ];
 
-function DropdownMenu() {
+function DropdownMenu({ onSignOut }: { onSignOut: () => void }) {
   return (
     <div className="w-64 text-left rtl:text-right">
       <div className="flex items-center border-b border-gray-300 px-6 pb-5 pt-6">
@@ -51,7 +52,7 @@ function DropdownMenu() {
         <Button
           className="h-auto w-full justify-start p-0 font-medium text-gray-700 outline-none focus-within:text-gray-600 hover:text-gray-900 focus-visible:ring-0"
           variant="text"
-          // onClick={() => signOut()}
+          onClick={onSignOut}
         >
           Sign Out
         </Button>
@@ -71,10 +72,17 @@ export default function ProfileMenu({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  const handleSignOut = () => {
+    signOut();
+    router.replace(`/signin?next=${encodeURIComponent(pathname || "/")}`);
+  };
 
   return (
     <Popover
@@ -104,7 +112,7 @@ export default function ProfileMenu({
       </Popover.Trigger>
 
       <Popover.Content className="z-[9999] p-0 dark:bg-gray-100 [&>svg]:dark:fill-gray-100">
-        <DropdownMenu />
+        <DropdownMenu onSignOut={handleSignOut} />
       </Popover.Content>
     </Popover>
   );

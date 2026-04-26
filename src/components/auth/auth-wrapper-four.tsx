@@ -1,0 +1,155 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button, Title } from "rizzui";
+import {
+  PiArrowLineRight,
+  PiLockKeyOpenDuotone,
+  PiShieldCheckeredDuotone,
+} from "react-icons/pi";
+import cn from "@/utils/class-names";
+
+function AuthNavLink({
+  href,
+  children,
+}: React.PropsWithChildren<{ href: string }>) {
+  const pathname = usePathname();
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "inline-flex items-center gap-x-1 rounded-3xl p-2 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 md:px-4 md:py-2.5 [&>svg]:w-4 [&>svg]:text-gray-500",
+        pathname === href
+          ? "bg-gray-100 text-gray-900 [&>svg]:text-gray-900"
+          : "",
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function OrSeparation({
+  title,
+  className,
+}: {
+  title: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      <span className="h-px flex-1 bg-gray-200" />
+      <span className="text-center text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
+        {title}
+      </span>
+      <span className="h-px flex-1 bg-gray-200" />
+    </div>
+  );
+}
+
+const footerMenu = [
+  { name: "Help", href: "#" },
+  { name: "Privacy", href: "#" },
+  { name: "Terms", href: "#" },
+];
+
+export default function AuthWrapperFour({
+  children,
+  title,
+  isSocialLoginActive = false,
+  isSignIn = false,
+  className = "",
+}: {
+  children: React.ReactNode;
+  title: React.ReactNode;
+  isSocialLoginActive?: boolean;
+  isSignIn?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className="flex min-h-screen w-full flex-col justify-between bg-[#f7f4ec]">
+      <header className="flex items-center justify-between p-4 lg:px-16 lg:py-6 2xl:px-24">
+        <Link href="/" className="inline-flex items-center gap-3">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-900 text-white">
+            <PiShieldCheckeredDuotone className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold uppercase tracking-[0.22em] text-gray-900">
+              Ntumai
+            </span>
+            <span className="block text-xs uppercase tracking-[0.18em] text-gray-500">
+              Admin
+            </span>
+          </span>
+        </Link>
+
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <AuthNavLink href="/signin">
+            <PiArrowLineRight className="h-4 w-4" />
+            <span>Login</span>
+          </AuthNavLink>
+        </div>
+      </header>
+
+      <div className="flex w-full flex-col justify-center px-5">
+        <div
+          className={cn(
+            "mx-auto w-full max-w-md py-12 md:max-w-lg lg:max-w-xl 2xl:pb-8 2xl:pt-2",
+            className,
+          )}
+        >
+          <div className="flex flex-col items-center">
+            <div className="mb-7 inline-flex h-16 w-16 items-center justify-center rounded-[28px] bg-gray-900 text-white lg:mb-9">
+              <PiLockKeyOpenDuotone className="h-7 w-7" />
+            </div>
+            <Title
+              as="h2"
+              className="mb-7 text-center text-[28px] font-bold leading-snug md:text-3xl md:!leading-normal lg:mb-10 lg:text-4xl"
+            >
+              {title}
+            </Title>
+          </div>
+
+          {isSocialLoginActive ? (
+            <>
+              <div className="flex flex-col gap-4 pb-6 md:flex-row md:gap-6 xl:pb-7">
+                <Button variant="outline" className="h-11 w-full">
+                  Continue with Google
+                </Button>
+                <Button variant="outline" className="h-11 w-full">
+                  Continue with Microsoft
+                </Button>
+              </div>
+              <OrSeparation
+                title={`Or, Sign ${isSignIn ? "in" : "up"} with your email`}
+                className="mb-5 2xl:mb-7"
+              />
+            </>
+          ) : null}
+
+          {children}
+        </div>
+      </div>
+
+      <footer className="flex flex-col-reverse items-center justify-between px-4 py-5 lg:flex-row lg:px-16 lg:py-6 2xl:px-24 2xl:py-10">
+        <div className="text-center leading-relaxed text-gray-500 lg:text-start">
+          Ntumai Admin UI baseline. Authentication wiring will be swapped to the
+          real backend flow later.
+        </div>
+        <div className="-mx-2.5 flex items-center justify-end pb-3 font-medium text-gray-700 lg:w-1/2 lg:pb-0">
+          {footerMenu.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="px-2.5 py-1.5 transition-colors hover:text-primary"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      </footer>
+    </div>
+  );
+}
