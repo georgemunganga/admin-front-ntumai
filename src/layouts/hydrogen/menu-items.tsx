@@ -17,6 +17,7 @@ type MenuItem = {
   href?: string;
   icon?: React.ReactNode;
   dropdownItems?: Array<{ name: string; href: string }>;
+  badge?: string;
 };
 
 export const menuItems: MenuItem[] = [
@@ -30,6 +31,7 @@ export const menuItems: MenuItem[] = [
     name: "Orders",
     href: routes.orders,
     icon: <PiHandCoinsDuotone />,
+    badge: "HOT",
   },
   {
     name: "Deliveries",
@@ -66,6 +68,7 @@ export const menuItems: MenuItem[] = [
     name: "Support",
     href: routes.support,
     icon: <PiLifebuoyDuotone />,
+    badge: "NEW",
   },
   { name: "System" },
   {

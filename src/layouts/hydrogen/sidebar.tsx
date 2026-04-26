@@ -28,9 +28,9 @@ export default function Sidebar({ className }: { className?: string }) {
           <Image
             src="/brand/ntumai-logo-dark.png"
             alt="Ntumai Admin"
-            width={164}
-            height={48}
-            className="h-11 w-auto"
+            width={208}
+            height={60}
+            className="h-14 w-auto"
             priority
           />
           <span className="mt-2 block text-xs uppercase tracking-[0.2em] text-gray-500">
@@ -148,6 +148,11 @@ export default function Sidebar({ className }: { className?: string }) {
                           )}
                           <span className="truncate">{item.name}</span>
                         </div>
+                        {item?.badge ? (
+                          <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                            {item.badge}
+                          </span>
+                        ) : null}
                       </Link>
                     )}
                   </>

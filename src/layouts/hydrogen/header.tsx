@@ -24,9 +24,9 @@ export default function Header() {
           <Image
             src="/brand/ntumai-logo-dark.png"
             alt="Ntumai"
-            width={132}
-            height={38}
-            className="h-8 w-auto"
+            width={156}
+            height={46}
+            className="h-10 w-auto"
             priority
           />
         </Link>
