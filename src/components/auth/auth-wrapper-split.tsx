@@ -87,7 +87,7 @@ export default function AuthWrapperSplit({
           </div>
         </div>
 
-        <div className="hidden w-7/12 items-center justify-center rounded-[20px] bg-[#ece6d9] px-6 lg:flex xl:justify-start 2xl:px-16">
+        <div className="hidden w-7/12 items-center justify-center rounded-[20px] bg-gray-50 px-6 lg:flex xl:justify-start 2xl:px-16">
           <div className="pb-8 pt-10 text-center xl:pt-16 2xl:block 2xl:w-[1063px]">
             <div className="mx-auto mb-10 max-w-sm pt-2 2xl:max-w-lg">
               <Title
