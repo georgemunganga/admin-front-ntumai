@@ -3,10 +3,11 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button, Checkbox, Input, Password, Text } from "rizzui";
+import { Button, Checkbox, Input, Password, Text, Title } from "rizzui";
 import { useMedia } from "@/hooks/use-media";
 import { useAuth } from "@/components/auth/auth-provider";
-import AuthWrapperFour from "@/components/auth/auth-wrapper-four";
+import AuthWrapperSplit from "@/components/auth/auth-wrapper-split";
+import { PiShieldCheckeredDuotone } from "react-icons/pi";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -32,13 +33,53 @@ export default function SignInPage() {
   };
 
   return (
-    <AuthWrapperFour
+    <AuthWrapperSplit
       title={
         <>
-          Welcome Back! <br /> Sign in with your credentials.
+          Welcome back. Sign in to continue running the admin workspace.
         </>
       }
-      isSignIn
+      description="By signing in, you return to the exact area you were working on, with the current UI-first admin structure preserved until real backend auth is wired."
+      bannerTitle="The simplest way to manage your workspace."
+      bannerDescription="Use one control surface for operations, support, catalog, growth, and dispatch review without losing context between sessions."
+      pageImage={
+        <div className="mx-auto grid max-w-2xl gap-5 md:grid-cols-2">
+          <div className="rounded-[28px] border border-white/40 bg-white/70 p-6 text-left shadow-sm shadow-gray-200/50">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-900 text-white">
+              <PiShieldCheckeredDuotone className="h-5 w-5" />
+            </div>
+            <Title as="h3" className="mt-5 text-2xl font-semibold">
+              Resume instantly
+            </Title>
+            <Text className="mt-3 text-sm leading-7 text-gray-600">
+              Sign back in and continue from the exact path you were handling:
+              orders, dispatch, support, vendors, or settings.
+            </Text>
+          </div>
+          <div className="rounded-[28px] bg-gray-900 p-6 text-left text-white shadow-sm shadow-gray-300/30">
+            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">
+              Current destination
+            </Text>
+            <Title as="h3" className="mt-5 text-2xl font-semibold text-white">
+              {next}
+            </Title>
+            <Text className="mt-3 text-sm leading-7 text-white/70">
+              The auth shell stores your last working page and restores that path
+              immediately after sign-in.
+            </Text>
+          </div>
+          <div className="rounded-[28px] bg-[#d8e4dc] p-6 text-left md:col-span-2">
+            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+              Why this layout
+            </Text>
+            <Text className="mt-3 text-sm leading-7 text-gray-700">
+              This screen intentionally reuses the template’s split auth rhythm
+              from the `sign-up-1` family, so the login experience already feels
+              like part of the system instead of a temporary side page.
+            </Text>
+          </div>
+        </div>
+      }
       isSocialLoginActive={false}
     >
       <form className="space-y-5 lg:space-y-6" onSubmit={handleSubmit}>
@@ -90,6 +131,6 @@ export default function SignInPage() {
           Return home
         </Link>
       </Text>
-    </AuthWrapperFour>
+    </AuthWrapperSplit>
   );
 }
