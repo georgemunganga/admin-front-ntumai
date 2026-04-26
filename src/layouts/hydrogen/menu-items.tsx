@@ -37,6 +37,7 @@ export const menuItems: MenuItem[] = [
     dropdownItems: [
       { name: "Overview", href: routes.dispatch.overview },
       { name: "Live Map", href: routes.dispatch.liveMap },
+      { name: "Bookings / Trips", href: routes.sales.orders },
       { name: "Scheduled Rides", href: routes.dispatch.scheduledRides },
       { name: "Manual Dispatch", href: routes.dispatch.manualDispatch },
     ],
@@ -54,6 +55,7 @@ export const menuItems: MenuItem[] = [
       { name: "Exceptions", href: routes.logistics.exceptions },
       { name: "Zones & Geofencing", href: routes.logistics.zones },
       { name: "Service Types", href: routes.logistics.serviceTypes },
+      { name: "Pricing & Commission", href: routes.logistics.pricing },
     ],
   },
   {
@@ -79,6 +81,7 @@ export const menuItems: MenuItem[] = [
       { name: "Overview", href: routes.sales.overview },
       { name: "Orders", href: routes.sales.orders },
       { name: "Invoices", href: routes.sales.invoices },
+      { name: "Payments", href: routes.sales.payments },
       { name: "Customers", href: routes.sales.customers },
       { name: "Refunds", href: routes.sales.refunds },
       { name: "Payouts", href: routes.sales.payouts },
@@ -156,7 +159,7 @@ export const menuItems: MenuItem[] = [
       { name: "Content Management", href: routes.platform.content },
       { name: "App Version Control", href: routes.platform.appControl },
       { name: "System Health", href: routes.platform.health },
-      { name: "Admin Users", href: routes.platform.adminUsers },
+      { name: "Admin Users & Roles", href: routes.platform.adminUsers },
       { name: "Admin Activity Logs", href: routes.platform.activityLogs },
       { name: "Settings", href: routes.platform.settings },
     ],

@@ -22,6 +22,7 @@ export const routes = {
     home: "/sales/invoices",
     orders: "/sales/orders",
     invoices: "/sales/invoices",
+    payments: "/sales/payments",
     customers: "/sales/customers",
     refunds: "/sales/refunds",
     payouts: "/sales/payouts",
@@ -35,6 +36,7 @@ export const routes = {
     exceptions: "/logistics/exceptions",
     zones: "/logistics/zones-geofencing",
     serviceTypes: "/logistics/service-types",
+    pricing: "/logistics/pricing-commission",
   },
   marketplace: {
     overview: "/marketplace",

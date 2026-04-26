@@ -232,6 +232,23 @@ export const logisticsExtraPages: Record<string, ModulePageConfig> = {
       },
     ],
   },
+  "pricing-commission": {
+    eyebrow: "Operations ERP",
+    title: "Pricing & Commission",
+    description: "Configure fares, city pricing, cancellation fees, and platform commission rules.",
+    sections: [
+      {
+        title: "Pricing Controls",
+        description: "Core commercial levers used by operations and finance teams.",
+        items: ["Base Fare", "Per Km / Minute", "Surge Rules", "Cancellation Fees"],
+      },
+      {
+        title: "Commercial Rules",
+        description: "Policy layers that shape merchant or driver revenue share.",
+        items: ["Driver Commission", "City Pricing", "Promo Discounts", "Service Fees"],
+      },
+    ],
+  },
 };
 
 export const crmModulePages: Record<string, ModulePageConfig> = {
@@ -482,6 +499,27 @@ export const growthModulePages: Record<string, ModulePageConfig> = {
         title: "Automation",
         description: "Common notification automation use cases.",
         items: ["Trip Reminders", "Promo Launches", "Version Alerts", "Safety Notices"],
+      },
+    ],
+  },
+};
+
+export const salesExtraPages: Record<string, ModulePageConfig> = {
+  payments: {
+    eyebrow: "Commerce ERP",
+    title: "Payments",
+    description: "Monitor rider payments, failed charges, transfer states, and settlement risks.",
+    badge: "Finance",
+    sections: [
+      {
+        title: "Payment Operations",
+        description: "Core finance views expected in a ride or delivery admin.",
+        items: ["Successful Charges", "Failed Payments", "Chargebacks", "Bank Transfer Records"],
+      },
+      {
+        title: "Controls",
+        description: "Review and intervention actions used by finance teams.",
+        items: ["Retry Charge", "Flag Risk", "Export Report", "Escalate Gateway Issue"],
       },
     ],
   },
