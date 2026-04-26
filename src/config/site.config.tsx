@@ -8,13 +8,11 @@ enum MODE {
 }
 
 export const siteConfig = {
-  title: "Isomorphic - React Typescript Admin Dashboard Template",
-  description: `Isomorphic the ultimate React TypeScript Admin Template. Streamline your admin dashboard development with our feature-rich, responsive, and highly customizable solution. Boost productivity and create stunning admin interfaces effortlessly.`,
-  // logo: logoImg,
-  // icon: logoIconImg,
+  title: "Ntumai Admin",
+  description:
+    "Operational control center for Ntumai commerce, dispatch, support, and platform administration.",
   mode: MODE.LIGHT,
   layout: LAYOUT_OPTIONS.HYDROGEN,
-  // TODO: favicon
 };
 
 export const metaObject = (
@@ -22,19 +20,16 @@ export const metaObject = (
   openGraph?: OpenGraph,
   description: string = siteConfig.description,
 ): Metadata => {
+  const fullTitle = title ? `${title} | ${siteConfig.title}` : siteConfig.title;
+
   return {
-    title: title ? `${title} - Isomorphic Furyroad` : siteConfig.title,
+    title: fullTitle,
     description,
     openGraph: openGraph ?? {
-      title: title ? `${title} - Isomorphic Furyroad` : title,
+      title: fullTitle,
       description,
-      url: "https://isomorphic-furyroad.vercel.app",
-      siteName: "Isomorphic Furyroad", // https://developers.google.com/search/docs/appearance/site-names
-      images: {
-        url: "https://s3.amazonaws.com/redqteam.com/isomorphic-furyroad/itemdep/isobanner.png",
-        width: 1200,
-        height: 630,
-      },
+      url: "https://admin.ntumai.com",
+      siteName: "Ntumai Admin",
       locale: "en_US",
       type: "website",
     },

@@ -6,7 +6,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Title, Text, Popover, Avatar, Badge } from "rizzui";
 import cn from "@/utils/class-names";
-import { routes } from "@/config/routes";
 import { useMedia } from "@/hooks/use-media";
 import SimpleBar from "@/components/ui/simplebar";
 import { PiCheck } from "react-icons/pi";
@@ -17,79 +16,70 @@ const data = [
   {
     id: 1,
     message: `It is nice to be chatting with you. Omnis,
-        quidem non. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+        Dispatch requested support help for a payment edge case.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-01.webp",
     ],
-    name: "Wade Warren",
+    name: "Dispatch Desk",
     unRead: true,
     sendTime: "2023-06-01T09:35:31.820Z",
   },
   {
     id: 2,
-    message: ` Oh... Let's move on to something else for a bit. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Vendor ops flagged a product group that keeps failing image review.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-04.webp",
     ],
-    name: "Jane Cooper",
+    name: "Vendor Operations",
     unRead: true,
     sendTime: "2023-05-30T09:35:31.820Z",
   },
   {
     id: 3,
-    message: `You: I never received any phone calls about it. Omnis,
-        quidem non. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Support needs approval before refunding a disputed wallet payment.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-12.webp",
     ],
-    name: "Leslie Alexander",
+    name: "Customer Care",
     unRead: false,
     sendTime: "2023-06-01T09:35:31.820Z",
   },
   {
     id: 4,
-    message: `You: But you'll need to type in every possible word. Omnis,
-        quidem non. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Finance wants the admin team to confirm yesterday's fee override batch.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-07.webp",
     ],
-    name: "John Doe",
+    name: "Finance Ops",
     unRead: false,
     sendTime: "2023-05-21T09:35:31.820Z",
   },
   {
     id: 5,
-    message: `They were delighted and set to work immediately. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Growth uploaded the weekend banner set and needs a fast review pass.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-14.webp",
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-13.webp",
     ],
-    name: "Design & Frontend",
+    name: "Growth Studio",
     unRead: true,
     sendTime: "2023-06-01T09:35:31.820Z",
   },
   {
     id: 6,
-    message: `Hows going everything in our laravel project. Omnis,
-        quidem non. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Driver success is asking for a filtered onboarding queue for new riders.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-01.webp",
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-05.webp",
     ],
-    name: "Laravel",
+    name: "Driver Success",
     unRead: true,
     sendTime: "2023-05-15T09:35:31.820Z",
   },
   {
     id: 7,
 
-    name: "WordPress",
+    name: "Trust and Safety",
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-08.webp",
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-09.webp",
@@ -99,24 +89,21 @@ const data = [
   },
   {
     id: 8,
-    message: `You: which is actually pretty clever and funny, inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Merchants in one suburb are reporting stock sync gaps during lunch rush.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-11.webp",
     ],
-    name: "Jenny Doe",
+    name: "Merchant Support",
     unRead: false,
     sendTime: "2023-05-01T09:35:31.820Z",
   },
   {
     id: 9,
-    message: `You could try ELIZA bot, it was a software tween herself. Omnis,
-        quidem non. Sint inventore quasi temporibus architecto eaque,
-        natus aspernatur minus?`,
+    message: `Product wants this shell cleaned up before live CRUD wiring starts.`,
     avatar: [
       "https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-03.webp",
     ],
-    name: "Bruce Warren",
+    name: "Product Team",
     unRead: true,
     sendTime: "2023-04-01T09:35:31.820Z",
   },
@@ -130,13 +117,13 @@ function MessagesList({
   return (
     <div className="w-[320px] text-left sm:w-[360px] 2xl:w-[420px] rtl:text-right">
       <div className="mb-2 flex items-center justify-between ps-6">
-        <Title as="h5">Messages</Title>
+          <Title as="h5">Team threads</Title>
         <Link
-          href={routes.support.inbox}
+          href={"/support"}
           onClick={() => setIsOpen(false)}
           className="hover:underline"
         >
-          View all
+          Open support area
         </Link>
       </div>
       <SimpleBar className="max-h-[406px]">

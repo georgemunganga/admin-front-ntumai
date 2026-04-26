@@ -10,7 +10,7 @@ export default function HeaderMenuRight() {
     <div className="ms-auto grid shrink-0 grid-cols-3 items-center gap-2 text-gray-700 xs:gap-3 xl:gap-4">
       <MessagesDropdown>
         <ActionIcon
-          aria-label="Messages"
+          aria-label="Inbox"
           variant="text"
           className="relative h-[34px] w-[34px] shadow backdrop-blur-md md:h-9 md:w-9 dark:bg-gray-100"
         >
@@ -25,7 +25,7 @@ export default function HeaderMenuRight() {
       </MessagesDropdown>
       <NotificationDropdown>
         <ActionIcon
-          aria-label="Notification"
+          aria-label="Notifications"
           variant="text"
           className="relative h-[34px] w-[34px] shadow backdrop-blur-md md:h-9 md:w-9 dark:bg-gray-100"
         >

@@ -10,8 +10,9 @@ import GlobalModal from "@/app/shared/modal-views/container";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "App Name",
-  description: "Write your app description",
+  title: "Ntumai Admin",
+  description:
+    "Operational control center for Ntumai commerce, dispatch, support, and platform administration.",
 };
 
 export default function RootLayout({

@@ -14,17 +14,29 @@ export default function Sidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "fixed bottom-0 start-0 z-50 h-full w-[270px] border-e-2 border-gray-100 bg-white 2xl:w-72 dark:bg-gray-100/50",
+        "fixed bottom-0 start-0 z-50 h-full w-[270px] border-e border-gray-100/80 bg-[#f7f7f3] 2xl:w-72 dark:bg-gray-100/50",
         className
       )}
     >
-      <div className="sticky top-0 z-40 bg-gray-0/10 px-6 pb-5 pt-5 2xl:px-8 2xl:pt-6 dark:bg-gray-100/5">
+      <div className="sticky top-0 z-40 border-b border-gray-100/80 bg-[#f7f7f3]/95 px-6 pb-5 pt-5 backdrop-blur 2xl:px-8 2xl:pt-6 dark:bg-gray-100/5">
         <Link
           href={"/"}
           aria-label="Site Logo"
-          className="text-gray-800 hover:text-gray-900"
+          className="block text-gray-800 hover:text-gray-900"
         >
-          <Title>LOGO</Title>
+          <span className="inline-flex items-center gap-3">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-900 text-sm font-semibold uppercase tracking-[0.24em] text-white">
+              N
+            </span>
+            <span>
+              <Title as="h4" className="text-base font-semibold">
+                Ntumai Admin
+              </Title>
+              <span className="mt-1 block text-xs uppercase tracking-[0.2em] text-gray-500">
+                Control Center
+              </span>
+            </span>
+          </span>
         </Link>
       </div>
 

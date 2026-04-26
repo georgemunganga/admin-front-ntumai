@@ -22,55 +22,55 @@ dayjs.extend(relativeTime);
 const data = [
   {
     id: 1,
-    name: "Invitation for crafting engaging designs",
+    name: "Three orders crossed the late-delivery threshold",
     icon: <BrushSolidIcon />,
     unRead: true,
     sendTime: "2023-06-01T09:35:31.820Z",
   },
   {
     id: 2,
-    name: "Isomorphic dashboard redesign",
+    name: "Partner payout review requires approval",
     icon: <CubeSolidIcon />,
     unRead: true,
     sendTime: "2023-05-30T09:35:31.820Z",
   },
   {
     id: 3,
-    name: "3 New Incoming Project Files:",
+    name: "Five KYC documents entered manual review",
     icon: <FileStackIcon />,
     unRead: false,
     sendTime: "2023-06-01T09:35:31.820Z",
   },
   {
     id: 4,
-    name: "Swornak purchased isomorphic",
+    name: "Promo banner campaign is now live",
     icon: <ShoppingBagSolidIcon />,
     unRead: false,
     sendTime: "2023-05-21T09:35:31.820Z",
   },
   {
     id: 5,
-    name: "Task #45890 merged with #45890 in “Ads Pro Admin Dashboard project:",
+    name: "Driver quality queue received new fraud flags",
     icon: <CloudTaskIcon />,
     unRead: true,
     sendTime: "2023-06-01T09:35:31.820Z",
   },
   {
     id: 6,
-    name: "3 new application design concepts added",
+    name: "Catalog stock sync recovered for two vendors",
     icon: <BulbSolidIcon />,
     unRead: true,
     sendTime: "2023-05-15T09:35:31.820Z",
   },
   {
     id: 7,
-    name: "Your order has been placed",
+    name: "Support backlog dropped below daily target",
     icon: <ParcelMapIcon />,
     unRead: false,
     sendTime: "2023-05-16T09:35:31.820Z",
   },
   {
-    name: "Order has been shipped to #123221",
+    name: "Zone expansion checklist still awaiting sign-off",
     icon: <TruckSolidIcon />,
     unRead: false,
     sendTime: "2023-05-01T09:35:31.820Z",
@@ -85,8 +85,8 @@ function NotificationsList({
   return (
     <div className="w-[320px] text-left sm:w-[360px] 2xl:w-[420px] rtl:text-right">
       <div className="mb-3 flex items-center justify-between ps-6">
-        <Title as="h5">Notifications</Title>
-        <Checkbox label="Mark All As Read" />
+        <Title as="h5">Activity pulse</Title>
+        <Checkbox label="Mark all as read" />
       </div>
       <SimpleBar className="max-h-[420px]">
         <div className="grid cursor-pointer grid-cols-1 gap-1 ps-4">
@@ -131,11 +131,11 @@ function NotificationsList({
         </div>
       </SimpleBar>
       <Link
-        href={"#"}
+        href={"/settings"}
         onClick={() => setIsOpen(false)}
         className="-me-6 block px-6 pb-0.5 pt-3 text-center hover:underline"
       >
-        View All Activity
+        Open control settings
       </Link>
     </div>
   );

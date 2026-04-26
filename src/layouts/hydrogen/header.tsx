@@ -20,7 +20,7 @@ export default function Header() {
           aria-label="Site Logo"
           className="me-4 shrink-0 text-gray-800 hover:text-gray-900 lg:me-5 xl:hidden"
         >
-          <Title>LOGO</Title>
+          <Title as="h5">Ntumai</Title>
         </Link>
 
         <SearchWidget />
