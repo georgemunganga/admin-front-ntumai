@@ -38,25 +38,25 @@
 
     /* body style */
     --background: 255 255 255; /* #ffffff */
-    --foreground: 72 72 72; /* #484848 */
-    --muted: 227 227 227; /* #e3e3e3 */
-    --muted-foreground: 146 146 146; /* #929292 */
+    --foreground: 26 26 46; /* #1A1A2E */
+    --muted: 248 249 250; /* #F8F9FA */
+    --muted-foreground: 8 175 151; /* #08AF97 */
 
     /* ----------------------------------- */
     /* primary/brand colors */
     /* ----------------------------------- */
-    --primary-lighter: 227 227 227; /* #e3e3e3 */
-    --primary-default: 17 17 17; /* #111111 */
-    --primary-dark: 0 0 0; /* #000000 */
+    --primary-lighter: 221 246 242; /* soft teal tint */
+    --primary-default: 26 186 166; /* #1ABAA6 */
+    --primary-dark: 8 175 151; /* #08AF97 */
     --primary-foreground: 255 255 255; /* #ffffff */
 
     /* ----------------------------------- */
     /* secondary colors */
     /* ----------------------------------- */
-    --secondary-lighter: 221 227 255; /* #dde3ff */
-    --secondary-default: 78 54 245; /* #4e36f5 */
-    --secondary-dark: 67 42 216; /* #432ad8 */
-    --secondary-foreground: 255 255 255; /* #ffffff */
+    --secondary-lighter: 255 247 191; /* warm yellow tint */
+    --secondary-default: 255 231 55; /* #ffe737 */
+    --secondary-dark: 236 210 28; /* deeper yellow */
+    --secondary-foreground: 26 26 46; /* #1A1A2E */
 
     /* ----------------------------------- */
     /* red/error colors */
@@ -118,7 +118,7 @@
     /* For rgb(255 255 255 / <alpha-value>) = #ffffff */
     --gray-1000: 255 255 255;
 
-    --background: 8 9 14; /* #08090e */
+    --background: 26 26 46; /* #1A1A2E */
     --foreground: 223 223 223; /* #dfdfdf */
     --muted: 51 51 51; /* #333333 */
     --muted-foreground: 102 102 102; /* #666666 */
@@ -126,10 +126,10 @@
     /* ----------------------------------- */
     /* primary/brand colors */
     /* ----------------------------------- */
-    --primary-lighter: 34 34 34; /* #222222 */
-    --primary-default: 241 241 241; /* #f1f1f1 */
-    --primary-dark: 255 255 255; /* #ffffff */
-    --primary-foreground: 0 0 0; /* #000000 */
+    --primary-lighter: 4 58 50;
+    --primary-default: 26 186 166;
+    --primary-dark: 99 229 212;
+    --primary-foreground: 255 255 255;
 
     /* ----------------------------------- */
     /* secondary colors */
@@ -178,7 +178,7 @@
   }
 
   body {
-    @apply flex min-h-full flex-col overflow-x-hidden text-sm text-gray-600 dark:bg-gray-50;
+    @apply flex min-h-full flex-col overflow-x-hidden font-ubuntu text-sm text-gray-600 dark:bg-gray-50;
   }
 
   input::-ms-clear,
@@ -206,7 +206,7 @@
   h4,
   h5,
   h6 {
-    @apply font-lexend font-bold text-gray-900 dark:text-gray-700;
+    @apply font-ubuntu font-bold text-gray-900 dark:text-gray-700;
   }
 
   h1 {
@@ -365,7 +365,7 @@ select:-webkit-autofill:focus {
 /* ?React Datepicker Styling */
 /* ................................................... */
 .react-datepicker-popper .react-datepicker {
-  @apply bg-gray-0 font-inter text-gray-600 dark:border-gray-300 dark:bg-gray-100;
+  @apply bg-gray-0 font-ubuntu text-gray-600 dark:border-gray-300 dark:bg-gray-100;
 }
 
 /* month container */
@@ -392,7 +392,7 @@ select:-webkit-autofill:focus {
 
 /* header */
 .react-datepicker .react-datepicker__header {
-  @apply border-b-gray-0 bg-gray-0 font-lexend dark:border-transparent dark:bg-gray-100;
+  @apply border-b-gray-0 bg-gray-0 font-ubuntu dark:border-transparent dark:bg-gray-100;
 }
 
 /* current month name in header */
@@ -904,7 +904,7 @@ td.rc-table-cell-fix-right {
 }
 
 .react-quill .ql-container {
-  @apply font-inter;
+  @apply font-ubuntu;
 }
 
 .react-quill .ql-container.ql-snow {
@@ -1118,7 +1118,7 @@ div[style="z-index: 1000001;"],
 }
 
 .pac-item {
-  @apply px-3 py-1.5 font-inter;
+  @apply px-3 py-1.5 font-ubuntu;
 }
 
 /* google location search auto complete  */
@@ -1272,7 +1272,7 @@ div[style="z-index: 1000001;"],
 }
 
 .rbc-toolbar-label {
-  @apply font-lexend text-xl font-medium text-gray-900 dark:text-white;
+  @apply font-ubuntu text-xl font-medium text-gray-900 dark:text-white;
 }
 
 .rbc-agenda-view {
@@ -1399,13 +1399,13 @@ div[style="z-index: 1000001;"],
   @apply mb-0;
 }
 .job-schedule-calendar .react-calendar__month-view__weekdays > div {
-  @apply mb-0 border border-r-0 border-gray-200 bg-gray-50 py-4 font-inter first:border-l-0;
+  @apply mb-0 border border-r-0 border-gray-200 bg-gray-50 py-4 font-ubuntu first:border-l-0;
 }
 .job-schedule-calendar .react-calendar__month-view__days {
   @apply !grid !grid-cols-7 gap-0;
 }
 .job-schedule-calendar .react-calendar__month-view__days > button {
-  @apply h-full !w-full rounded-none border border-s-0 border-t-0 border-solid border-gray-200 px-0 py-4 font-inter dark:hover:!bg-gray-100 dark:focus:!bg-gray-100 [&:nth-child(7n)]:border-r-0;
+  @apply h-full !w-full rounded-none border border-s-0 border-t-0 border-solid border-gray-200 px-0 py-4 font-ubuntu dark:hover:!bg-gray-100 dark:focus:!bg-gray-100 [&:nth-child(7n)]:border-r-0;
 }
 .job-schedule-calendar button.react-calendar__tile--active,
 .job-schedule-calendar button.react-calendar__tile--hasActive,

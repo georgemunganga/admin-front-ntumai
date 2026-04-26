@@ -72,8 +72,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        inter: ["var(--font-inter)"],
-        lexend: ["var(--font-lexend)"],
+        ubuntu: ["var(--font-ubuntu)"],
+        inter: ["var(--font-ubuntu)"],
+        lexend: ["var(--font-ubuntu)"],
       },
     },
   },

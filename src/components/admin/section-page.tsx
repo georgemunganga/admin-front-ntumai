@@ -53,10 +53,12 @@ export default function SectionPage({
         badge={badge}
         action={
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" className="rounded-full px-4">
+            <Button variant="outline" className="h-11 rounded-2xl border-2 border-primary px-5 font-semibold text-primary">
               Export snapshot
             </Button>
-            <Button className="rounded-full px-4">Create workflow</Button>
+            <Button className="h-11 rounded-2xl bg-primary px-5 font-semibold text-white">
+              Create workflow
+            </Button>
           </div>
         }
       />
@@ -119,7 +121,7 @@ export default function SectionPage({
         action={
           <Badge
             variant="flat"
-            className="rounded-full bg-blue-lighter/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-dark"
+            className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary"
           >
             UI first
           </Badge>

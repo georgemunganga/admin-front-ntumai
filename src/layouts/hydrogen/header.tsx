@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import HamburgerButton from "@/layouts/hamburger-button";
 import SearchWidget from "@/components/search/search";
@@ -20,7 +21,14 @@ export default function Header() {
           aria-label="Site Logo"
           className="me-4 shrink-0 text-gray-800 hover:text-gray-900 lg:me-5 xl:hidden"
         >
-          <Title as="h5">Ntumai</Title>
+          <Image
+            src="/brand/ntumai-logo-dark.png"
+            alt="Ntumai"
+            width={132}
+            height={38}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
 
         <SearchWidget />

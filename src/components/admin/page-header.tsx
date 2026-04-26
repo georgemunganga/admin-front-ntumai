@@ -32,7 +32,7 @@ export default function PageHeader({
           {badge ? (
             <Badge
               variant="flat"
-              className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary"
+              className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary"
             >
               {badge}
             </Badge>

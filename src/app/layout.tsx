@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { inter, lexendDeca } from "@/app/fonts";
+import { ubuntu } from "@/app/fonts";
 import cn from "@/utils/class-names";
 import NextProgress from "@/components/next-progress";
 import { ThemeProvider, JotaiProvider } from "@/app/shared/theme-provider";
@@ -29,7 +29,7 @@ export default function RootLayout({
       <body
         // to prevent any warning that is caused by third party extensions like Grammarly
         suppressHydrationWarning
-        className={cn(inter.variable, lexendDeca.variable, "font-inter")}
+        className={cn(ubuntu.variable, "font-ubuntu")}
       >
         <ThemeProvider>
           <NextProgress />

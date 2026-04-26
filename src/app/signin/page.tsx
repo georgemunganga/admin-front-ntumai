@@ -7,7 +7,14 @@ import { Button, Checkbox, Input, Password, Text, Title } from "rizzui";
 import { useMedia } from "@/hooks/use-media";
 import { useAuth } from "@/components/auth/auth-provider";
 import AuthWrapperSplit from "@/components/auth/auth-wrapper-split";
-import { PiShieldCheckeredDuotone } from "react-icons/pi";
+import {
+  PiArrowBendUpRightBold,
+  PiMapPinLineDuotone,
+  PiShieldCheckeredDuotone,
+  PiTruckDuotone,
+  PiUsersThreeDuotone,
+  PiWarningCircleDuotone,
+} from "react-icons/pi";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -36,47 +43,124 @@ export default function SignInPage() {
     <AuthWrapperSplit
       title={
         <>
-          Welcome back. Sign in to continue running the admin workspace.
+          Welcome back. Sign in to run Ntumai delivery operations.
         </>
       }
-      description="By signing in, you return to the exact area you were working on, with the current UI-first admin structure preserved until real backend auth is wired."
-      bannerTitle="The simplest way to manage your workspace."
-      bannerDescription="Use one control surface for operations, support, catalog, growth, and dispatch review without losing context between sessions."
+      description="Return to the exact page you were working on and keep managing orders, couriers, vendors, dispatch pressure, and support escalations from one control surface."
+      bannerTitle="A modern operations desk for on-demand deliveries."
+      bannerDescription="Ntumai behaves more like a DoorDash or Uber-style delivery network, so the admin experience should feel like live city operations, not a generic back office."
       pageImage={
-        <div className="mx-auto grid max-w-2xl gap-5 md:grid-cols-2">
-          <div className="rounded-[28px] border border-white/40 bg-white/70 p-6 text-left shadow-sm shadow-gray-200/50">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-900 text-white">
-              <PiShieldCheckeredDuotone className="h-5 w-5" />
+        <div className="mx-auto grid max-w-2xl gap-5">
+          <div className="rounded-[30px] bg-gray-900 p-6 text-left text-white shadow-sm shadow-gray-300/30">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">
+                  Live dispatch pulse
+                </Text>
+                <Title as="h3" className="mt-4 text-3xl font-semibold text-white">
+                  214 active deliveries
+                </Title>
+              </div>
+              <span className="inline-flex items-center rounded-2xl bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white/75">
+                Lusaka live
+              </span>
             </div>
-            <Title as="h3" className="mt-5 text-2xl font-semibold">
-              Resume instantly
-            </Title>
-            <Text className="mt-3 text-sm leading-7 text-gray-600">
-              Sign back in and continue from the exact path you were handling:
-              orders, dispatch, support, vendors, or settings.
-            </Text>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-[22px] border border-white/10 bg-white/10 p-4">
+                <PiTruckDuotone className="h-5 w-5 text-white/75" />
+                <Text className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
+                  Drivers online
+                </Text>
+                <Title as="h4" className="mt-2 text-2xl font-semibold text-white">
+                  326
+                </Title>
+              </div>
+              <div className="rounded-[22px] border border-white/10 bg-white/10 p-4">
+                <PiWarningCircleDuotone className="h-5 w-5 text-white/75" />
+                <Text className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
+                  Delayed orders
+                </Text>
+                <Title as="h4" className="mt-2 text-2xl font-semibold text-white">
+                  18
+                </Title>
+              </div>
+              <div className="rounded-[22px] border border-white/10 bg-white/10 p-4">
+                <PiUsersThreeDuotone className="h-5 w-5 text-white/75" />
+                <Text className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
+                  Support queue
+                </Text>
+                <Title as="h4" className="mt-2 text-2xl font-semibold text-white">
+                  41
+                </Title>
+              </div>
+            </div>
           </div>
-          <div className="rounded-[28px] bg-gray-900 p-6 text-left text-white shadow-sm shadow-gray-300/30">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">
-              Current destination
-            </Text>
-            <Title as="h3" className="mt-5 text-2xl font-semibold text-white">
-              {next}
-            </Title>
-            <Text className="mt-3 text-sm leading-7 text-white/70">
-              The auth shell stores your last working page and restores that path
-              immediately after sign-in.
-            </Text>
-          </div>
-          <div className="rounded-[28px] bg-[#d8e4dc] p-6 text-left md:col-span-2">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-              Why this layout
-            </Text>
-            <Text className="mt-3 text-sm leading-7 text-gray-700">
-              This screen intentionally reuses the template’s split auth rhythm
-              from the `sign-up-1` family, so the login experience already feels
-              like part of the system instead of a temporary side page.
-            </Text>
+
+          <div className="grid gap-5 md:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-[28px] border border-white/40 bg-white/75 p-6 text-left shadow-sm shadow-gray-200/50">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#dde6de] text-gray-900">
+                  <PiMapPinLineDuotone className="h-5 w-5" />
+                </span>
+                <div>
+                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    Zone health
+                  </Text>
+                  <Title as="h3" className="mt-1 text-xl font-semibold">
+                    City operations overview
+                  </Title>
+                </div>
+              </div>
+              <div className="mt-5 space-y-3">
+                {[
+                  ["Lusaka Central", "Healthy load", "82 active drops"],
+                  ["Woodlands", "Driver pressure", "6 deliveries at risk"],
+                  ["Roma", "Stable handoff", "34 live errands"],
+                ].map(([zone, status, volume]) => (
+                  <div
+                    key={zone}
+                    className="flex items-center justify-between rounded-[20px] border border-gray-100 bg-[#f7f4ee] px-4 py-3"
+                  >
+                    <div>
+                      <Text className="font-semibold text-gray-900">{zone}</Text>
+                      <Text className="mt-1 text-sm text-gray-500">{volume}</Text>
+                    </div>
+                    <span className="rounded-2xl bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-gray-600">
+                      {status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] bg-[#d8e4dc] p-6 text-left">
+              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                Resume target
+              </Text>
+              <Title as="h3" className="mt-4 text-2xl font-semibold text-gray-900">
+                {next}
+              </Title>
+              <Text className="mt-3 text-sm leading-7 text-gray-700">
+                Once you sign in, the admin shell returns you straight to the
+                route you were handling.
+              </Text>
+              <div className="mt-6 rounded-[22px] border border-white/50 bg-white/55 p-4">
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gray-900 text-white">
+                    <PiArrowBendUpRightBold className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <Text className="font-semibold text-gray-900">
+                      Continue without losing context
+                    </Text>
+                    <Text className="mt-1 text-sm leading-6 text-gray-600">
+                      Orders, couriers, partners, and support views stay part of
+                      the same flow.
+                    </Text>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       }
@@ -113,7 +197,7 @@ export default function SignInPage() {
         </div>
 
         <Button
-          className="w-full"
+          className="h-11 w-full rounded-2xl !bg-primary !text-white font-semibold"
           type="submit"
           size={isMedium ? "lg" : "xl"}
           isLoading={isSubmitting}
@@ -121,16 +205,6 @@ export default function SignInPage() {
           Sign In
         </Button>
       </form>
-
-      <Text className="mt-6 text-center text-[15px] leading-loose text-gray-500 md:mt-7 lg:mt-9 lg:text-base">
-        Access is provisioned by platform admins.{" "}
-        <Link
-          href="/"
-          className="font-semibold text-gray-700 transition-colors hover:text-primary"
-        >
-          Return home
-        </Link>
-      </Text>
     </AuthWrapperSplit>
   );
 }

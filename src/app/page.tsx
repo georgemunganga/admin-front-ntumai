@@ -22,10 +22,12 @@ export default function Home() {
         badge="UI baseline"
         action={
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" className="rounded-full px-4">
+            <Button variant="outline" className="h-11 rounded-2xl border-2 border-primary px-5 font-semibold text-primary">
               Review sections
             </Button>
-            <Button className="rounded-full px-4">Plan next CRUD pass</Button>
+            <Button className="h-11 rounded-2xl bg-primary px-5 font-semibold text-white">
+              Plan next CRUD pass
+            </Button>
           </div>
         }
       />
@@ -53,7 +55,7 @@ export default function Home() {
                   </Title>
                   <Badge
                     variant="flat"
-                    className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-600"
+                    className="rounded-2xl bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary"
                   >
                     {room.metric}
                   </Badge>
@@ -141,7 +143,7 @@ export default function Home() {
                 key={point}
                 className="flex gap-4 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4"
               >
-                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
+                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-white">
                   {index + 1}
                 </span>
                 <Text className="text-sm leading-7 text-gray-600">{point}</Text>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { usePathname } from "next/navigation";
@@ -24,18 +25,16 @@ export default function Sidebar({ className }: { className?: string }) {
           aria-label="Site Logo"
           className="block text-gray-800 hover:text-gray-900"
         >
-          <span className="inline-flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-900 text-sm font-semibold uppercase tracking-[0.24em] text-white">
-              N
-            </span>
-            <span>
-              <Title as="h4" className="text-base font-semibold">
-                Ntumai Admin
-              </Title>
-              <span className="mt-1 block text-xs uppercase tracking-[0.2em] text-gray-500">
-                Control Center
-              </span>
-            </span>
+          <Image
+            src="/brand/ntumai-logo-dark.png"
+            alt="Ntumai Admin"
+            width={164}
+            height={48}
+            className="h-11 w-auto"
+            priority
+          />
+          <span className="mt-2 block text-xs uppercase tracking-[0.2em] text-gray-500">
+            Control Center
           </span>
         </Link>
       </div>
