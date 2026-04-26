@@ -405,6 +405,114 @@ export const fleetRows = [
   },
 ];
 
+export const fleetDriverRows = [
+  {
+    primary: "Top-performing couriers",
+    secondary: "Drivers with strong completion and acceptance this week",
+    tertiary: "Performance desk",
+    status: "live",
+  },
+  {
+    primary: "Low-activity drivers",
+    secondary: "Supply accounts drifting offline during peak demand windows",
+    tertiary: "Driver success",
+    status: "monitoring",
+  },
+  {
+    primary: "Quality coaching list",
+    secondary: "Drivers with repeat complaints or falling service scores",
+    tertiary: "Fleet ops",
+    status: "review",
+  },
+  {
+    primary: "Suspended driver queue",
+    secondary: "Accounts waiting for final trust or compliance decisions",
+    tertiary: "Risk control",
+    status: "queued",
+  },
+];
+
+export const fleetApplicationRows = [
+  {
+    primary: "New driver applications",
+    secondary: "Fresh applicants waiting for first onboarding review",
+    tertiary: "Onboarding desk",
+    status: "review",
+  },
+  {
+    primary: "Vehicle inspection holds",
+    secondary: "Applicants blocked on asset verification before activation",
+    tertiary: "Fleet care",
+    status: "monitoring",
+  },
+  {
+    primary: "Interview-ready cohort",
+    secondary: "Candidates cleared for the next human approval step",
+    tertiary: "Driver success",
+    status: "stable",
+  },
+  {
+    primary: "Rejected appeals",
+    secondary: "Applicants requesting a second look after denial",
+    tertiary: "Compliance",
+    status: "queued",
+  },
+];
+
+export const fleetDocumentRows = [
+  {
+    primary: "License expiry alerts",
+    secondary: "Driver documents reaching the seven-day warning threshold",
+    tertiary: "Compliance queue",
+    status: "monitoring",
+  },
+  {
+    primary: "Insurance renewal batch",
+    secondary: "Vehicle policies awaiting upload and validation",
+    tertiary: "Fleet care",
+    status: "review",
+  },
+  {
+    primary: "Inspection backlog",
+    secondary: "Physical checks still pending before reactivation",
+    tertiary: "Ops control",
+    status: "queued",
+  },
+  {
+    primary: "Auto-suspend candidates",
+    secondary: "Accounts approaching document expiry without action",
+    tertiary: "Governance",
+    status: "at_risk",
+  },
+];
+
+export const fleetVehicleRows = [
+  {
+    primary: "Maintenance due vehicles",
+    secondary: "Fleet assets nearing service or inspection thresholds",
+    tertiary: "Asset ops",
+    status: "monitoring",
+  },
+  {
+    primary: "Unassigned reserve vehicles",
+    secondary: "Available assets ready for onboarding or supply recovery",
+    tertiary: "Fleet desk",
+    status: "stable",
+  },
+  {
+    primary: "Damage review queue",
+    secondary: "Reported incidents waiting for inspection and downtime decisions",
+    tertiary: "Safety team",
+    status: "review",
+  },
+  {
+    primary: "Vehicle retirement list",
+    secondary: "Assets with repeated reliability or compliance issues",
+    tertiary: "Fleet strategy",
+    status: "queued",
+  },
+];
+
 export const crmRows = [
   {
     primary: "VIP rider retention list",
