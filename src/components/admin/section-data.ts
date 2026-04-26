@@ -540,6 +540,87 @@ export const crmRows = [
   },
 ];
 
+export const crmRiderRows = [
+  {
+    primary: "VIP rider watchlist",
+    secondary: "High-value customers showing lower repeat activity or rising complaints",
+    tertiary: "CRM desk",
+    status: "monitoring",
+  },
+  {
+    primary: "Refund-heavy accounts",
+    secondary: "Riders with repeated service recovery or wallet adjustments",
+    tertiary: "Finance support",
+    status: "review",
+  },
+  {
+    primary: "Lifecycle reactivation pool",
+    secondary: "Dormant users selected for win-back and promo targeting",
+    tertiary: "Growth CRM",
+    status: "stable",
+  },
+  {
+    primary: "Flagged rider profiles",
+    secondary: "Accounts needing trust or fraud review before normal treatment",
+    tertiary: "Trust desk",
+    status: "queued",
+  },
+];
+
+export const crmCorporateRows = [
+  {
+    primary: "Monthly billing reviews",
+    secondary: "Corporate accounts waiting for invoice sign-off or clarification",
+    tertiary: "B2B finance",
+    status: "review",
+  },
+  {
+    primary: "Department ride limits",
+    secondary: "Usage caps under revision after overspend on several teams",
+    tertiary: "Account success",
+    status: "monitoring",
+  },
+  {
+    primary: "New company onboarding",
+    secondary: "Business clients moving through setup and employee allocation",
+    tertiary: "Enterprise desk",
+    status: "stable",
+  },
+  {
+    primary: "Policy exception requests",
+    secondary: "Companies asking for special approvals on travel or spend rules",
+    tertiary: "B2B ops",
+    status: "queued",
+  },
+];
+
+export const crmWalletRows = [
+  {
+    primary: "Manual credit queue",
+    secondary: "Wallet adjustments waiting for support and finance confirmation",
+    tertiary: "Wallet ops",
+    status: "review",
+  },
+  {
+    primary: "Failed reversal cases",
+    secondary: "Customer balances not updated after payment-side refund attempts",
+    tertiary: "Finance support",
+    status: "monitoring",
+  },
+  {
+    primary: "Promo wallet grants",
+    secondary: "Incentive credits staged for campaign-based activation",
+    tertiary: "Growth systems",
+    status: "stable",
+  },
+  {
+    primary: "Abuse investigation holds",
+    secondary: "Wallet accounts frozen pending fraud and promo-abuse checks",
+    tertiary: "Risk desk",
+    status: "queued",
+  },
+];
+
 export const riskRows = [
   {
     primary: "Fraud trip investigation",
