@@ -270,6 +270,141 @@ export const supportRows = [
   },
 ];
 
+export const dispatchRows = [
+  {
+    primary: "Unassigned live bookings",
+    secondary: "Trips waiting beyond assignment threshold",
+    tertiary: "Dispatch pod",
+    status: "at_risk",
+  },
+  {
+    primary: "Scheduled airport runs",
+    secondary: "Advance bookings needing final driver lock",
+    tertiary: "Planning desk",
+    status: "review",
+  },
+  {
+    primary: "Manual reassignments",
+    secondary: "Trips overridden by operators in the last hour",
+    tertiary: "Ops control",
+    status: "live",
+  },
+  {
+    primary: "Zone demand spikes",
+    secondary: "Heat clusters above supply in two corridors",
+    tertiary: "Realtime desk",
+    status: "monitoring",
+  },
+];
+
+export const fleetRows = [
+  {
+    primary: "Pending driver applications",
+    secondary: "New riders waiting for approval workflow",
+    tertiary: "Onboarding team",
+    status: "review",
+  },
+  {
+    primary: "Expiring driver documents",
+    secondary: "Licenses and insurance due within 7 days",
+    tertiary: "Compliance queue",
+    status: "monitoring",
+  },
+  {
+    primary: "Vehicle inspection holds",
+    secondary: "Assets blocked from supply until cleared",
+    tertiary: "Fleet care",
+    status: "queued",
+  },
+  {
+    primary: "Incentive campaign cohort",
+    secondary: "Drivers currently on peak-hour reward program",
+    tertiary: "Supply growth",
+    status: "live",
+  },
+];
+
+export const crmRows = [
+  {
+    primary: "VIP rider retention list",
+    secondary: "High-value users with recent drop in activity",
+    tertiary: "CRM team",
+    status: "monitoring",
+  },
+  {
+    primary: "Corporate account billing review",
+    secondary: "Monthly invoice and department limit checks",
+    tertiary: "B2B desk",
+    status: "review",
+  },
+  {
+    primary: "Wallet adjustment queue",
+    secondary: "Manual credits and debits awaiting confirmation",
+    tertiary: "Finance support",
+    status: "queued",
+  },
+  {
+    primary: "Blocked user appeals",
+    secondary: "Accounts requesting reinstatement after restriction",
+    tertiary: "Trust team",
+    status: "stable",
+  },
+];
+
+export const riskRows = [
+  {
+    primary: "Fraud trip investigation",
+    secondary: "Suspicious GPS and payment mismatch patterns",
+    tertiary: "Risk desk",
+    status: "at_risk",
+  },
+  {
+    primary: "SOS incident follow-ups",
+    secondary: "Open safety cases needing operator closure",
+    tertiary: "Safety ops",
+    status: "review",
+  },
+  {
+    primary: "KYC compliance queue",
+    secondary: "Pending merchant and driver verification reviews",
+    tertiary: "Compliance team",
+    status: "queued",
+  },
+  {
+    primary: "Promo abuse watchlist",
+    secondary: "Accounts linked to repeated incentive misuse",
+    tertiary: "Fraud systems",
+    status: "monitoring",
+  },
+];
+
+export const platformRows = [
+  {
+    primary: "Weekly revenue reporting pack",
+    secondary: "Leadership dashboards and export checks",
+    tertiary: "BI desk",
+    status: "stable",
+  },
+  {
+    primary: "App version control release",
+    secondary: "Minimum version and force-update planning",
+    tertiary: "Platform ops",
+    status: "review",
+  },
+  {
+    primary: "Admin role audit",
+    secondary: "Permission review for recent staff changes",
+    tertiary: "Security",
+    status: "monitoring",
+  },
+  {
+    primary: "Gateway health alerts",
+    secondary: "Payment and SMS provider latency spikes",
+    tertiary: "Infra control",
+    status: "queued",
+  },
+];
+
 export const settingsRows = [
   {
     primary: "Fees and commissions",
