@@ -7,13 +7,17 @@ export const routes = {
     customers: "/sales/customers",
     refunds: "/sales/refunds",
   },
-  operations: {
-    deliveries: "/deliveries",
-    drivers: "/drivers",
+  logistics: {
+    home: "/logistics",
+    shipments: "/logistics/shipments",
+    tracking: "/logistics/tracking",
+    drivers: "/logistics/drivers",
   },
-  commerce: {
-    catalog: "/catalog",
-    vendors: "/vendors",
+  marketplace: {
+    home: "/marketplace",
+    products: "/marketplace/products",
+    vendors: "/marketplace/vendors",
+    categories: "/marketplace/categories",
   },
   supportDesk: {
     home: "/support/inbox",

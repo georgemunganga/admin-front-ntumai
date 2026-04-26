@@ -1,14 +1,12 @@
 import { routes } from "@/config/routes";
 import {
-  PiArrowsSplitDuotone,
   PiChartLineUpDuotone,
   PiChatsCircleDuotone,
   PiGearSixDuotone,
   PiHouseLineDuotone,
-  PiPackageDuotone,
+  PiMapTrifoldDuotone,
   PiReceiptDuotone,
-  PiStorefrontDuotone,
-  PiTruckDuotone,
+  PiStackDuotone,
 } from "react-icons/pi";
 
 type MenuItem = {
@@ -40,25 +38,26 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
-    name: "Catalog",
-    href: routes.commerce.catalog,
-    icon: <PiPackageDuotone />,
-  },
-  {
-    name: "Partners",
-    href: routes.commerce.vendors,
-    icon: <PiStorefrontDuotone />,
+    name: "Marketplace",
+    href: routes.marketplace.home,
+    icon: <PiStackDuotone />,
+    dropdownItems: [
+      { name: "Products", href: routes.marketplace.products },
+      { name: "Vendors", href: routes.marketplace.vendors },
+      { name: "Categories", href: routes.marketplace.categories },
+    ],
   },
   { name: "Operations" },
   {
-    name: "Deliveries",
-    href: routes.operations.deliveries,
-    icon: <PiTruckDuotone />,
-  },
-  {
-    name: "Drivers",
-    href: routes.operations.drivers,
-    icon: <PiArrowsSplitDuotone />,
+    name: "Logistics",
+    href: routes.logistics.home,
+    icon: <PiMapTrifoldDuotone />,
+    badge: "OPS",
+    dropdownItems: [
+      { name: "Shipments", href: routes.logistics.shipments },
+      { name: "Tracking", href: routes.logistics.tracking },
+      { name: "Drivers", href: routes.logistics.drivers },
+    ],
   },
   { name: "Service" },
   {

@@ -59,9 +59,9 @@ export default function Sidebar({ className }: { className?: string }) {
                           <div
                             onClick={toggle}
                             className={cn(
-                              "group relative mx-3 flex cursor-pointer items-center justify-between rounded-md px-3 py-2 font-medium lg:my-1 2xl:mx-5 2xl:my-2",
+                              "group relative mx-3 flex cursor-pointer items-center justify-between rounded-2xl px-3 py-2.5 font-medium lg:my-1 2xl:mx-5 2xl:my-2",
                               isDropdownOpen
-                                ? "before:top-2/5 text-primary before:absolute before:-start-3 before:block before:h-4/5 before:w-1 before:rounded-ee-md before:rounded-se-md before:bg-primary 2xl:before:-start-5"
+                                ? "bg-primary text-white shadow-sm shadow-primary/20"
                                 : "text-gray-700 transition-colors duration-200 hover:bg-gray-100 dark:text-gray-700/90 dark:hover:text-gray-700"
                             )}
                           >
@@ -71,7 +71,7 @@ export default function Sidebar({ className }: { className?: string }) {
                                   className={cn(
                                     "me-2 inline-flex h-5 w-5 items-center justify-center rounded-md [&>svg]:h-[20px] [&>svg]:w-[20px]",
                                     isDropdownOpen
-                                      ? "text-primary"
+                                      ? "text-white"
                                       : "text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-700"
                                   )}
                                 >
@@ -85,6 +85,7 @@ export default function Sidebar({ className }: { className?: string }) {
                               strokeWidth={3}
                               className={cn(
                                 "h-3.5 w-3.5 -rotate-90 text-gray-500 transition-transform duration-200 rtl:rotate-90",
+                                isDropdownOpen && "text-white/80",
                                 open && "rotate-0 rtl:rotate-0"
                               )}
                             />
@@ -100,9 +101,9 @@ export default function Sidebar({ className }: { className?: string }) {
                               href={dropdownItem?.href}
                               key={dropdownItem?.name + index}
                               className={cn(
-                                "mx-3.5 mb-0.5 flex items-center justify-between rounded-md px-3.5 py-2 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-5",
+                                "mx-3.5 mb-0.5 flex items-center justify-between rounded-2xl px-3.5 py-2.5 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-5",
                                 isChildActive
-                                  ? "text-primary"
+                                  ? "bg-primary/10 text-primary"
                                   : "text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900"
                               )}
                             >
@@ -127,9 +128,9 @@ export default function Sidebar({ className }: { className?: string }) {
                       <Link
                         href={item?.href}
                         className={cn(
-                          "group relative mx-3 my-0.5 flex items-center justify-between rounded-md px-3 py-2 font-medium capitalize lg:my-1 2xl:mx-5 2xl:my-2",
+                          "group relative mx-3 my-0.5 flex items-center justify-between rounded-2xl px-3 py-2.5 font-medium capitalize lg:my-1 2xl:mx-5 2xl:my-2",
                           isActive
-                            ? "before:top-2/5 text-primary before:absolute before:-start-3 before:block before:h-4/5 before:w-1 before:rounded-ee-md before:rounded-se-md before:bg-primary 2xl:before:-start-5"
+                            ? "bg-primary text-white shadow-sm shadow-primary/20"
                             : "text-gray-700 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-700/90"
                         )}
                       >
@@ -139,7 +140,7 @@ export default function Sidebar({ className }: { className?: string }) {
                               className={cn(
                                 "me-2 inline-flex h-5 w-5 items-center justify-center rounded-md [&>svg]:h-[20px] [&>svg]:w-[20px]",
                                 isActive
-                                  ? "text-primary"
+                                  ? "text-white"
                                   : "text-gray-800 dark:text-gray-500 dark:group-hover:text-gray-700"
                               )}
                             >
@@ -149,7 +150,10 @@ export default function Sidebar({ className }: { className?: string }) {
                           <span className="truncate">{item.name}</span>
                         </div>
                         {item?.badge ? (
-                          <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+                          <span className={cn(
+                            "rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
+                            isActive ? "bg-white/15 text-white" : "bg-primary/10 text-primary"
+                          )}>
                             {item.badge}
                           </span>
                         ) : null}

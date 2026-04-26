@@ -16,6 +16,42 @@ export type CrudPageConfig = {
 };
 
 export const crudPages: Record<string, CrudPageConfig> = {
+  logisticsDrivers: {
+    title: "Drivers",
+    breadcrumb: ["Home", "Logistics", "Drivers"],
+    searchPlaceholder: "Search drivers...",
+    rows: [
+      { id: "DRV-511", primary: "Onboarding cohort April B", secondary: "12 document checks", tertiary: "New riders", status: "review", owner: "Driver success", updatedAt: "Apr 26, 09:03" },
+      { id: "DRV-510", primary: "Top-performing couriers", secondary: "97% completion", tertiary: "Performance", status: "live", owner: "Operations", updatedAt: "Apr 26, 08:45" },
+      { id: "DRV-509", primary: "Low-battery sessions", secondary: "Offline risk", tertiary: "Realtime ops", status: "monitoring", owner: "Fleet desk", updatedAt: "Apr 26, 08:25" },
+      { id: "DRV-508", primary: "Suspended accounts", secondary: "Fraud flags", tertiary: "Risk", status: "queued", owner: "Risk control", updatedAt: "Apr 26, 08:02" },
+      { id: "DRV-507", primary: "Verified riders", secondary: "Ready for dispatch", tertiary: "Activation", status: "stable", owner: "Onboarding", updatedAt: "Apr 26, 07:41" },
+    ],
+  },
+  marketplaceVendors: {
+    title: "Vendors",
+    breadcrumb: ["Home", "Marketplace", "Vendors"],
+    searchPlaceholder: "Search vendors...",
+    rows: [
+      { id: "VEN-144", primary: "Green Basket Market", secondary: "Catalog freshness", tertiary: "Grocery", status: "stable", owner: "Vendor growth", updatedAt: "Apr 26, 09:01" },
+      { id: "VEN-143", primary: "CityCare Pharmacy", secondary: "License expiry", tertiary: "Pharmacy", status: "monitoring", owner: "Compliance", updatedAt: "Apr 26, 08:47" },
+      { id: "VEN-142", primary: "HomeBox Supplies", secondary: "Reject spike", tertiary: "Retail", status: "at_risk", owner: "Partner ops", updatedAt: "Apr 26, 08:14" },
+      { id: "VEN-141", primary: "QuickBite Kitchens", secondary: "Menu asset refresh", tertiary: "Food", status: "review", owner: "Content ops", updatedAt: "Apr 26, 07:59" },
+      { id: "VEN-140", primary: "FreshHub", secondary: "Healthy order rate", tertiary: "Produce", status: "live", owner: "Growth", updatedAt: "Apr 26, 07:36" },
+    ],
+  },
+  marketplaceCategories: {
+    title: "Categories",
+    breadcrumb: ["Home", "Marketplace", "Categories"],
+    searchPlaceholder: "Search categories...",
+    rows: [
+      { id: "CAT-201", primary: "Fresh produce collection", secondary: "22 SKUs hidden", tertiary: "Groceries", status: "review", owner: "Merchandising", updatedAt: "Apr 26, 09:05" },
+      { id: "CAT-200", primary: "Household essentials", secondary: "Promo ends today", tertiary: "Home care", status: "live", owner: "Growth", updatedAt: "Apr 26, 08:42" },
+      { id: "CAT-199", primary: "Pharmacy category", secondary: "Restricted items", tertiary: "Health", status: "monitoring", owner: "Compliance", updatedAt: "Apr 26, 08:16" },
+      { id: "CAT-198", primary: "Electronics", secondary: "Image cleanup", tertiary: "Accessories", status: "queued", owner: "Content ops", updatedAt: "Apr 26, 07:58" },
+      { id: "CAT-197", primary: "Quick meals", secondary: "Menu refresh", tertiary: "Food", status: "stable", owner: "Partner ops", updatedAt: "Apr 26, 07:42" },
+    ],
+  },
   salesOrders: {
     title: "Orders",
     breadcrumb: ["Home", "Sales", "Orders"],

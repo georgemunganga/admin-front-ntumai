@@ -1,6 +1,6 @@
-import PinningListPage from "@/components/crud/pinning-list-page";
-import { crudPages } from "@/components/crud/crud-data";
+import { redirect } from "next/navigation";
+import { routes } from "@/config/routes";
 
 export default function DriversPage() {
-  return <PinningListPage {...crudPages.drivers} />;
+  redirect(routes.logistics.drivers);
 }
