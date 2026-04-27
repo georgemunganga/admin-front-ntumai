@@ -66,6 +66,7 @@ const rows = [
 export default function LogisticsPricingCommissionPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Logistics", "Pricing & Commission"]}
       eyebrow="Logistics Kit"
       title="Pricing and Commission"
       description="Configure operational pricing, fee overrides, and revenue-share rules for the delivery network."

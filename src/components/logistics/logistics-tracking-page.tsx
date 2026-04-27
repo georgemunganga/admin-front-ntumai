@@ -19,6 +19,7 @@ export default function LogisticsTrackingPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Logistics", "Tracking"]}
         eyebrow="Logistics Kit"
         title="Live Tracking"
         description="Monitor route health, handoff exceptions, and recovery actions across active delivery zones."

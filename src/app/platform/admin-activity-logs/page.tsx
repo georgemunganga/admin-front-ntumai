@@ -3,6 +3,7 @@ import SectionPage from "@/components/admin/section-page";
 export default function PlatformAdminActivityLogsPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Platform", "Admin Activity Logs"]}
       eyebrow="Platform"
       title="Admin activity logs"
       description="Review sensitive changes, operational overrides, and governance-critical actions across the admin surface."

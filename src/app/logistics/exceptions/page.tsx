@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function LogisticsExceptionsPage() {
   return (
     <LogisticsEntityListPage
+      breadcrumb={["Home", "Logistics", "Exceptions"]}
       eyebrow="Logistics Kit"
       title="Exceptions"
       description="Handle recovery actions, delayed handoffs, and route breakage from one exception operations list."

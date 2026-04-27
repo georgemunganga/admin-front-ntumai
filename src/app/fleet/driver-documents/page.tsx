@@ -12,6 +12,7 @@ export default function FleetDriverDocumentsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Fleet", "Driver Documents"]}
         eyebrow="Operations"
         title="Driver documents"
         description="Manage licenses, insurance, inspection status, and expiry-driven compliance actions."

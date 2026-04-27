@@ -12,6 +12,7 @@ export default function FleetVehiclesPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Fleet", "Vehicles"]}
         eyebrow="Operations"
         title="Vehicles"
         description="Track active fleet assets, maintenance readiness, and compliance health across the vehicle base."

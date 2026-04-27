@@ -4,6 +4,7 @@ import { marketplaceRows } from "@/components/admin/section-data";
 export default function MarketplacePage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Marketplace"]}
       eyebrow="Commerce"
       title="Marketplace operations"
       description="Manage vendors, product quality, category structure, and marketplace performance from one merchandising surface."

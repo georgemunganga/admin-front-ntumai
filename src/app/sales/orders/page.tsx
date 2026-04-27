@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function SalesOrdersPage() {
   return (
     <SalesEntityListPage
+      breadcrumb={["Home", "Sales", "Orders"]}
       eyebrow="Sales Kit"
       title="Orders"
       description="Track commercial order flow, checkout health, and handoff issues from one sales operations list."

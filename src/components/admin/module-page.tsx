@@ -27,6 +27,7 @@ export default function ModulePage({
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={["Home", title]}
         eyebrow={eyebrow}
         title={title}
         description={description}

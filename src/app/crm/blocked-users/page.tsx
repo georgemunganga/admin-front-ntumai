@@ -3,6 +3,7 @@ import SectionPage from "@/components/admin/section-page";
 export default function CrmBlockedUsersPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "CRM", "Blocked Users"]}
       eyebrow="Customer CRM"
       title="Blocked users"
       description="Manage suspensions, abuse-linked restrictions, and appeal handling across customers and supply accounts."

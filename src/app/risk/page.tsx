@@ -4,6 +4,7 @@ import { riskRows } from "@/components/admin/section-data";
 export default function RiskPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Risk"]}
       eyebrow="Risk & safety"
       title="Risk operations"
       description="Review fraud, emergency incidents, abuse patterns, and compliance queues from a unified governance surface."

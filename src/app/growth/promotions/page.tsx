@@ -12,6 +12,7 @@ export default function GrowthPromotionsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Growth", "Promotions"]}
         eyebrow="Growth"
         title="Promotions"
         description="Manage discounts, referrals, merchant co-promos, and retention offers across customer segments."

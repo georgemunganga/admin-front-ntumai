@@ -3,6 +3,7 @@ import SectionPage from "@/components/admin/section-page";
 export default function PlatformAppVersionControlPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Platform", "App Version Control"]}
       eyebrow="Platform"
       title="App version control"
       description="Manage minimum supported versions, staged rollout gates, and feature readiness across app releases."

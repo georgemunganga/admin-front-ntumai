@@ -12,6 +12,7 @@ export default function GrowthDriverIncentivesPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Growth", "Driver Incentives"]}
         eyebrow="Growth"
         title="Driver incentives"
         description="Manage quest bonuses, peak-hour supply incentives, and campaign performance for the driver network."

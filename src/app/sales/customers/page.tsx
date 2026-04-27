@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function SalesCustomersPage() {
   return (
     <SalesEntityListPage
+      breadcrumb={["Home", "Sales", "Customers"]}
       eyebrow="Sales Kit"
       title="Customers"
       description="Review commercial customer segments, purchase health, and service-recovery impact across active accounts."

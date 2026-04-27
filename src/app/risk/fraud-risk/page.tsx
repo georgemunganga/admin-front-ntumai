@@ -12,6 +12,7 @@ export default function RiskFraudPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Risk", "Fraud & Risk"]}
         eyebrow="Risk & safety"
         title="Fraud and risk"
         description="Review suspicious trips, payment abuse, identity patterns, and incentive misuse across the platform."

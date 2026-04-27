@@ -4,6 +4,7 @@ import { crmRows } from "@/components/admin/section-data";
 export default function CrmPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "CRM"]}
       eyebrow="Customer CRM"
       title="Customer relationship desk"
       description="Work across rider accounts, corporate billing, wallets, and trust-sensitive customer issues."

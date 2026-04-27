@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function MarketplaceVendorsPage() {
   return (
     <MarketplaceEntityListPage
+      breadcrumb={["Home", "Marketplace", "Vendors"]}
       eyebrow="Marketplace Kit"
       title="Vendors"
       description="Manage marketplace partners, launch readiness, and service quality from one merchant list."

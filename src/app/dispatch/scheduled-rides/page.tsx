@@ -12,6 +12,7 @@ export default function DispatchScheduledRidesPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Dispatch", "Scheduled Rides"]}
         eyebrow="Operations"
         title="Scheduled rides"
         description="Plan advance bookings, monitor future assignments, and catch pre-trip risks before service windows open."

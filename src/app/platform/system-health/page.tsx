@@ -12,6 +12,7 @@ export default function PlatformSystemHealthPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Platform", "System Health"]}
         eyebrow="Platform"
         title="System health"
         description="Watch dependency status, queue health, and runtime alerts across the platform stack."

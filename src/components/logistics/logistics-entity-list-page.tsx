@@ -15,6 +15,7 @@ import PageHeader from "@/components/admin/page-header";
 import { CrudRecord } from "@/components/crud/crud-data";
 
 type LogisticsEntityListPageProps = {
+  breadcrumb: string[];
   eyebrow: string;
   title: string;
   description: string;
@@ -32,6 +33,7 @@ type LogisticsEntityListPageProps = {
 };
 
 export default function LogisticsEntityListPage({
+  breadcrumb,
   eyebrow,
   title,
   description,
@@ -96,6 +98,7 @@ export default function LogisticsEntityListPage({
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={breadcrumb}
         eyebrow={eyebrow}
         title={title}
         description={description}

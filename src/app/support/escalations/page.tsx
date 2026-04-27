@@ -12,6 +12,7 @@ export default function SupportEscalationsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Support", "Escalations"]}
         eyebrow="Support CRM"
         title="Escalations"
         description="Handle high-priority service cases that require senior support, trust, or cross-functional response."

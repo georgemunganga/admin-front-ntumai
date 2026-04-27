@@ -4,6 +4,7 @@ import { growthRows } from "@/components/admin/section-data";
 export default function GrowthPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Growth"]}
       eyebrow="Growth"
       title="Growth and engagement"
       description="Coordinate promotions, lifecycle messaging, and supply-demand incentive programs across the platform."

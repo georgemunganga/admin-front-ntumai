@@ -12,6 +12,7 @@ export default function DispatchLiveMapPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Dispatch", "Live Map"]}
         eyebrow="Operations"
         title="Live map"
         description="Track active supply, demand pressure, zone imbalance, and incident pins from the dispatch map surface."

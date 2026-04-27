@@ -12,6 +12,7 @@ export default function DispatchManualDispatchPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Dispatch", "Manual Dispatch"]}
         eyebrow="Operations"
         title="Manual dispatch"
         description="Handle operator overrides for assignments, reassignments, forced cancellations, and priority jobs."

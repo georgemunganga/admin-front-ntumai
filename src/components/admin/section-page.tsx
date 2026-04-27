@@ -26,6 +26,7 @@ type SectionRow = {
 };
 
 type SectionPageProps = {
+  breadcrumb?: string[];
   eyebrow: string;
   title: string;
   description: string;
@@ -36,6 +37,7 @@ type SectionPageProps = {
 };
 
 export default function SectionPage({
+  breadcrumb,
   eyebrow,
   title,
   description,
@@ -47,6 +49,7 @@ export default function SectionPage({
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={breadcrumb}
         eyebrow={eyebrow}
         title={title}
         description={description}

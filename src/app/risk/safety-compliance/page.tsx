@@ -12,6 +12,7 @@ export default function RiskCompliancePage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Risk", "Safety & Compliance"]}
         eyebrow="Risk & safety"
         title="Safety and compliance"
         description="Oversee KYC, restricted categories, document governance, and regulatory preparation across the platform."

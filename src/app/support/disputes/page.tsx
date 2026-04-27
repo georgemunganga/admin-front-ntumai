@@ -12,6 +12,7 @@ export default function SupportDisputesPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Support", "Disputes"]}
         eyebrow="Support CRM"
         title="Disputes"
         description="Manage fare complaints, refund approvals, and rider-driver dispute workflows across commercial support."

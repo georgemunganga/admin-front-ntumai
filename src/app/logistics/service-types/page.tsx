@@ -66,6 +66,7 @@ const rows = [
 export default function LogisticsServiceTypesPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Logistics", "Service Types"]}
       eyebrow="Logistics Kit"
       title="Service Types"
       description="Manage delivery service classes, vehicle fit, and eligibility rules across the operations stack."

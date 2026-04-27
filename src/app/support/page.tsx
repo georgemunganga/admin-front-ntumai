@@ -4,6 +4,7 @@ import { supportDeskRows } from "@/components/admin/section-data";
 export default function SupportPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Support"]}
       eyebrow="Support CRM"
       title="Support operations"
       description="Manage ticket intake, dispute handling, escalations, and service recovery workflows across the platform."

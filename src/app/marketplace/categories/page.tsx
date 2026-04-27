@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function MarketplaceCategoriesPage() {
   return (
     <MarketplaceEntityListPage
+      breadcrumb={["Home", "Marketplace", "Categories"]}
       eyebrow="Marketplace Kit"
       title="Categories"
       description="Control browse structure, merchandising hygiene, and policy-sensitive catalog groupings."

@@ -12,6 +12,7 @@ export default function RiskEmergencyPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Risk", "SOS / Emergency"]}
         eyebrow="Risk & safety"
         title="SOS and emergency"
         description="Manage panic alerts, accident response, and unsafe-trip escalations through the safety operations layer."

@@ -12,6 +12,7 @@ export default function PlatformReportsAnalyticsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Platform", "Reports & Analytics"]}
         eyebrow="Platform"
         title="Reports and analytics"
         description="Coordinate business reporting, KPI packs, and operational analytics across finance, support, and logistics."

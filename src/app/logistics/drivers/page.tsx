@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function LogisticsDriversPage() {
   return (
     <LogisticsEntityListPage
+      breadcrumb={["Home", "Logistics", "Drivers"]}
       eyebrow="Logistics Kit"
       title="Drivers"
       description="Track logistics supply readiness, dispatch eligibility, and operator follow-up from one driver list."

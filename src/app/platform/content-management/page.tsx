@@ -12,6 +12,7 @@ export default function PlatformContentManagementPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Platform", "Content Management"]}
         eyebrow="Platform"
         title="Content management"
         description="Manage banners, help articles, policy pages, and other customer-facing content surfaces."

@@ -4,6 +4,7 @@ import { platformRows } from "@/components/admin/section-data";
 export default function PlatformPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Platform"]}
       eyebrow="Platform"
       title="Platform control"
       description="Coordinate reporting, content, release control, system health, and admin governance from the core platform layer."

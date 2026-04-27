@@ -12,6 +12,7 @@ export default function SupportTicketsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Support", "Tickets"]}
         eyebrow="Support CRM"
         title="Support tickets"
         description="Manage the main service queue for rider, driver, and merchant tickets across the platform."

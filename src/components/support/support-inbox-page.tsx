@@ -108,6 +108,7 @@ export default function SupportInboxPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Support", "Inbox"]}
         eyebrow="Support Desk"
         title="Support Inbox"
         description="Handle customer, courier, and merchant conversations from the same operational queue."

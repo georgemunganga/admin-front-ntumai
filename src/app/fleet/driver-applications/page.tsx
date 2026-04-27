@@ -12,6 +12,7 @@ export default function FleetDriverApplicationsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Fleet", "Driver Applications"]}
         eyebrow="Operations"
         title="Driver applications"
         description="Manage onboarding flow, inspection readiness, and activation blockers for incoming drivers."

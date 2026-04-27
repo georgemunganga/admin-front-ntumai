@@ -28,6 +28,7 @@ export default function LogisticsDashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Logistics"]}
         eyebrow="Logistics Kit"
         title="Logistics Control"
         description="Coordinate live deliveries, driver capacity, and city-zone performance from the operations desk."

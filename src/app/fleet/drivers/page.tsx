@@ -12,6 +12,7 @@ export default function FleetDriversPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Fleet", "Drivers"]}
         eyebrow="Operations"
         title="Fleet drivers"
         description="Track driver performance, quality issues, and supply readiness across the active fleet."

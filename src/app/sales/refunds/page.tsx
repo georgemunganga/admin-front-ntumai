@@ -12,6 +12,7 @@ export default function SalesRefundsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Sales", "Refunds"]}
         eyebrow="Commerce"
         title="Refunds"
         description="Manage automated and manual refund flows, partial credits, and service-recovery disbursements."

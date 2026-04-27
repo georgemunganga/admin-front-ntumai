@@ -79,6 +79,7 @@ export default function InvoiceListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Sales", "Invoices"]}
         eyebrow="Sales Kit"
         title="Invoice List"
         description="Track merchant settlements, customer billing adjustments, and finance follow-ups from one list."

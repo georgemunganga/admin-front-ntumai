@@ -12,6 +12,7 @@ export default function SalesPayoutsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Sales", "Payouts"]}
         eyebrow="Commerce"
         title="Payouts"
         description="Manage driver, merchant, and partner settlements along with transfer retries and reconciliation gaps."

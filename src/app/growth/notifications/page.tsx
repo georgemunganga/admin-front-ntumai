@@ -12,6 +12,7 @@ export default function GrowthNotificationsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Growth", "Notifications"]}
         eyebrow="Growth"
         title="Notifications"
         description="Coordinate push, SMS, email, and broadcast messaging across lifecycle, operational, and product needs."

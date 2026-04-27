@@ -12,6 +12,7 @@ export default function CrmCorporateAccountsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "CRM", "Corporate Accounts"]}
         eyebrow="Customer CRM"
         title="Corporate accounts"
         description="Manage business clients, team allocations, spend controls, and monthly billing exceptions."

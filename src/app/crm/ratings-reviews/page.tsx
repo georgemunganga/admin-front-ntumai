@@ -3,6 +3,7 @@ import SectionPage from "@/components/admin/section-page";
 export default function CrmRatingsReviewsPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "CRM", "Ratings & Reviews"]}
       eyebrow="Customer CRM"
       title="Ratings and reviews"
       description="Track low-rated experiences, quality complaints, and feedback moderation across riders and delivery operations."

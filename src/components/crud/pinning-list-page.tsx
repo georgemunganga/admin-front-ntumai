@@ -12,9 +12,10 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Button, Checkbox, Input, Table, Text, Title } from "rizzui";
+import { Button, Checkbox, Input, Table, Text } from "rizzui";
 import { PiDotsThreeOutlineVerticalFill, PiFunnel, PiMagnifyingGlassBold } from "react-icons/pi";
 import StatusBadge from "@/components/admin/status-badge";
+import PageHeader from "@/components/admin/page-header";
 import { CrudRecord } from "@/components/crud/crud-data";
 
 type Props = {
@@ -147,19 +148,7 @@ export default function PinningListPage({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-          {breadcrumb.map((item, index) => (
-            <span key={item} className="inline-flex items-center gap-2">
-              <span>{item}</span>
-              {index < breadcrumb.length - 1 ? <span>/</span> : null}
-            </span>
-          ))}
-        </div>
-        <Title as="h1" className="text-2xl font-semibold">
-          {title}
-        </Title>
-      </div>
+      <PageHeader breadcrumb={breadcrumb} title={title} />
 
       <div className="table-filter mb-4 flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-4">

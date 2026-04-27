@@ -4,6 +4,7 @@ import { salesRows } from "@/components/admin/section-data";
 export default function SalesPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Sales"]}
       eyebrow="Commerce"
       title="Sales and finance"
       description="Track orders, payments, refunds, invoices, and payout operations from the commercial control layer."

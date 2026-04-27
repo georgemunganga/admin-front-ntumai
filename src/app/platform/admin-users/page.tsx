@@ -3,6 +3,7 @@ import SectionPage from "@/components/admin/section-page";
 export default function PlatformAdminUsersPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Platform", "Admin Users & Roles"]}
       eyebrow="Platform"
       title="Admin users and roles"
       description="Control staff accounts, role assignments, and privileged access across internal operations."

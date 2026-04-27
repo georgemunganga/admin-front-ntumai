@@ -85,6 +85,7 @@ export default function ProductsListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Marketplace", "Products"]}
         eyebrow="Marketplace Kit"
         title="Products"
         description="Manage marketplace inventory, vendor listings, and product quality from a single catalog table."

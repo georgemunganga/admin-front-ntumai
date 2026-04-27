@@ -3,6 +3,7 @@ import SectionPage from "@/components/admin/section-page";
 export default function PlatformSettingsPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Platform", "Settings"]}
       eyebrow="Platform"
       title="Platform settings"
       description="Manage core operating rules, region-level behavior, and product-wide configuration across the ERP stack."

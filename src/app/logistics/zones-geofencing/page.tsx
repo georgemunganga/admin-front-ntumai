@@ -66,6 +66,7 @@ const rows = [
 export default function LogisticsZonesGeofencingPage() {
   return (
     <SectionPage
+      breadcrumb={["Home", "Logistics", "Zones & Geofencing"]}
       eyebrow="Logistics Kit"
       title="Zones and Geofencing"
       description="Control service boundaries, restricted areas, and expansion-ready lanes across the delivery network."

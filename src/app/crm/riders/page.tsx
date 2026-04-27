@@ -12,6 +12,7 @@ export default function CrmRidersPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "CRM", "Riders"]}
         eyebrow="Customer CRM"
         title="Riders"
         description="Track rider account health, service recovery trends, and lifecycle interventions across the customer base."

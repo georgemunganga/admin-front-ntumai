@@ -12,6 +12,7 @@ export default function CrmWalletsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "CRM", "Wallets"]}
         eyebrow="Customer CRM"
         title="Wallets"
         description="Review wallet balances, manual credits and debits, refund reversals, and abuse-related holds."

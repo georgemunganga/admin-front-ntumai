@@ -4,6 +4,7 @@ import { crudPages } from "@/components/crud/crud-data";
 export default function MarketplaceReviewsPage() {
   return (
     <MarketplaceEntityListPage
+      breadcrumb={["Home", "Marketplace", "Reviews"]}
       eyebrow="Marketplace Kit"
       title="Reviews"
       description="Moderate customer feedback, track satisfaction trends, and escalate product quality signals."

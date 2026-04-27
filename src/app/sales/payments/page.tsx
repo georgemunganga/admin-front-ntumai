@@ -12,6 +12,7 @@ export default function SalesPaymentsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
+        breadcrumb={["Home", "Sales", "Payments"]}
         eyebrow="Commerce"
         title="Payments"
         description="Monitor charge health, payment failures, chargebacks, and settlement confirmation across the revenue stack."

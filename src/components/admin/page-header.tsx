@@ -3,14 +3,16 @@
 import { Badge, Text, Title } from "rizzui";
 
 type PageHeaderProps = {
+  breadcrumb?: string[];
   eyebrow?: string;
   title: string;
-  description: string;
+  description?: string;
   badge?: string;
   action?: React.ReactNode;
 };
 
 export default function PageHeader({
+  breadcrumb,
   eyebrow,
   title,
   description,
@@ -18,15 +20,25 @@ export default function PageHeader({
   action,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-5 rounded-[28px] border border-gray-100 bg-white p-6 shadow-sm shadow-gray-100/80 lg:flex-row lg:items-end lg:justify-between lg:p-8">
-      <div className="max-w-3xl">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-3xl space-y-2">
+        {breadcrumb?.length ? (
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+            {breadcrumb.map((item, index) => (
+              <span key={`${item}-${index}`} className="inline-flex items-center gap-2">
+                <span>{item}</span>
+                {index < breadcrumb.length - 1 ? <span>/</span> : null}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {eyebrow ? (
-          <Text className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
+          <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
             {eyebrow}
           </Text>
         ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <Title as="h1" className="text-[28px] font-semibold tracking-tight">
+          <Title as="h1" className="text-2xl font-semibold tracking-tight">
             {title}
           </Title>
           {badge ? (
@@ -38,9 +50,11 @@ export default function PageHeader({
             </Badge>
           ) : null}
         </div>
-        <Text className="mt-3 max-w-2xl text-sm leading-7 text-gray-500">
-          {description}
-        </Text>
+        {description ? (
+          <Text className="max-w-2xl text-sm leading-7 text-gray-500">
+            {description}
+          </Text>
+        ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
