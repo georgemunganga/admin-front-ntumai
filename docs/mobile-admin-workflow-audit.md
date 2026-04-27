@@ -295,6 +295,275 @@ Should not require:
 
 - rebuilding the story from scratch every time
 
+## Workflow-to-UI implementation rules
+
+This section answers the practical build question:
+
+- should this be a page?
+- should it be a modal?
+- should it be a wizard?
+- should it stay on the same page?
+- should it be a mixed flow?
+
+The rule is: choose the lightest UI shape that still preserves context, auditability, and safe action handling.
+
+### UI shape definitions
+
+- `Queue page`
+  - a staff worklist
+  - best for repeated review/processing work
+- `Case page`
+  - one entity or issue with full context, timeline, notes, and actions
+  - best for operational handling
+- `Wizard`
+  - multi-step guided review or setup
+  - best when order matters and missing steps are common
+- `Modal`
+  - short, high-confidence action
+  - best for single-purpose confirmations or small edits
+- `Drawer`
+  - side-context for quick inspection or edits without leaving the worklist
+  - best for triage
+- `Inline action`
+  - same-page action with no context switch
+  - best for fast status changes with low risk
+- `Mixed flow`
+  - queue -> drawer -> case page -> modal
+  - best for high-volume operations where some items are simple and some need full investigation
+
+### Core decision rules
+
+Use a `queue page` when:
+
+- many items are processed by the same team
+- priority/SLA matters
+- staff need filters, assignment, and bulk handling
+
+Use a `case page` when:
+
+- the issue touches several entities
+- staff need history and notes
+- more than one team may touch the item
+- the action must be auditable
+
+Use a `wizard` when:
+
+- the workflow has ordered steps
+- missing information is common
+- the reviewer must not skip required checks
+
+Use a `modal` when:
+
+- the action is short
+- the context is already visible
+- the consequences are contained and clear
+
+Do not use a modal when:
+
+- the staff member needs timeline context
+- the action changes money, compliance, or live operations materially
+- several related actions may be needed
+
+Use a `drawer` when:
+
+- the queue needs fast triage
+- staff should inspect without losing their place
+
+Use `inline actions` when:
+
+- the action is frequent
+- it is reversible or low-risk
+- the row already provides enough context
+
+### Recommended UI shape by workflow family
+
+| Workflow family | Best primary UI shape | Secondary UI shape | Why |
+| --- | --- | --- | --- |
+| Tasker application review | Queue page | Case page + modal for final decision | High-volume review work with occasional deep investigation |
+| Tasker document review | Queue page | Drawer + modal | Fast triage first, formal approve/reject second |
+| Tasker activation/probation/violation handling | Case page | Modal for suspend/unsuspend/probation actions | Needs history, notes, and audit trail |
+| Shift roster / availability operations | Queue page | Inline actions + drawer | Fast operational controls, minimal context switching |
+| Live dispatch / delivery intervention | Case page | Inline actions + modal for destructive actions | Live work needs full context; destructive actions need confirmation |
+| Dispatch exceptions | Queue page | Case page | Exceptions should be cleared from a worklist |
+| Customer complaint / dispute | Queue page | Case page + modal for refunds | Support teams work from queues but resolve in a case view |
+| Customer profile and wallet support | Case page | Modal for adjustments | Needs unified customer context |
+| Vendor onboarding review | Queue page | Case page + wizard if review has ordered checks | Similar to underwriting/compliance review |
+| Vendor provisioning failure | Queue page | Case page | Needs investigation across store/account/system state |
+| Vendor product moderation | Queue page | Drawer + modal | High-volume moderation pattern |
+| Vendor store ops / readiness | Case page | Inline actions + modal | One store, many related states |
+| Vendor order handoff readiness | Queue page | Case page | Worklist for aging/prep issues, detail view for intervention |
+| Payout approvals | Queue page | Case page + modal | Money movement requires queue, evidence, confirmation |
+| Refund handling | Queue page | Case page + modal | Similar to payout controls |
+| Promotions and campaigns | Page | Wizard for creation, modal for pause/delete | Creation is structured; management is lighter |
+| Subscriptions management | Case page | Modal for pause/resume/cancel | Lifecycle actions need account context |
+| Ratings and review moderation | Queue page | Drawer + modal | Moderation is repetitive and benefits from quick review |
+| Admin settings / service types / zones | Page | Wizard for complex setup, modal for quick edits | Configuration work varies by complexity |
+
+## Page-by-page implementation guidance
+
+This is the implementation-facing shorthand.
+
+### Pages that should be queue-first
+
+Build these as queue/worklist pages first:
+
+- tasker applications
+- tasker documents
+- vendor applications
+- vendor provisioning failures
+- dispatch exceptions
+- support tickets
+- escalations
+- disputes
+- payout approvals
+- refund approvals
+- product moderation
+- ratings moderation
+
+These pages should usually include:
+
+- status tabs
+- owner/assignee
+- SLA/age
+- priority
+- filters
+- bulk actions where safe
+- quick preview via drawer
+
+### Pages that should be case-first
+
+Build these as full case pages:
+
+- tasker profile operations page
+- customer operations page
+- vendor/store operations page
+- booking/trip command page
+- delivery command page
+- complaint/dispute page
+- payout request page
+- safety incident page
+
+These pages should usually include:
+
+- summary strip
+- current status
+- related entities
+- timeline
+- notes
+- attachments/docs
+- action panel
+- audit trail
+
+### Flows that should be wizard-first
+
+Use a wizard when staff must complete ordered checks:
+
+- tasker approval review if many required checks exist
+- vendor approval review
+- complex store/service-type setup
+- complex pricing rule creation
+- campaign creation
+
+Wizards should show:
+
+- step completeness
+- blocking items
+- save draft
+- final review step
+
+### Flows that should stay same-page or inline
+
+Keep on the same page:
+
+- quick availability toggle
+- assign owner
+- mark reviewed
+- pause/unpause non-sensitive entities
+- add internal note
+- small filter/search interactions
+
+Use inline actions only when:
+
+- no major money/compliance consequence exists
+- the row already gives enough context
+
+### Flows that should be modal-only
+
+Use modal-only for:
+
+- confirm reject/approve after full context is already visible
+- pause/unpause confirmation
+- refund confirmation after case review
+- payout approve/hold/reject confirmation after case review
+- delete/disable promotion
+- force-cancel confirmation
+
+Modal actions should require:
+
+- reason code
+- optional note
+- clear consequence text
+
+### Recommended mixed patterns
+
+These are the patterns most likely to work well in this ERP.
+
+1. `Queue -> Drawer -> Case page -> Modal`
+   Best for:
+   - applications
+   - disputes
+   - payout approvals
+   - moderation
+
+2. `Live board -> Case page -> Inline actions + Modal`
+   Best for:
+   - dispatch
+   - delivery intervention
+   - booking intervention
+
+3. `Entity page -> Timeline -> Modal`
+   Best for:
+   - customer support
+   - vendor support
+   - tasker enforcement
+
+4. `Config page -> Wizard -> Summary page`
+   Best for:
+   - service types
+   - pricing rules
+   - campaigns
+
+## Practical build order per page type
+
+If the goal is to implement safely and clearly, this is the right order:
+
+1. Queue pages
+   Because they give staff a place to work from immediately.
+
+2. Case pages
+   Because queues without case views still force manual investigation.
+
+3. Modal and inline actions
+   Because actions should sit on top of stable queue/case context.
+
+4. Wizards
+   Because they are best added after the underlying data and review logic is clear.
+
+## Simple implementation principle
+
+For each workflow, ask:
+
+1. Is this repetitive work?
+   Build a queue.
+2. Does this need full context?
+   Build a case page.
+3. Is this a short confirmation?
+   Use a modal.
+4. Is this ordered and easy to get wrong?
+   Use a wizard.
+5. Can staff do it without leaving context?
+   Keep it inline or in a drawer.
+
 ## What is missing from the current ERP shape
 
 The current admin module grouping is good, but from an operations background these missing structures matter more than more pages.
