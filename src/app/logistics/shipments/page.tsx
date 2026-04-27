@@ -1,5 +1,5 @@
-import LogisticsShipmentsPage from "@/components/logistics/logistics-shipments-page";
+import ShipmentsListPage from "@/components/logistics/shipments-list-page";
 
 export default function LogisticsShipmentsRoute() {
-  return <LogisticsShipmentsPage />;
+  return <ShipmentsListPage />;
 }
