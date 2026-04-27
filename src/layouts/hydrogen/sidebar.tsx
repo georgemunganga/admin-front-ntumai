@@ -39,8 +39,8 @@ export default function Sidebar({ className }: { className?: string }) {
         </Link>
       </div>
 
-      <SimpleBar className="h-[calc(100%-80px)]">
-        <div className="mt-4 pb-3 3xl:mt-6">
+      <SimpleBar className="h-[calc(100%-80px)] bg-primary">
+        <div className="mt-4 bg-primary pb-3 3xl:mt-6">
           {menuItems.map((item, index) => {
             const isActive = pathname === (item?.href as string);
             const pathnameExistInDropdowns: any = item?.dropdownItems?.filter(
