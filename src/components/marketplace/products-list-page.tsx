@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -9,27 +10,10 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Badge, Button, Input, Table, Text, Title } from "rizzui";
-import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
+import { Badge, Button, Input, Table, Text } from "rizzui";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-
-type ProductRecord = {
-  id: string;
-  name: string;
-  category: string;
-  vendor: string;
-  stock: string;
-  price: string;
-  status: string;
-};
-
-const products: ProductRecord[] = [
-  { id: "PRD-4201", name: "Organic tomato basket", category: "Fresh produce", vendor: "Green Basket Market", stock: "84", price: "ZMW 95", status: "Published" },
-  { id: "PRD-4198", name: "Family essentials pack", category: "Household", vendor: "HomeBox Supplies", stock: "36", price: "ZMW 280", status: "Low stock" },
-  { id: "PRD-4192", name: "Pain relief combo", category: "Pharmacy", vendor: "CityCare Pharmacy", stock: "122", price: "ZMW 145", status: "Review" },
-  { id: "PRD-4187", name: "Lunch bowl combo", category: "Quick meals", vendor: "QuickBite Kitchens", stock: "Daily menu", price: "ZMW 88", status: "Published" },
-  { id: "PRD-4181", name: "USB charger cable", category: "Accessories", vendor: "Digital Point", stock: "12", price: "ZMW 60", status: "Low stock" },
-];
+import { marketplaceProducts, type MarketplaceProduct } from "@/components/marketplace/product-data";
 
 export default function ProductsListPage() {
   const [query, setQuery] = useState("");
@@ -40,7 +24,7 @@ export default function ProductsListPage() {
 
   const filteredProducts = useMemo(() => {
     const term = query.toLowerCase();
-    return products.filter((product) =>
+    return marketplaceProducts.filter((product) =>
       [product.id, product.name, product.category, product.vendor, product.status]
         .join(" ")
         .toLowerCase()
@@ -48,14 +32,16 @@ export default function ProductsListPage() {
     );
   }, [query]);
 
-  const columns = useMemo<ColumnDef<ProductRecord>[]>(
+  const columns = useMemo<ColumnDef<MarketplaceProduct>[]>(
     () => [
       {
         accessorKey: "name",
         header: "Product",
         cell: ({ row }) => (
           <div>
-            <Text className="font-semibold text-gray-900">{row.original.name}</Text>
+            <Link href={`/marketplace/products/${row.original.slug}`} className="font-semibold text-gray-900 hover:text-primary">
+              {row.original.name}
+            </Link>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
           </div>
         ),
@@ -68,6 +54,20 @@ export default function ProductsListPage() {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => <ProductStatus status={row.original.status} />,
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Link href={`/marketplace/products/${row.original.slug}/edit`}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Edit
+                <PiNotePencilBold className="ms-1 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        ),
       },
     ],
     []
@@ -88,7 +88,7 @@ export default function ProductsListPage() {
         breadcrumb={["Home", "Marketplace", "Products"]}
         eyebrow="Marketplace Kit"
         title="Products"
-        description="Manage marketplace inventory, vendor listings, and product quality from a single catalog table."
+        description="Marketplace product catalog."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">
