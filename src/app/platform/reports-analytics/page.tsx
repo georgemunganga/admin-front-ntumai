@@ -15,7 +15,7 @@ export default function PlatformReportsAnalyticsPage() {
         breadcrumb={["Home", "Platform", "Reports & Analytics"]}
         eyebrow="Platform"
         title="Reports and analytics"
-        description="Coordinate business reporting, KPI packs, and operational analytics across finance, support, and logistics."
+        description="Business reporting and analytics."
         badge="Insights"
       />
 
@@ -26,35 +26,35 @@ export default function PlatformReportsAnalyticsPage() {
             value="27"
             change="5 due today"
             tone="neutral"
-            detail="Recurring exports and dashboards prepared for leadership and operating teams."
+            detail="Recurring exports and dashboards."
           />
           <StatCard
             label="Analytic alerts"
             value="8"
             change="Need review"
             tone="warning"
-            detail="Data changes or KPI shifts that need commentary before wider distribution."
+            detail="Data shifts that need review."
           />
           <StatCard
             label="Published dashboards"
             value="41"
             change="+3 this week"
             tone="positive"
-            detail="Live reporting surfaces currently available to teams and stakeholders."
+            detail="Live dashboards available now."
           />
         </div>
 
         <ShellCard
           title="Reporting lanes"
-          description="Major reporting surfaces used by the business."
+          description="Reporting lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["Finance reporting", "Revenue, settlement, payout, and chargeback packs"],
-              ["Operations analytics", "Fulfillment, ETA, dispatch, and zone-performance analysis"],
-              ["Customer reporting", "CRM trends, support KPI summaries, and retention views"],
-              ["Executive rollups", "Leadership dashboards and market-level board summaries"],
+              ["Finance reporting", "Revenue, settlement, payout, and chargeback packs."],
+              ["Operations analytics", "Fulfillment, ETA, dispatch, and zone analysis."],
+              ["Customer reporting", "CRM trends, support KPIs, and retention views."],
+              ["Executive rollups", "Leadership dashboards and market summaries."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function PlatformReportsAnalyticsPage() {
 
         <ShellCard
           title="Attention queue"
-          description="Reporting items needing follow-up."
+          description="Needs follow-up."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Zone KPI anomaly", "A city dashboard shows a sharp completion drop after route changes", "monitoring"],
-              ["Leadership pack hold", "Finance and ops notes are still missing before circulation", "review"],
-              ["New board view", "A market-level report is queued behind stakeholder approval", "queued"],
+              ["Zone KPI anomaly", "City dashboard shows a sharp completion drop.", "monitoring"],
+              ["Leadership pack hold", "Finance and ops notes still missing.", "review"],
+              ["New board view", "Market-level report waiting on approval.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function PlatformReportsAnalyticsPage() {
 
         <ShellCard
           title="Reporting working set"
-          description="Current list of analytics and reporting priorities."
+          description="Current reporting list."
           className="@4xl:col-span-full"
         >
           <DataTable

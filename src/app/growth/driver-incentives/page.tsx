@@ -15,7 +15,7 @@ export default function GrowthDriverIncentivesPage() {
         breadcrumb={["Home", "Growth", "Tasker Incentives"]}
         eyebrow="Growth"
         title="Tasker incentives"
-        description="Manage quest bonuses, peak-hour supply incentives, and campaign performance for the tasker network."
+        description="Quest bonuses and supply incentives."
         badge="Supply growth"
       />
 
@@ -26,35 +26,35 @@ export default function GrowthDriverIncentivesPage() {
             value="6"
             change="2 new zones"
             tone="positive"
-            detail="Tasker incentive programs currently running across supply-critical corridors."
+            detail="Tasker incentive programs running now."
           />
           <StatCard
             label="Reward validations"
             value="14"
             change="Need review"
             tone="warning"
-            detail="Cases awaiting confirmation before incentive release or dispute handling."
+            detail="Cases awaiting confirmation before release."
           />
           <StatCard
             label="Underperforming zones"
             value="3"
             change="Below target"
             tone="warning"
-            detail="Areas where incentive cost is not yet lifting supply enough to hit coverage goals."
+            detail="Areas where incentives are underperforming."
           />
         </div>
 
         <ShellCard
           title="Incentive lanes"
-          description="Main supply-growth campaign types and controls."
+          description="Incentive lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["Peak-hour bonuses", "Time-bound rewards to protect supply during known demand spikes"],
-              ["Quest campaigns", "Trip-count and streak programs aimed at sustained activity"],
-              ["Zone targeting", "Location-based offers to rebalance city coverage"],
-              ["Payout validation", "Commercial and finance checks before incentive release"],
+              ["Peak-hour bonuses", "Time-bound rewards for demand spikes."],
+              ["Quest campaigns", "Trip-count and streak programs."],
+              ["Zone targeting", "Location-based offers to rebalance coverage."],
+              ["Payout validation", "Checks before incentive release."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function GrowthDriverIncentivesPage() {
 
         <ShellCard
           title="Attention queue"
-          description="Incentive cases needing growth or operations action."
+          description="Needs action."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Payout dispute batch", "One campaign cohort is challenging reward qualification", "review"],
-              ["Zone lift concern", "A supply-targeting campaign is underperforming against forecast", "monitoring"],
-              ["Next-cycle reset", "Weekly incentive rules are queued for refresh before launch", "queued"],
+              ["Payout dispute batch", "Campaign cohort challenging reward qualification.", "review"],
+              ["Zone lift concern", "Supply-targeting campaign underperforming forecast.", "monitoring"],
+              ["Next-cycle reset", "Weekly incentive rules queued for refresh.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function GrowthDriverIncentivesPage() {
 
         <ShellCard
           title="Incentive working set"
-          description="Current supply-growth campaign priorities."
+          description="Current incentive list."
           className="@4xl:col-span-full"
         >
           <DataTable

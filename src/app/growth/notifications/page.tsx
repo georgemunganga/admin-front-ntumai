@@ -15,7 +15,7 @@ export default function GrowthNotificationsPage() {
         breadcrumb={["Home", "Growth", "Notifications"]}
         eyebrow="Growth"
         title="Notifications"
-        description="Coordinate push, SMS, email, and broadcast messaging across lifecycle, operational, and product needs."
+        description="Push, SMS, email, and broadcast messaging."
         badge="Messaging"
       />
 
@@ -26,35 +26,35 @@ export default function GrowthNotificationsPage() {
             value="26"
             change="11 scheduled"
             tone="neutral"
-            detail="Notifications prepared for upcoming lifecycle, operational, or release windows."
+            detail="Notifications prepared for upcoming send windows."
           />
           <StatCard
             label="Fallback routes"
             value="4"
             change="SMS active"
             tone="warning"
-            detail="Message paths currently relying on alternate channels because of delivery constraints."
+            detail="Messages currently relying on alternate channels."
           />
           <StatCard
             label="Approved broadcasts"
             value="9"
             change="+3 today"
             tone="positive"
-            detail="Messages ready for immediate release to broad user or driver audiences."
+            detail="Messages ready for immediate release."
           />
         </div>
 
         <ShellCard
           title="Messaging lanes"
-          description="Main communication flows managed by growth and platform teams."
+          description="Messaging lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["Lifecycle push", "Re-engagement and win-back messages for customer cohorts"],
-              ["SMS fallback", "Critical delivery and commercial notices routed through backup channels"],
-              ["Broadcast messaging", "Wide announcements sent to riders, drivers, or merchants"],
-              ["Release notices", "Version, maintenance, and feature-change messaging streams"],
+              ["Lifecycle push", "Re-engagement and win-back messages."],
+              ["SMS fallback", "Critical notices routed through backup channels."],
+              ["Broadcast messaging", "Wide announcements to riders, taskers, or merchants."],
+              ["Release notices", "Version, maintenance, and feature-change messages."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function GrowthNotificationsPage() {
 
         <ShellCard
           title="Attention queue"
-          description="Messaging issues needing operator attention."
+          description="Needs attention."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Fallback path review", "Critical notifications are still leaning on alternate delivery channels", "monitoring"],
-              ["Broadcast sign-off", "An operational announcement is waiting on final approval", "review"],
-              ["Version notice rollout", "Client update messaging is queued behind release timing", "queued"],
+              ["Fallback path review", "Critical notifications still leaning on alternate channels.", "monitoring"],
+              ["Broadcast sign-off", "Operational announcement waiting on approval.", "review"],
+              ["Version notice rollout", "Client update messaging queued behind release timing.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function GrowthNotificationsPage() {
 
         <ShellCard
           title="Notification working set"
-          description="Current message operations priorities."
+          description="Current notification list."
           className="@4xl:col-span-full"
         >
           <DataTable

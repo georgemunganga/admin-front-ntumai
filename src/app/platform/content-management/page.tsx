@@ -15,7 +15,7 @@ export default function PlatformContentManagementPage() {
         breadcrumb={["Home", "Platform", "Content Management"]}
         eyebrow="Platform"
         title="Content management"
-        description="Manage banners, help articles, policy pages, and other customer-facing content surfaces."
+        description="Banners, help, and policy content."
         badge="Content"
       />
 
@@ -26,35 +26,35 @@ export default function PlatformContentManagementPage() {
             value="27"
             change="9 awaiting approval"
             tone="neutral"
-            detail="Pending content pieces still in review or scheduling stages."
+            detail="Pending content still in review or scheduling."
           />
           <StatCard
             label="Live placements"
             value="18"
             change="+4 this week"
             tone="positive"
-            detail="Current active surfaces across homepage, help, and in-app announcements."
+            detail="Active homepage, help, and in-app surfaces."
           />
           <StatCard
             label="Policy updates"
             value="6"
             change="Legal review"
             tone="warning"
-            detail="Terms, safety, or compliance documents awaiting sign-off before publication."
+            detail="Policy docs waiting on sign-off."
           />
         </div>
 
         <ShellCard
           title="Managed surfaces"
-          description="Key content surfaces controlled from admin."
+          description="Content lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["Homepage and banners", "Campaign hero placements, promos, and spotlight blocks"],
-              ["Help center", "FAQs, support guides, and issue-resolution articles"],
-              ["Policy pages", "Terms, safety notices, and regulatory messaging"],
-              ["Growth content", "Merchant spotlights, re-engagement blocks, and announcement copy"],
+              ["Homepage and banners", "Promos, hero placements, and spotlight blocks."],
+              ["Help center", "FAQs, guides, and support articles."],
+              ["Policy pages", "Terms, safety notices, and regulatory messaging."],
+              ["Growth content", "Merchant spotlights and announcement copy."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function PlatformContentManagementPage() {
 
         <ShellCard
           title="Publish blockers"
-          description="Items delaying live content changes."
+          description="Publish blockers."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Legal sign-off gap", "Policy and safety copy still waiting for final approval", "review"],
-              ["Creative backlog", "Campaign assets are queued behind design and copy edits", "monitoring"],
-              ["Homepage refresh", "One placement window is blocked by unresolved merchant content", "queued"],
+              ["Legal sign-off gap", "Policy copy still waiting for approval.", "review"],
+              ["Creative backlog", "Campaign assets queued behind edits.", "monitoring"],
+              ["Homepage refresh", "Placement window blocked by unresolved merchant content.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function PlatformContentManagementPage() {
 
         <ShellCard
           title="Content working set"
-          description="Current content operations list."
+          description="Current content list."
           className="@4xl:col-span-full"
         >
           <DataTable

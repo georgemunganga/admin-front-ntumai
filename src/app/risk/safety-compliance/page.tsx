@@ -15,7 +15,7 @@ export default function RiskCompliancePage() {
         breadcrumb={["Home", "Risk", "Safety & Compliance"]}
         eyebrow="Risk & safety"
         title="Safety and compliance"
-        description="Oversee KYC, restricted categories, document governance, and regulatory preparation across the platform."
+        description="KYC, restricted categories, and compliance."
         badge="Compliance"
       />
 
@@ -26,35 +26,35 @@ export default function RiskCompliancePage() {
             value="26"
             change="Queue open"
             tone="warning"
-            detail="Drivers, merchants, or products still blocked pending governance review."
+            detail="Accounts or products still blocked pending review."
           />
           <StatCard
             label="Expiring regulated docs"
             value="14"
             change="Watch window"
             tone="neutral"
-            detail="Documents nearing deadlines in areas with stronger policy requirements."
+            detail="Documents nearing deadline."
           />
           <StatCard
             label="Audit packs prepared"
             value="5"
             change="Ready to share"
             tone="positive"
-            detail="Reporting and evidence bundles currently assembled for internal or external review."
+            detail="Audit bundles ready to share."
           />
         </div>
 
         <ShellCard
           title="Governance lanes"
-          description="Main compliance and safety policy workflows."
+          description="Governance lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["KYC reviews", "Identity, onboarding, and document verification across supply and merchants"],
-              ["Restricted goods", "Category and listing blocks tied to regulated items"],
-              ["Merchant governance", "Licenses, pharmacy controls, and partner-facing compliance checks"],
-              ["Audit readiness", "Evidence preparation and reporting support for governance needs"],
+              ["KYC reviews", "Identity, onboarding, and document verification."],
+              ["Restricted goods", "Category and listing blocks for regulated items."],
+              ["Merchant governance", "Licenses and partner-facing compliance checks."],
+              ["Audit readiness", "Evidence preparation and reporting support."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function RiskCompliancePage() {
 
         <ShellCard
           title="Attention queue"
-          description="Compliance items needing operator follow-up."
+          description="Needs follow-up."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["License expiry run", "Several regulated partners are entering the same renewal window", "monitoring"],
-              ["Restricted listing review", "Blocked items still need compliance decisions before release", "review"],
-              ["Audit evidence gap", "A reporting pack is queued behind missing regulatory attachments", "queued"],
+              ["License expiry run", "Several partners entering the same renewal window.", "monitoring"],
+              ["Restricted listing review", "Blocked items still need release decisions.", "review"],
+              ["Audit evidence gap", "Reporting pack waiting on attachments.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function RiskCompliancePage() {
 
         <ShellCard
           title="Compliance working set"
-          description="Current regulatory and governance priorities."
+          description="Current compliance list."
           className="@4xl:col-span-full"
         >
           <DataTable

@@ -6,39 +6,39 @@ export default function PlatformAdminActivityLogsPage() {
       breadcrumb={["Home", "Platform", "Admin Activity Logs"]}
       eyebrow="Platform"
       title="Admin activity logs"
-      description="Review sensitive changes, operational overrides, and governance-critical actions across the admin surface."
+      description="Sensitive changes and audit activity."
       badge="Audit"
       insights={[
         {
           label: "Logged actions today",
           value: "1,284",
-          detail: "Tracked admin events spanning support, finance, trust, and platform workflows.",
+          detail: "Tracked admin events across the ERP.",
         },
         {
           label: "Sensitive actions",
           value: "39",
-          detail: "Permission edits, manual payouts, and account restrictions needing closer governance visibility.",
+          detail: "Permission edits, payouts, and restrictions.",
         },
         {
           label: "Audit exceptions",
           value: "4",
-          detail: "Activity trails requiring follow-up after unexpected or incomplete metadata capture.",
+          detail: "Activity trails needing follow-up.",
         },
       ]}
       queue={[
         {
           title: "Manual payout override",
-          meta: "A recent treasury action needs secondary approval confirmation in the audit trail.",
+          meta: "Treasury action needs secondary approval confirmation.",
           status: "review",
         },
         {
           title: "Restriction history gap",
-          meta: "One abuse-related account action needs supporting context added to the log record.",
+          meta: "Abuse-related action needs more context in the log.",
           status: "monitoring",
         },
         {
           title: "Bulk role change import",
-          meta: "A larger access-change set is queued for governance reconciliation and signoff.",
+          meta: "Bulk access-change set queued for signoff.",
           status: "queued",
         },
       ]}

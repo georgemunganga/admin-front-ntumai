@@ -6,39 +6,39 @@ export default function PlatformAppVersionControlPage() {
       breadcrumb={["Home", "Platform", "App Version Control"]}
       eyebrow="Platform"
       title="App version control"
-      description="Manage minimum supported versions, staged rollout gates, and feature readiness across app releases."
+      description="App versions, rollouts, and feature gates."
       badge="Release"
       insights={[
         {
           label: "Live app tracks",
           value: "4",
-          detail: "Client release lines currently supported across customer and driver applications.",
+          detail: "Supported client release lines.",
         },
         {
           label: "Force-update gates",
           value: "2",
-          detail: "Version thresholds prepared for mandatory upgrade enforcement.",
+          detail: "Version thresholds for forced upgrades.",
         },
         {
           label: "Staged rollouts",
           value: "5",
-          detail: "Feature or version launches being phased through controlled audiences.",
+          detail: "Launches phased through controlled audiences.",
         },
       ]}
       queue={[
         {
           title: "Minimum version review",
-          meta: "One older client line still needs validation before a hard update can be enforced.",
+          meta: "Older client line still needs validation.",
           status: "review",
         },
         {
           title: "Driver app rollout watch",
-          meta: "A staged release is being monitored for stability before wider exposure.",
+          meta: "Staged release under stability watch.",
           status: "monitoring",
         },
         {
           title: "Feature toggle pack",
-          meta: "Several version-gated features are queued behind release approval.",
+          meta: "Version-gated features waiting on approval.",
           status: "queued",
         },
       ]}

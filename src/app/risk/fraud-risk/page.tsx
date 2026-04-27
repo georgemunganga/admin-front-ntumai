@@ -15,7 +15,7 @@ export default function RiskFraudPage() {
         breadcrumb={["Home", "Risk", "Fraud & Risk"]}
         eyebrow="Risk & safety"
         title="Fraud and risk"
-        description="Review suspicious trips, payment abuse, identity patterns, and incentive misuse across the platform."
+        description="Suspicious trips, abuse, and fraud patterns."
         badge="Fraud"
       />
 
@@ -26,35 +26,35 @@ export default function RiskFraudPage() {
             value="12"
             change="3 urgent"
             tone="warning"
-            detail="Investigations actively being worked by trust, finance, and platform teams."
+            detail="Investigations being worked now."
           />
           <StatCard
             label="Linked accounts"
             value="19"
             change="Pattern found"
             tone="neutral"
-            detail="Customer or driver accounts grouped by suspicious device or identity signals."
+            detail="Accounts linked by suspicious signals."
           />
           <StatCard
             label="Frozen incentives"
             value="8"
             change="Abuse hold"
             tone="warning"
-            detail="Promo or referral flows paused pending fraud review and final action."
+            detail="Promo flows paused pending fraud review."
           />
         </div>
 
         <ShellCard
           title="Fraud lanes"
-          description="Primary abuse streams monitored by the risk team."
+          description="Fraud lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["Promo abuse", "Referral and discount misuse by linked or recycled accounts"],
-              ["GPS and trip manipulation", "Movement anomalies affecting trip validity or payout fairness"],
-              ["Chargeback and reversal risk", "Payment disputes and refund behavior outside expected patterns"],
-              ["Identity and device links", "Cross-account patterns used to uncover organized abuse"],
+              ["Promo abuse", "Referral and discount misuse."],
+              ["GPS and trip manipulation", "Movement anomalies affecting trip validity."],
+              ["Chargeback and reversal risk", "Payment disputes outside expected patterns."],
+              ["Identity and device links", "Cross-account patterns showing organized abuse."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function RiskFraudPage() {
 
         <ShellCard
           title="Attention queue"
-          description="Fraud issues requiring immediate review."
+          description="Needs review."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Linked promo ring", "A cluster of accounts keeps circling through referral abuse flows", "monitoring"],
-              ["Spoofing escalation", "Suspicious route signatures are affecting trip integrity checks", "review"],
-              ["Chargeback spike", "Finance risk needs decision support on repeated dispute patterns", "at_risk"],
+              ["Linked promo ring", "Cluster of accounts cycling through referral abuse.", "monitoring"],
+              ["Spoofing escalation", "Suspicious route signatures affecting integrity checks.", "review"],
+              ["Chargeback spike", "Finance risk needs support on dispute patterns.", "at_risk"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function RiskFraudPage() {
 
         <ShellCard
           title="Fraud working set"
-          description="Current risk investigations and abuse clusters."
+          description="Current fraud list."
           className="@4xl:col-span-full"
         >
           <DataTable

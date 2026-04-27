@@ -15,7 +15,7 @@ export default function GrowthPromotionsPage() {
         breadcrumb={["Home", "Growth", "Promotions"]}
         eyebrow="Growth"
         title="Promotions"
-        description="Manage discounts, referrals, merchant co-promos, and retention offers across customer segments."
+        description="Discounts, referrals, and retention offers."
         badge="Promos"
       />
 
@@ -26,35 +26,35 @@ export default function GrowthPromotionsPage() {
             value="18"
             change="+4 this week"
             tone="positive"
-            detail="Campaigns currently active across customer, merchant, or zone-targeted flows."
+            detail="Campaigns active across customer and merchant flows."
           />
           <StatCard
             label="Approval queue"
             value="9"
             change="Need sign-off"
             tone="warning"
-            detail="Offers still blocked by pricing, legal, or commercial review requirements."
+            detail="Offers still blocked by review."
           />
           <StatCard
             label="Retention cohorts"
             value="11"
             change="Targeted"
             tone="neutral"
-            detail="Dormant or at-risk customer groups currently mapped into win-back flows."
+            detail="Dormant or at-risk cohorts in win-back flows."
           />
         </div>
 
         <ShellCard
           title="Promotion lanes"
-          description="Main commercial and customer promotion workflows."
+          description="Promotion lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["City campaigns", "Region and zone-targeted fee or fare discounts"],
-              ["Referral rewards", "Invite-based acquisition and loyalty incentives"],
-              ["Merchant co-promos", "Partner-funded commercial placements and offers"],
-              ["Retention offers", "Targeted win-back and reactivation discounts"],
+              ["City campaigns", "Region and zone-targeted discounts."],
+              ["Referral rewards", "Invite-based acquisition and loyalty incentives."],
+              ["Merchant co-promos", "Partner-funded placements and offers."],
+              ["Retention offers", "Targeted win-back and reactivation discounts."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function GrowthPromotionsPage() {
 
         <ShellCard
           title="Attention queue"
-          description="Promotion issues needing growth-team focus."
+          description="Needs focus."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Commercial approval lag", "A key city offer is waiting on pricing confirmation", "review"],
-              ["Referral abuse watch", "One invite campaign is showing elevated suspicious redemption patterns", "monitoring"],
-              ["Partner promo backlog", "Merchant offer placements are queued behind campaign sign-off", "queued"],
+              ["Commercial approval lag", "Key city offer waiting on pricing confirmation.", "review"],
+              ["Referral abuse watch", "Invite campaign showing suspicious redemption patterns.", "monitoring"],
+              ["Partner promo backlog", "Merchant placements queued behind sign-off.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function GrowthPromotionsPage() {
 
         <ShellCard
           title="Promotion working set"
-          description="Current offer and campaign priorities."
+          description="Current promotion list."
           className="@4xl:col-span-full"
         >
           <DataTable

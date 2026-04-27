@@ -15,7 +15,7 @@ export default function RiskEmergencyPage() {
         breadcrumb={["Home", "Risk", "SOS / Emergency"]}
         eyebrow="Risk & safety"
         title="SOS and emergency"
-        description="Manage panic alerts, accident response, and unsafe-trip escalations through the safety operations layer."
+        description="Panic alerts, accidents, and unsafe-trip escalations."
         badge="Safety"
       />
 
@@ -26,35 +26,35 @@ export default function RiskEmergencyPage() {
             value="3"
             change="High priority"
             tone="warning"
-            detail="Safety incidents still requiring action, contact, or closure steps."
+            detail="Safety incidents still requiring action."
           />
           <StatCard
             label="Incident callbacks"
             value="11"
             change="Need follow-up"
             tone="neutral"
-            detail="Post-incident contacts pending customer, driver, or city-team response."
+            detail="Post-incident contacts still pending."
           />
           <StatCard
             label="Resolved today"
             value="9"
             change="+4 closed"
             tone="positive"
-            detail="Emergency and safety cases completed with notes and operator sign-off."
+            detail="Cases completed with notes and sign-off."
           />
         </div>
 
         <ShellCard
           title="Safety lanes"
-          description="Core workflows inside emergency operations."
+          description="Safety lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["SOS handling", "Immediate triage, contact, and escalation for panic events"],
-              ["Accident response", "Incident logging, evidence collection, and follow-up workflow"],
-              ["Unsafe trip reports", "Service safety complaints requiring fast trust response"],
-              ["Post-incident closure", "Notes, callbacks, and city-team sign-off before final closure"],
+              ["SOS handling", "Immediate triage, contact, and escalation."],
+              ["Accident response", "Incident logging, evidence, and follow-up."],
+              ["Unsafe trip reports", "Safety complaints requiring fast trust response."],
+              ["Post-incident closure", "Notes, callbacks, and final sign-off."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function RiskEmergencyPage() {
 
         <ShellCard
           title="Immediate actions"
-          description="Safety items still needing response."
+          description="Immediate actions."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["Open panic case", "An SOS thread still needs final responder notes and closure", "monitoring"],
-              ["Accident file review", "Documentation from a recent incident remains incomplete", "review"],
-              ["Escalation handoff", "A city-team case is queued for next-step confirmation", "queued"],
+              ["Open panic case", "SOS thread still needs notes and closure.", "monitoring"],
+              ["Accident file review", "Recent incident documentation remains incomplete.", "review"],
+              ["Escalation handoff", "City-team case queued for confirmation.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function RiskEmergencyPage() {
 
         <ShellCard
           title="Emergency working set"
-          description="Current safety and incident cases."
+          description="Current safety list."
           className="@4xl:col-span-full"
         >
           <DataTable
