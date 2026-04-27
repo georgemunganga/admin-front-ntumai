@@ -19,7 +19,7 @@ export default function DispatchPage() {
       <PageIntro
         breadcrumb={["Home", "Dispatch"]}
         title="Dispatch"
-        description="Monitor live bookings, supply pressure, and operator intervention lanes from the dispatch desk."
+        description="Live bookings, supply, and interventions."
       />
 
       <DashboardCrmStats />

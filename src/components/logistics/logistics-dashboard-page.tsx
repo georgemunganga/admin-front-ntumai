@@ -6,9 +6,9 @@ import PageHeader from "@/components/admin/page-header";
 
 const overviewStats = [
   { label: "Live shipments", value: "148", meta: "23 high-priority stops" },
-  { label: "Taskers online", value: "86", meta: "12 in reserve pool" },
-  { label: "On-time rate", value: "94.8%", meta: "Stable vs 7-day average" },
-  { label: "SLA risks", value: "09", meta: "4 require dispatch action" },
+  { label: "Taskers online", value: "86", meta: "12 in reserve" },
+  { label: "On-time rate", value: "94.8%", meta: "Stable vs 7-day avg" },
+  { label: "SLA risks", value: "09", meta: "4 need dispatch action" },
 ];
 
 const routeLanes = [
@@ -31,7 +31,7 @@ export default function LogisticsDashboardPage() {
         breadcrumb={["Home", "Logistics"]}
         eyebrow="Logistics Kit"
         title="Logistics Control"
-        description="Coordinate live deliveries, driver capacity, and city-zone performance from the operations desk."
+        description="Live deliveries, tasker capacity, and zone performance."
       />
 
       <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
@@ -57,7 +57,7 @@ export default function LogisticsDashboardPage() {
                 Route Lanes
               </Text>
               <Title as="h3" className="mt-2 text-xl font-semibold text-gray-900">
-                Dispatch pressure by operating zone
+                Dispatch pressure by zone
               </Title>
             </div>
             <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">

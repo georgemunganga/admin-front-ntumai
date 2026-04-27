@@ -15,7 +15,7 @@ export default function FleetDriversPage() {
         breadcrumb={["Home", "Fleet", "Taskers"]}
         eyebrow="Operations"
         title="Fleet taskers"
-        description="Track tasker performance, quality issues, and supply readiness across the active fleet."
+        description="Tasker performance and readiness."
         badge="Supply"
       />
 
@@ -26,35 +26,35 @@ export default function FleetDriversPage() {
             value="326"
             change="+14 online"
             tone="positive"
-            detail="Taskers currently eligible for dispatch or working active trips."
+            detail="Eligible for dispatch or on active work."
           />
           <StatCard
             label="Coaching watchlist"
             value="22"
             change="Needs review"
             tone="warning"
-            detail="Supply accounts trending toward service-quality or reliability concerns."
+            detail="Accounts trending toward quality or reliability issues."
           />
           <StatCard
             label="Suspended accounts"
             value="9"
             change="Risk held"
             tone="warning"
-            detail="Taskers still restricted pending trust, compliance, or payment resolution."
+            detail="Restricted pending trust, compliance, or payment resolution."
           />
         </div>
 
         <ShellCard
           title="Tasker performance lanes"
-          description="High-signal groupings used by fleet and tasker-success teams."
+          description="Active fleet lanes."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["Top performers", "Strong acceptance, low cancellation, and high completion output"],
-              ["At-risk supply", "Accounts drifting offline or missing peak demand windows"],
-              ["Quality coaching", "Taskers needing support after complaints or falling ratings"],
-              ["Suspension review", "Restricted accounts waiting for final governance actions"],
+              ["Top performers", "Strong acceptance and completion."],
+              ["At-risk supply", "Accounts drifting offline or missing peak windows."],
+              ["Quality coaching", "Taskers needing support after complaints or low ratings."],
+              ["Suspension review", "Restricted accounts waiting on a decision."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{title}</Text>
@@ -66,14 +66,14 @@ export default function FleetDriversPage() {
 
         <ShellCard
           title="Attention queue"
-          description="Fleet actions requiring operator follow-up."
+          description="Needs follow-up."
           className="@4xl:col-span-4"
         >
           <div className="space-y-3">
             {[
-              ["High-value tasker churn risk", "A top tasker cohort is dropping activity after evening peak", "monitoring"],
-              ["Complaint spike review", "Several accounts triggered quality checks after support escalations", "review"],
-              ["Suspension appeal batch", "Restricted taskers waiting for decision before reactivation", "queued"],
+              ["High-value tasker churn risk", "Top tasker cohort dropping activity after evening peak.", "monitoring"],
+              ["Complaint spike review", "Accounts triggered quality checks after escalations.", "review"],
+              ["Suspension appeal batch", "Restricted taskers waiting for reactivation decisions.", "queued"],
             ].map(([title, meta, status]) => (
               <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -90,7 +90,7 @@ export default function FleetDriversPage() {
 
         <ShellCard
           title="Tasker working set"
-          description="Operational list for tasker performance and readiness."
+          description="Current fleet list."
           className="@4xl:col-span-full"
         >
           <DataTable

@@ -7,39 +7,39 @@ export default function PlatformPage() {
       breadcrumb={["Home", "Platform"]}
       eyebrow="Platform"
       title="Platform control"
-      description="Coordinate reporting, content, release control, system health, and admin governance from the core platform layer."
+      description="Reporting, releases, content, and admin control."
       badge="Control"
       insights={[
         {
           label: "Critical health alerts",
           value: "5",
-          detail: "Dependencies or jobs currently outside expected operating thresholds.",
+          detail: "Dependencies or jobs outside expected thresholds.",
         },
         {
           label: "Admins with elevated roles",
           value: "14",
-          detail: "Staff accounts holding high-sensitivity permissions or approval rights.",
+          detail: "Staff accounts with elevated access.",
         },
         {
           label: "Pending release controls",
           value: "7",
-          detail: "Version gates, feature toggles, or content pushes waiting for approval.",
+          detail: "Version gates or rollouts waiting on approval.",
         },
       ]}
       queue={[
         {
           title: "Gateway latency review",
-          meta: "Payment and SMS dependencies are showing intermittent lag across two providers.",
+          meta: "Payment and SMS lag across two providers.",
           status: "monitoring",
         },
         {
           title: "Permission audit",
-          meta: "Recent staff changes require a fresh review of admin access scopes.",
+          meta: "Recent staff changes need access review.",
           status: "review",
         },
         {
           title: "Feature toggle rollout",
-          meta: "A staged release is queued behind minimum-version validation for older clients.",
+          meta: "Staged rollout queued behind version checks.",
           status: "queued",
         },
       ]}

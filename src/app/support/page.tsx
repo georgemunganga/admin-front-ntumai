@@ -7,39 +7,39 @@ export default function SupportPage() {
       breadcrumb={["Home", "Support"]}
       eyebrow="Support CRM"
       title="Support operations"
-      description="Manage ticket intake, dispute handling, escalations, and service recovery workflows across the platform."
+      description="Tickets, disputes, escalations, and recovery."
       badge="Support"
       insights={[
         {
           label: "Open tickets",
           value: "143",
-          detail: "Customer, driver, and merchant issues still awaiting first action or final closure.",
+          detail: "Open customer, tasker, and merchant issues.",
         },
         {
           label: "Escalations active",
           value: "19",
-          detail: "High-priority cases currently owned by senior support or operations teams.",
+          detail: "High-priority cases with specialist owners.",
         },
         {
           label: "SLA risk cases",
           value: "12",
-          detail: "Tickets trending beyond target response or resolution windows.",
+          detail: "Tickets trending beyond SLA.",
         },
       ]}
       queue={[
         {
           title: "Billing complaint surge",
-          meta: "Support and finance are seeing a spike in rider disputes tied to failed reversals.",
+          meta: "Billing disputes rising after failed reversals.",
           status: "monitoring",
         },
         {
           title: "Courier abuse case review",
-          meta: "A set of driver and customer complaints has been escalated for trust-team input.",
+          meta: "Tasker and customer complaints escalated to trust.",
           status: "review",
         },
         {
           title: "Merchant SLA backlog",
-          meta: "Partner support cases are stacking up after lunch-hour order disruptions.",
+          meta: "Partner support backlog after order disruptions.",
           status: "queued",
         },
       ]}

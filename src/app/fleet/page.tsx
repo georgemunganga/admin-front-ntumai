@@ -19,7 +19,7 @@ export default function FleetPage() {
       <PageIntro
         breadcrumb={["Home", "Fleet"]}
         title="Fleet"
-        description="Manage driver onboarding, document readiness, vehicle health, and supply performance from the fleet desk."
+        description="Taskers, onboarding, documents, and vehicles."
       />
 
       <DashboardCrmStats />

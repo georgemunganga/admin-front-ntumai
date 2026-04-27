@@ -7,39 +7,39 @@ export default function GrowthPage() {
       breadcrumb={["Home", "Growth"]}
       eyebrow="Growth"
       title="Growth and engagement"
-      description="Coordinate promotions, lifecycle messaging, and supply-demand incentive programs across the platform."
+      description="Promotions, messaging, and incentives."
       badge="Growth"
       insights={[
         {
           label: "Live campaigns",
           value: "18",
-          detail: "Promo and incentive programs currently active across rider and driver segments.",
+          detail: "Promo and incentive programs running now.",
         },
         {
           label: "Targeted audiences",
           value: "11",
-          detail: "Audience groups actively used for retention, referral, and win-back flows.",
+          detail: "Audience groups in active use.",
         },
         {
           label: "Messages queued",
           value: "26",
-          detail: "Push, SMS, and in-app notices waiting for publish windows or approvals.",
+          detail: "Messages waiting for send windows or approval.",
         },
       ]}
       queue={[
         {
           title: "Weekend promo launch",
-          meta: "A city-specific discount campaign is staged but still waiting for final pricing clearance.",
+          meta: "City-specific discount campaign waiting on clearance.",
           status: "review",
         },
         {
           title: "Peak-hour incentive tuning",
-          meta: "Driver reward thresholds need adjustment after the latest supply forecast.",
+          meta: "Tasker reward thresholds need adjustment.",
           status: "monitoring",
         },
         {
           title: "Referral abuse safeguards",
-          meta: "A set of repeat accounts is being filtered before the next bonus cycle goes live.",
+          meta: "Repeat accounts being filtered before the next bonus cycle.",
           status: "queued",
         },
       ]}

@@ -7,39 +7,39 @@ export default function SalesPage() {
       breadcrumb={["Home", "Sales"]}
       eyebrow="Commerce"
       title="Sales and finance"
-      description="Track orders, payments, refunds, invoices, and payout operations from the commercial control layer."
+      description="Orders, payments, refunds, and payouts."
       badge="Finance"
       insights={[
         {
           label: "Gross processed today",
           value: "ZMW 486K",
-          detail: "Combined rider payments, wallet usage, and business-account billing volume.",
+          detail: "Payments, wallets, and billing volume.",
         },
         {
           label: "Pending refunds",
           value: "24",
-          detail: "Claims still awaiting approval, payment confirmation, or support closure.",
+          detail: "Claims still waiting on a decision.",
         },
         {
           label: "Payout batches",
           value: "7",
-          detail: "Settlement runs prepared for drivers, vendors, and corporate reconciliation flows.",
+          detail: "Settlement runs waiting for release.",
         },
       ]}
       queue={[
         {
           title: "Chargeback review",
-          meta: "Several failed or reversed rider payments need finance validation before account action.",
+          meta: "Reversed payments waiting on validation.",
           status: "monitoring",
         },
         {
           title: "Merchant settlement hold",
-          meta: "A payout batch is paused because invoice and return totals do not reconcile cleanly.",
+          meta: "Settlement batch paused by reconciliation drift.",
           status: "review",
         },
         {
           title: "Refund auto-rule tuning",
-          meta: "A policy update is queued for partial refund thresholds on cancelled trips and orders.",
+          meta: "Refund rule update queued.",
           status: "queued",
         },
       ]}

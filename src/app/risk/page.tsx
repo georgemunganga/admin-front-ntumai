@@ -7,39 +7,39 @@ export default function RiskPage() {
       breadcrumb={["Home", "Risk"]}
       eyebrow="Risk & safety"
       title="Risk operations"
-      description="Review fraud, emergency incidents, abuse patterns, and compliance queues from a unified governance surface."
+      description="Fraud, safety, abuse, and compliance."
       badge="Guardrails"
       insights={[
         {
           label: "Active fraud cases",
           value: "12",
-          detail: "Trip, payment, and promo-abuse patterns currently under investigation.",
+          detail: "Fraud cases under investigation.",
         },
         {
           label: "Open SOS alerts",
           value: "3",
-          detail: "Safety incidents still awaiting final operator closure or escalation.",
+          detail: "Safety incidents still open.",
         },
         {
           label: "Compliance holds",
           value: "26",
-          detail: "Drivers, merchants, or categories blocked pending governance review.",
+          detail: "Accounts or categories blocked pending review.",
         },
       ]}
       queue={[
         {
           title: "GPS spoofing cluster",
-          meta: "A handful of driver accounts share suspicious movement patterns across the same corridor.",
+          meta: "Suspicious movement pattern cluster.",
           status: "at_risk",
         },
         {
           title: "Restricted goods review",
-          meta: "Several pharmacy listings need compliance sign-off before going back live.",
+          meta: "Restricted listings waiting on sign-off.",
           status: "review",
         },
         {
           title: "Emergency callback logs",
-          meta: "Recent SOS cases need cleanup and final notes from the city team.",
+          meta: "Recent SOS cases need final notes.",
           status: "queued",
         },
       ]}
