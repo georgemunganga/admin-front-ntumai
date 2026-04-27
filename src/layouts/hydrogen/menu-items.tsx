@@ -92,6 +92,7 @@ export const menuItems: MenuItem[] = [
     icon: <PiStackDuotone />,
     dropdownItems: [
       { name: "Overview", href: routes.marketplace.overview },
+      { name: "Vendor Applications", href: routes.marketplace.vendorApplications },
       { name: "Products", href: routes.marketplace.products },
       { name: "Vendors", href: routes.marketplace.vendors },
       { name: "Categories", href: routes.marketplace.categories },

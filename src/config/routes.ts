@@ -41,6 +41,7 @@ export const routes = {
   marketplace: {
     overview: "/marketplace",
     home: "/marketplace",
+    vendorApplications: "/marketplace/vendor-applications",
     products: "/marketplace/products",
     vendors: "/marketplace/vendors",
     categories: "/marketplace/categories",
