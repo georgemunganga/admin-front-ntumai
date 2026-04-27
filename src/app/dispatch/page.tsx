@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from "rizzui/box";
-import { Text, Title } from "rizzui";
+import PageIntro from "@/components/admin/page-intro";
 import DashboardCrmStats from "@/components/dashboard/crm-stats";
 import DashboardProjectStats from "@/components/dashboard/project-stats";
 import {
@@ -16,23 +16,11 @@ import {
 export default function DispatchPage() {
   return (
     <Box className="@container/pd space-y-6">
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-          <span className="inline-flex items-center gap-2">
-            <span>Home</span>
-            <span>/</span>
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span>Dispatch</span>
-          </span>
-        </div>
-        <Title as="h1" className="text-2xl font-semibold">
-          Dispatch
-        </Title>
-        <Text className="max-w-3xl text-sm leading-7 text-gray-500">
-          Monitor live bookings, supply pressure, and operator intervention lanes from the dispatch desk.
-        </Text>
-      </div>
+      <PageIntro
+        breadcrumb={["Home", "Dispatch"]}
+        title="Dispatch"
+        description="Monitor live bookings, supply pressure, and operator intervention lanes from the dispatch desk."
+      />
 
       <DashboardCrmStats />
       <DashboardProjectStats className="mb-6 3xl:mb-8" />
