@@ -82,7 +82,6 @@ export const menuItems: MenuItem[] = [
       { name: "Orders", href: routes.sales.orders },
       { name: "Invoices", href: routes.sales.invoices },
       { name: "Payments", href: routes.sales.payments },
-      { name: "Customers", href: routes.sales.customers },
       { name: "Refunds", href: routes.sales.refunds },
       { name: "Payouts", href: routes.sales.payouts },
     ],
@@ -105,6 +104,7 @@ export const menuItems: MenuItem[] = [
     icon: <PiChatsCircleDuotone />,
     dropdownItems: [
       { name: "Overview", href: routes.crm.overview },
+      { name: "Customers", href: routes.crm.customers },
       { name: "Riders", href: routes.crm.riders },
       { name: "Corporate Accounts", href: routes.crm.corporateAccounts },
       { name: "Wallets", href: routes.crm.wallets },

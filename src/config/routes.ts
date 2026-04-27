@@ -49,6 +49,7 @@ export const routes = {
   crm: {
     overview: "/crm",
     home: "/crm",
+    customers: "/crm/customers",
     riders: "/crm/riders",
     corporateAccounts: "/crm/corporate-accounts",
     wallets: "/crm/wallets",
@@ -91,7 +92,7 @@ export const routes = {
   orders: "/orders",
   deliveries: "/deliveries",
   catalog: "/catalog",
-  customers: "/customers",
+  customers: "/crm/customers",
   drivers: "/drivers",
   vendors: "/vendors",
   content: "/content",

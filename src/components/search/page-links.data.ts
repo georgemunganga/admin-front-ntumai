@@ -6,7 +6,7 @@ export const pageLinks = [
   { name: "Orders", href: routes.orders },
   { name: "Deliveries", href: routes.deliveries },
   { name: "Catalog", href: routes.catalog },
-  { name: "Customers", href: routes.customers },
+  { name: "Customers", href: routes.crm.customers },
   { name: "Drivers", href: routes.drivers },
   { name: "Partners", href: routes.vendors },
   { name: "Growth" },
