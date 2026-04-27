@@ -149,6 +149,408 @@ Tasker is the courier-side workforce umbrella. Vehicle mode is a subtype, not a 
 
 These are the biggest gaps across all workflow families.
 
+## Second-pass operating model
+
+This second pass applies a stricter industry lens:
+
+- staff should not think in terms of app screens
+- staff should think in terms of cases, queues, states, and actions
+- the system should reduce decisions, not multiply them
+- the same problem should not need three modules to solve
+
+In practical terms, a good internal ERP for this business should make the hard things visible and the common things routine.
+
+### Industry-standard practices that should not be omitted
+
+Even if the final staff experience is simple, the system should still keep these standard practices underneath:
+
+- explicit state machines, not informal status text
+- role-based access control, not broad admin powers
+- full audit trails for approvals, edits, payouts, suspensions, and overrides
+- maker-checker separation for sensitive actions where needed
+- queue ownership and SLA tracking
+- reason codes for every destructive or financial action
+- case notes and internal comments
+- linked entity timelines
+- exception-first monitoring
+- reversible or compensating actions where possible
+- soft blocks and hard blocks treated differently
+- document versioning and resubmission history
+- payout and refund controls with settlement visibility
+- handoff metadata between teams
+- search by person, order, trip, delivery, booking, store, phone, and tracking ID
+
+The goal is not to make the system heavy. The goal is to hide operational complexity from staff without removing control, traceability, or safety.
+
+### What staff work actually looks like
+
+Staff work is usually one of these:
+
+- review something
+- approve or reject something
+- intervene in something live
+- correct bad data
+- resolve a dispute
+- pay someone
+- pause or block someone
+- hand a case to another team with enough context
+
+That means the ERP should be built around:
+
+- queues
+- state machines
+- timelines
+- exception feeds
+- action panels
+
+Not around static pages alone.
+
+### Simple and straightforward rule
+
+If life is made easy for staff, the system should behave like this:
+
+- one place to find the case
+- one clear current status
+- one clear next action
+- one visible owner
+- one visible audit trail
+
+If staff have to open CRM, then Fleet, then Support, then Sales just to understand one issue, the system is not simple enough.
+
+## What should be simple for staff
+
+These should feel almost trivial in the final ERP.
+
+### 1. Approving or rejecting a tasker
+
+Should be simple:
+
+- open tasker application
+- see completeness, docs, KYC, violations, duplicates
+- approve, reject, or request resubmission
+- leave a reason
+- trigger activation or hold
+
+Should not require:
+
+- searching across multiple pages
+- guessing missing fields
+- manually correlating onboarding and KYC
+
+### 2. Understanding why a vendor cannot operate
+
+Should be simple:
+
+- open vendor account
+- immediately see if the blocker is:
+  - onboarding incomplete
+  - KYC pending
+  - KYC rejected
+  - activation held
+  - store missing
+  - store paused
+  - subscription/billing problem
+
+Should not require:
+
+- checking products, then settings, then reports, then backend logs mentally
+
+### 3. Intervening in a live delivery or booking
+
+Should be simple:
+
+- open the trip/delivery/booking
+- see customer, vendor, tasker, payment, live status, timeline
+- reassign, pause, cancel, refund, or escalate
+- leave an operator note
+
+Should not require:
+
+- bouncing between Dispatch, Support, and Sales without shared context
+
+### 4. Handling a payout issue
+
+Should be simple:
+
+- open payout request
+- see balance source, recent jobs/orders, prior payouts, risk flags, payout destination
+- approve, hold, or reject
+- attach reason and follow-up action
+
+Should not require:
+
+- manually comparing several ledgers or guessing whether earnings are settled
+
+### 5. Handling a customer complaint
+
+Should be simple:
+
+- open the complaint
+- see linked order/delivery/booking
+- see all participants
+- see prior tickets and refunds
+- resolve, refund, escalate, or hand over
+
+Should not require:
+
+- rebuilding the story from scratch every time
+
+## What is missing from the current ERP shape
+
+The current admin module grouping is good, but from an operations background these missing structures matter more than more pages.
+
+### 1. Work queues before dashboards
+
+Dashboards are useful, but queues run the business.
+
+The ERP needs first-class queues for:
+
+- tasker applications
+- vendor applications
+- rejected/resubmitted KYC
+- payout approvals
+- refunds and disputes
+- dispatch exceptions
+- vendor provisioning failures
+- SLA-breached support tickets
+
+Without queues, staff become search-driven instead of workflow-driven.
+
+### 2. Case pages before entity lists
+
+Lists are not enough. Staff solve cases, not rows.
+
+The ERP needs case pages for:
+
+- application review
+- live dispatch exception
+- complaint/dispute
+- payout request
+- safety incident
+- vendor readiness issue
+
+Each case page should merge:
+
+- entity identity
+- current state
+- related timeline
+- related people
+- actions
+- internal notes
+
+### 3. State machines before free-form status text
+
+The mobile app already implies strict state transitions. The admin should expose them clearly.
+
+Needed state machines:
+
+- tasker onboarding
+- vendor onboarding
+- booking lifecycle
+- delivery lifecycle
+- vendor order lifecycle
+- payout lifecycle
+- support ticket lifecycle
+- safety incident lifecycle
+
+If a state exists in the backend but is not legible to staff, staff will compensate with guesswork.
+
+### 4. Exception handling before analytics polish
+
+From an industry point of view, operations breaks on exceptions, not averages.
+
+The ERP should surface:
+
+- accepted by another tasker
+- no tasker available
+- tasker offline during active job
+- pickup overdue
+- delivery stuck
+- customer unreachable
+- vendor store missing
+- vendor prep late
+- payout failed
+- KYC rejected but account still trying to operate
+
+This is more urgent than deeper charts.
+
+### 5. Handoffs as a first-class feature
+
+Real internal operations are cross-functional. Handoffs should be explicit.
+
+Needed handoff patterns:
+
+- Dispatch -> Support
+- Support -> Finance
+- Risk -> Fleet
+- Marketplace Ops -> Dispatch
+- CRM -> Growth
+
+A handoff should carry:
+
+- context
+- reason
+- urgency
+- prior action
+- current blocker
+
+Not just a link to another page.
+
+## Recommended staff-first module interpretation
+
+The current sidebar can remain, but each module should be interpreted more strictly.
+
+### Dispatch
+
+Primary job:
+
+- command center for live work
+
+Should own:
+
+- live map
+- active bookings and deliveries
+- reassignment
+- stuck-job alerts
+- manual dispatch
+- operator notes
+
+Should not become:
+
+- a passive tracking page
+
+### Fleet
+
+Primary job:
+
+- workforce readiness
+
+Should own:
+
+- tasker application review
+- document review
+- activation readiness
+- shift participation
+- vehicle and service-mode qualification
+- performance and probation context
+
+Should not become:
+
+- just a directory of taskers
+
+### Logistics
+
+Primary job:
+
+- movement rules and coverage
+
+Should own:
+
+- zones
+- geofencing
+- service types
+- pricing logic by movement type
+- shipment exception rules
+
+Should not become:
+
+- a duplicate of Dispatch
+
+### Marketplace
+
+Primary job:
+
+- merchant/store operating readiness
+
+Should own:
+
+- vendors
+- store health
+- products
+- categories
+- reviews
+- preparation and pickup readiness context
+
+Should not become:
+
+- only a catalog browser
+
+### CRM
+
+Primary job:
+
+- customer truth and recovery
+
+Should own:
+
+- customer profile
+- wallet
+- reviews
+- blocked users
+- account history
+- relationship signals
+
+Should not become:
+
+- a shallow contact list
+
+### Support
+
+Primary job:
+
+- case resolution
+
+Should own:
+
+- inbox
+- tickets
+- disputes
+- escalations
+- SLA states
+- handoff status
+
+Should not become:
+
+- only a message archive
+
+### Risk
+
+Primary job:
+
+- trust, compliance, and restriction decisions
+
+Should own:
+
+- KYC decisions
+- fraud flags
+- safety incidents
+- suspensions
+- probation
+- appeals
+
+Should not become:
+
+- a dumping ground for anything “serious”
+
+### Sales and Finance
+
+Primary job:
+
+- money movement with accountability
+
+Should own:
+
+- order money trail
+- payments
+- refunds
+- payouts
+- settlements
+- tip attribution
+
+Should not become:
+
+- detached accounting pages with no operational context
+
 ### 1. No unified user/role state page
 
 The mobile app clearly depends on:
@@ -240,6 +642,20 @@ The admin must support the handoff, not only each module in isolation.
    - vendor/store timeline
    - order/delivery/booking timeline
 
+5. Build work queues before more dashboards:
+   - application queue
+   - payout queue
+   - dispatch exception queue
+   - dispute queue
+   - provisioning-failure queue
+
+6. Build case pages for the most expensive workflows:
+   - tasker review case
+   - vendor review case
+   - delivery/booking intervention case
+   - complaint/dispute case
+   - payout approval case
+
 ### P1: operational control
 
 1. Dispatch command views:
@@ -293,6 +709,25 @@ Implementation should not start everywhere at once. The best next slices are:
    - Dispatch
 
 Those three slices will expose most of the admin gaps that matter in daily operations.
+
+## Industry-lens conclusion
+
+The first pass answered: do we cover the workflows?
+
+The second pass answers: would staff actually enjoy using this system to do their jobs?
+
+Right now, not yet.
+
+The current admin is moving in the right ERP direction, but it still thinks too much in terms of pages and modules. A stronger operations-grade system should think in terms of:
+
+- queues
+- cases
+- states
+- timelines
+- interventions
+- handoffs
+
+That is the difference between an admin dashboard and an internal operations system.
 
 ## Immediate admin alignment notes
 
