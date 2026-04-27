@@ -33,7 +33,7 @@ export default function Sidebar({ className }: { className?: string }) {
             className="h-14 w-auto"
             priority
           />
-          <span className="mt-2 block text-xs uppercase tracking-[0.2em] text-white/65">
+          <span className="mt-2 block text-xs uppercase tracking-[0.2em] text-white/85">
             Control Center
           </span>
         </Link>
@@ -84,7 +84,7 @@ export default function Sidebar({ className }: { className?: string }) {
                             <PiCaretDownBold
                               strokeWidth={3}
                               className={cn(
-                                "h-3.5 w-3.5 -rotate-90 text-white/55 transition-transform duration-200 rtl:rotate-90",
+                                "h-3.5 w-3.5 -rotate-90 text-white transition-transform duration-200 rtl:rotate-90",
                                 isDropdownOpen && "text-white/90",
                                 open && "rotate-0 rtl:rotate-0"
                               )}
@@ -163,9 +163,8 @@ export default function Sidebar({ className }: { className?: string }) {
                 ) : (
                   <Title
                     as="h6"
-                    className={cn(
-                      "mb-2 truncate px-6 text-xs font-normal uppercase tracking-widest text-white/50 2xl:px-8",
-                      "mb-2 truncate px-6 text-xs font-normal uppercase tracking-widest text-white/70 2xl:px-8",
+                      className={cn(
+                      "mb-2 truncate px-6 text-xs font-normal uppercase tracking-widest text-white/80 2xl:px-8",
                       index !== 0 && "mt-6 3xl:mt-7"
                     )}
                   >
