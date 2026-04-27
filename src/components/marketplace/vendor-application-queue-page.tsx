@@ -547,7 +547,7 @@ export default function VendorApplicationQueuePage() {
         breadcrumb={["Home", "Marketplace", "Vendor Applications"]}
         eyebrow="Marketplace Ops"
         title="Vendor application queue"
-        description="Separate merchant onboarding review from live vendor management so launch, compliance, and provisioning work stays explicit."
+        description="Pending vendor applications."
         badge="Queue"
       />
 
@@ -599,7 +599,7 @@ export default function VendorApplicationQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Merchant onboarding queue" description="Queue-first vendor review with explicit launch, compliance, and provisioning lanes.">
+      <ShellCard title="Merchant onboarding queue" description="Review and onboard.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

@@ -583,7 +583,7 @@ export default function TaskerApplicationQueuePage() {
         breadcrumb={["Home", "Fleet", "Tasker Applications"]}
         eyebrow="Fleet Ops"
         title="Tasker application queue"
-        description="Run onboarding review as an operational work queue, not a static list. Triage quickly, inspect deeply, and record decisions cleanly."
+        description="Pending tasker applications."
         badge="Queue"
       />
 
@@ -635,7 +635,7 @@ export default function TaskerApplicationQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Review queue" description="Queue-first application handling with quick filtering and a deeper review path.">
+      <ShellCard title="Review queue" description="Review and decide.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

@@ -8,7 +8,7 @@ type StatCardProps = {
   value: string;
   change: string;
   tone?: "positive" | "warning" | "neutral";
-  detail: string;
+  detail?: string;
 };
 
 const toneClasses = {
@@ -25,23 +25,23 @@ export default function StatCard({
   detail,
 }: StatCardProps) {
   return (
-    <div className="rounded-[24px] border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50/90 p-5 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)]">
+    <div className="rounded-[22px] border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50/90 p-4 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)]">
       <div className="flex items-center justify-between gap-3">
         <Text className="text-sm font-medium text-gray-500">{label}</Text>
         <Badge
           variant="flat"
           className={cn(
-            "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+            "rounded-full px-2.5 py-1 text-[10px] font-semibold",
             toneClasses[tone],
           )}
         >
           {change}
         </Badge>
       </div>
-      <Title as="h2" className="mt-4 text-[28px] font-semibold tracking-tight">
+      <Title as="h2" className="mt-3 text-[26px] font-semibold tracking-tight">
         {value}
       </Title>
-      <Text className="mt-2 text-sm leading-6 text-gray-600">{detail}</Text>
+      {detail ? <Text className="mt-1.5 text-xs leading-5 text-gray-500">{detail}</Text> : null}
     </div>
   );
 }

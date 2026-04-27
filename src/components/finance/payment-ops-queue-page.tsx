@@ -407,7 +407,7 @@ export default function PaymentOpsQueuePage() {
         breadcrumb={["Home", "Sales", "Payments"]}
         eyebrow="Commerce"
         title="Payments"
-        description="Work retries, chargebacks, and reconciliation mismatches with one payment-operations case trail."
+        description="Payment issues and retries."
         badge="Payments"
       />
 
@@ -437,7 +437,7 @@ export default function PaymentOpsQueuePage() {
 
       <ShellCard
         title="Payment operations queue"
-        description="Work the queue first, then open the case drawer to retry, escalate, or close the payment issue."
+        description="Review and act."
       >
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
           <div className="flex flex-wrap gap-2">

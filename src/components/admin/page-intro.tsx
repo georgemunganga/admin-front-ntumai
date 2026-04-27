@@ -16,8 +16,8 @@ export default function PageIntro({
   action,
 }: PageIntroProps) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div className="space-y-2">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
           {breadcrumb.map((item, index) => (
             <span key={`${item}-${index}`} className="inline-flex items-center gap-2">
@@ -30,7 +30,7 @@ export default function PageIntro({
           {title}
         </Title>
         {description ? (
-          <Text className="max-w-3xl text-sm leading-7 text-gray-500">
+          <Text className="max-w-xl text-sm leading-6 text-gray-500">
             {description}
           </Text>
         ) : null}

@@ -389,7 +389,7 @@ export default function SupportEscalationQueuePage() {
         breadcrumb={["Home", "Support", "Escalations"]}
         eyebrow="Support CRM"
         title="Escalations"
-        description="High-priority support cases needing specialist, trust, or partner response."
+        description="High-priority escalations."
         badge="Escalations"
       />
 
@@ -419,7 +419,7 @@ export default function SupportEscalationQueuePage() {
 
       <ShellCard
         title="Escalation queue"
-        description="Filter escalations, then open a case to assign, escalate further, or close it."
+        description="Assign, escalate, close."
       >
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
           <div className="flex flex-wrap gap-2">

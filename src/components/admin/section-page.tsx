@@ -57,25 +57,22 @@ export default function SectionPage({
         action={
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" className="h-11 rounded-2xl border-2 border-primary px-5 font-semibold text-primary">
-              Export snapshot
+              Export
             </Button>
             <Button className="h-11 rounded-2xl bg-primary px-5 font-semibold text-white">
-              Create workflow
+              Create
             </Button>
           </div>
         }
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
-        <ShellCard
-          title="Section snapshot"
-          description="Use this as the working surface while we wire live admin actions later."
-        >
+        <ShellCard title="Snapshot">
           <div className="grid gap-4 md:grid-cols-3">
             {insights.map((item) => (
               <div
                 key={item.label}
-                className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4"
+                className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4"
               >
                 <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
                   {item.label}
@@ -83,7 +80,7 @@ export default function SectionPage({
                 <Title as="h3" className="mt-3 text-2xl font-semibold">
                   {item.value}
                 </Title>
-                <Text className="mt-2 text-sm leading-6 text-gray-500">
+                <Text className="mt-1.5 text-xs leading-5 text-gray-500">
                   {item.detail}
                 </Text>
               </div>
@@ -91,15 +88,12 @@ export default function SectionPage({
           </div>
         </ShellCard>
 
-        <ShellCard
-          title="Action queue"
-          description="High-signal items the admin team should clear first."
-        >
+        <ShellCard title="Action queue">
           <div className="space-y-3">
             {queue.map((item) => (
               <div
                 key={item.title}
-                className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4"
+                className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -120,13 +114,12 @@ export default function SectionPage({
 
       <ShellCard
         title="Working set"
-        description="Layout-first placeholder table. We will replace this with live CRUD data after the UI passes are done."
         action={
           <Badge
             variant="flat"
             className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary"
           >
-            UI first
+            Preview
           </Badge>
         }
       >

@@ -472,7 +472,7 @@ export default function DispatchExceptionQueuePage() {
         breadcrumb={["Home", "Dispatch", "Exceptions"]}
         eyebrow="Dispatch Ops"
         title="Dispatch exception queue"
-        description="Handle real operational breakage from a proper recovery queue instead of a passive logistics list."
+        description="Active dispatch issues."
         badge="Queue"
       />
 
@@ -524,7 +524,7 @@ export default function DispatchExceptionQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Recovery queue" description="Queue-first dispatch exception handling with case inspection and controlled action paths.">
+      <ShellCard title="Recovery queue" description="Open, inspect, act.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

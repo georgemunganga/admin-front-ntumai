@@ -40,20 +40,20 @@ export default function ModulePage({
         {sections.map((section) => (
           <div
             key={section.title}
-            className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+            className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
           >
             <Title as="h3" className="text-xl font-semibold text-gray-900">
               {section.title}
             </Title>
-            <Text className="mt-2 text-sm leading-7 text-gray-500">
+            <Text className="mt-1.5 text-sm leading-6 text-gray-500">
               {section.description}
             </Text>
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {section.items.map((item) => (
                 <Badge
                   key={item}
                   variant="flat"
-                  className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary"
+                  className="rounded-2xl bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
                 >
                   {item}
                 </Badge>

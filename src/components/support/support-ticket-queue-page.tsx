@@ -392,7 +392,7 @@ export default function SupportTicketQueuePage() {
         breadcrumb={["Home", "Support", "Tickets"]}
         eyebrow="Support CRM"
         title="Support tickets"
-        description="Core support queue for customer, tasker, and merchant follow-up."
+        description="Open support cases."
         badge="Tickets"
       />
 
@@ -422,7 +422,7 @@ export default function SupportTicketQueuePage() {
 
       <ShellCard
         title="Ticket queue"
-        description="Filter the queue, then open a case to assign, escalate, or resolve it."
+        description="Assign, escalate, resolve."
       >
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
           <div className="flex flex-wrap gap-2">

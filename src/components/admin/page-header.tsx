@@ -20,8 +20,8 @@ export default function PageHeader({
   action,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div className="max-w-3xl space-y-2">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="max-w-2xl space-y-1.5">
         {breadcrumb?.length ? (
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
             {breadcrumb.map((item, index) => (
@@ -33,7 +33,7 @@ export default function PageHeader({
           </div>
         ) : null}
         {eyebrow ? (
-          <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+          <Text className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
             {eyebrow}
           </Text>
         ) : null}
@@ -51,7 +51,7 @@ export default function PageHeader({
           ) : null}
         </div>
         {description ? (
-          <Text className="max-w-2xl text-sm leading-7 text-gray-500">
+          <Text className="max-w-xl text-sm leading-6 text-gray-500">
             {description}
           </Text>
         ) : null}

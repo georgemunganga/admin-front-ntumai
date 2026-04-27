@@ -459,7 +459,7 @@ export default function PayoutApprovalQueuePage() {
         breadcrumb={["Home", "Sales", "Payouts"]}
         eyebrow="Finance Ops"
         title="Payout approval queue"
-        description="Handle tasker payouts and vendor settlements as reviewed finance cases, not static settlement summaries."
+        description="Pending payouts and settlements."
         badge="Queue"
       />
 
@@ -511,7 +511,7 @@ export default function PayoutApprovalQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Settlement approval queue" description="Queue-first payout handling with review context, risk visibility, and controlled finance actions.">
+      <ShellCard title="Settlement approval queue" description="Review and release.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

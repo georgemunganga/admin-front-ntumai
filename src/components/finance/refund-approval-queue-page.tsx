@@ -408,7 +408,7 @@ export default function RefundApprovalQueuePage() {
         breadcrumb={["Home", "Sales", "Refunds"]}
         eyebrow="Commerce"
         title="Refunds"
-        description="Review manual refund claims, auto-policy exceptions, and partial recovery decisions with one finance trail."
+        description="Refund requests and exceptions."
         badge="Refunds"
       />
 
@@ -438,7 +438,7 @@ export default function RefundApprovalQueuePage() {
 
       <ShellCard
         title="Refund approval queue"
-        description="Work the queue first, then open the case drawer to approve, hold, or deny the refund."
+        description="Review and decide."
       >
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
           <div className="flex flex-wrap gap-2">

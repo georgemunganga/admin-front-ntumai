@@ -28,7 +28,7 @@ export default function ShellCard({
       )}
     >
       {title || description || action ? (
-        <div className="flex flex-col gap-3 border-b border-gray-200 bg-gradient-to-r from-primary/5 via-white to-secondary/5 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-2 border-b border-gray-200 bg-gradient-to-r from-primary/5 via-white to-secondary/5 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div>
             {title ? (
               <Title as="h3" className="text-base font-semibold text-gray-900">
@@ -36,13 +36,13 @@ export default function ShellCard({
               </Title>
             ) : null}
             {description ? (
-              <Text className="mt-1 text-sm text-gray-500">{description}</Text>
+              <Text className="mt-1 text-xs leading-5 text-gray-500">{description}</Text>
             ) : null}
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
       ) : null}
-      <div className={cn("px-5 py-5 sm:px-6", bodyClassName)}>{children}</div>
+      <div className={cn("px-5 py-4 sm:px-6", bodyClassName)}>{children}</div>
     </section>
   );
 }

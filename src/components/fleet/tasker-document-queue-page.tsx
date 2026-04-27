@@ -525,7 +525,7 @@ export default function TaskerDocumentQueuePage() {
         breadcrumb={["Home", "Fleet", "Tasker Documents"]}
         eyebrow="Compliance Ops"
         title="Tasker document queue"
-        description="Run identity, permit, insurance, and inspection reviews as operational work, not static compliance reporting."
+        description="Pending document reviews."
         badge="Queue"
       />
 
@@ -577,7 +577,7 @@ export default function TaskerDocumentQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Document review queue" description="Queue-first compliance handling with triage, inspection, and controlled resolution actions.">
+      <ShellCard title="Document review queue" description="Review and resolve.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

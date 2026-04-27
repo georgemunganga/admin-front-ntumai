@@ -432,7 +432,7 @@ export default function DisputeReviewQueuePage() {
         breadcrumb={["Home", "Support", "Disputes"]}
         eyebrow="Support CRM"
         title="Disputes"
-        description="Review refund claims, delivery disputes, and payment complaints with one case trail across support, finance, and risk."
+        description="Open dispute cases."
         badge="Disputes"
       />
 
@@ -462,7 +462,7 @@ export default function DisputeReviewQueuePage() {
 
       <ShellCard
         title="Dispute review queue"
-        description="Use the queue first, then open the case drawer to decide recovery, denial, or escalation."
+        description="Review and decide."
       >
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
           <div className="flex flex-wrap gap-2">

@@ -111,7 +111,7 @@ export default function SupportInboxPage() {
         breadcrumb={["Home", "Support", "Inbox"]}
         eyebrow="Support Desk"
         title="Support Inbox"
-        description="Handle customer, courier, and merchant conversations from the same operational queue."
+        description="Shared support conversations."
         action={
           <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
             <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
