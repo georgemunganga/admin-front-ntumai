@@ -23,12 +23,12 @@ export default function ShellCard({
   return (
     <section
       className={cn(
-        "rounded-[26px] border border-gray-100 bg-white shadow-sm shadow-gray-100/80",
+        "rounded-[26px] border border-gray-200 bg-white shadow-[0_10px_30px_-18px_rgba(15,23,42,0.24)]",
         className,
       )}
     >
       {title || description || action ? (
-        <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-3 border-b border-gray-200 bg-gradient-to-r from-primary/5 via-white to-secondary/5 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div>
             {title ? (
               <Title as="h3" className="text-base font-semibold text-gray-900">

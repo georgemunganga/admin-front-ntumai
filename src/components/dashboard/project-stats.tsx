@@ -37,7 +37,7 @@ export default function DashboardProjectStats({
             return (
               <Box
                 key={stat.title}
-                className="group inline-block w-full rounded-lg border border-muted p-6 first:bg-slate-900"
+                className="group inline-block w-full rounded-[24px] border border-gray-200 bg-white p-6 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)] first:border-slate-900 first:bg-slate-900"
               >
                 <Flex justify="between" gap="5" className="mb-4">
                   <Box className="grow space-y-2">
@@ -48,7 +48,7 @@ export default function DashboardProjectStats({
                       {stat.title}
                     </Text>
                   </Box>
-                  <span className="flex rounded-lg bg-slate-200 p-2.5 text-gray-900 shadow-sm">
+                  <span className="flex rounded-xl bg-gray-100 p-2.5 text-gray-900 shadow-sm group-first:bg-white/12 group-first:text-white">
                     <Icon className="size-7" strokeWidth={2} />
                   </span>
                 </Flex>

@@ -1,13 +1,13 @@
 import cn from "@/utils/class-names";
 
 const statusClasses: Record<string, string> = {
-  live: "bg-green-lighter/60 text-green-dark",
-  stable: "bg-blue-lighter/60 text-blue-dark",
+  live: "bg-primary/12 text-primary",
+  stable: "bg-blue-lighter/70 text-blue-dark",
   monitoring: "bg-orange-lighter/70 text-orange-dark",
   at_risk: "bg-red-lighter/70 text-red-dark",
   queued: "bg-gray-100 text-gray-600",
   paused: "bg-gray-100 text-gray-600",
-  review: "bg-blue-lighter/60 text-blue-dark",
+  review: "bg-secondary/20 text-secondary-foreground",
 };
 
 export default function StatusBadge({ status }: { status: string }) {

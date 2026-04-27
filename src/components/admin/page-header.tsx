@@ -33,7 +33,7 @@ export default function PageHeader({
           </div>
         ) : null}
         {eyebrow ? (
-          <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
+          <Text className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
             {eyebrow}
           </Text>
         ) : null}

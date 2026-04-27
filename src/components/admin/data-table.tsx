@@ -23,8 +23,8 @@ export default function DataTable({
   compact = false,
 }: DataTableProps) {
   return (
-    <div className="overflow-hidden rounded-[22px] border border-gray-100">
-      <div className="hidden grid-cols-[repeat(var(--columns),minmax(0,1fr))] border-b border-gray-100 bg-gray-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 md:grid">
+    <div className="overflow-hidden rounded-[22px] border border-gray-200 bg-white shadow-[0_10px_24px_-22px_rgba(15,23,42,0.3)]">
+      <div className="hidden grid-cols-[repeat(var(--columns),minmax(0,1fr))] border-b border-gray-200 bg-gradient-to-r from-primary/6 via-gray-50 to-secondary/6 px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 md:grid">
         {columns.map((column) => (
           <div
             key={column.key}
@@ -36,12 +36,12 @@ export default function DataTable({
         ))}
       </div>
 
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-200">
         {rows.map((row, index) => (
           <div
             key={`row-${index}`}
             className={cn(
-              "grid gap-4 px-5 py-4 md:grid-cols-[repeat(var(--columns),minmax(0,1fr))] md:items-center",
+              "grid gap-4 px-5 py-4 transition-colors duration-150 hover:bg-gray-50/70 md:grid-cols-[repeat(var(--columns),minmax(0,1fr))] md:items-center",
               compact ? "text-sm" : "text-[15px]",
             )}
             style={{ ["--columns" as string]: columns.length }}
