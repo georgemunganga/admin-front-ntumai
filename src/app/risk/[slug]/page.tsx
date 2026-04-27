@@ -14,5 +14,5 @@ export default async function RiskDetailPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "Risk", config.title]} />;
 }

@@ -14,5 +14,5 @@ export default async function LogisticsExtraPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "Logistics", config.title]} />;
 }

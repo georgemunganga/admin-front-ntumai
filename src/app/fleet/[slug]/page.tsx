@@ -14,5 +14,5 @@ export default async function FleetDetailPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "Fleet", config.title]} />;
 }

@@ -10,6 +10,7 @@ export type ModulePageSection = {
 };
 
 export type ModulePageConfig = {
+  breadcrumb?: string[];
   eyebrow: string;
   title: string;
   description: string;
@@ -18,6 +19,7 @@ export type ModulePageConfig = {
 };
 
 export default function ModulePage({
+  breadcrumb,
   eyebrow,
   title,
   description,
@@ -27,7 +29,7 @@ export default function ModulePage({
   return (
     <div className="space-y-6">
       <PageHeader
-        breadcrumb={["Home", title]}
+        breadcrumb={breadcrumb ?? ["Home", title]}
         eyebrow={eyebrow}
         title={title}
         description={description}

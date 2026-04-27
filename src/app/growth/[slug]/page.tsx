@@ -14,5 +14,5 @@ export default async function GrowthDetailPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "Growth", config.title]} />;
 }

@@ -14,5 +14,5 @@ export default async function CrmDetailPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "CRM", config.title]} />;
 }

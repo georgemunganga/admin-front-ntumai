@@ -14,5 +14,5 @@ export default async function DispatchDetailPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "Dispatch", config.title]} />;
 }

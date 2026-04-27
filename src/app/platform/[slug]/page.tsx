@@ -14,5 +14,5 @@ export default async function PlatformDetailPage({
     notFound();
   }
 
-  return <ModulePage {...config} />;
+  return <ModulePage {...config} breadcrumb={["Home", "Platform", config.title]} />;
 }
