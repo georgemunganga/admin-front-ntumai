@@ -12,10 +12,10 @@ export default function FleetDriverApplicationsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
-        breadcrumb={["Home", "Fleet", "Driver Applications"]}
+        breadcrumb={["Home", "Fleet", "Tasker Applications"]}
         eyebrow="Operations"
-        title="Driver applications"
-        description="Manage onboarding flow, inspection readiness, and activation blockers for incoming drivers."
+        title="Tasker applications"
+        description="Manage onboarding flow, inspection readiness, and activation blockers for incoming taskers."
         badge="Onboarding"
       />
 
@@ -46,7 +46,7 @@ export default function FleetDriverApplicationsPage() {
 
         <ShellCard
           title="Onboarding stages"
-          description="Main queues in the driver acquisition funnel."
+          description="Main queues in the tasker acquisition funnel."
           className="@4xl:col-span-8"
         >
           <div className="grid gap-4 md:grid-cols-2">

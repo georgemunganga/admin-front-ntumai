@@ -6,7 +6,7 @@ import PageHeader from "@/components/admin/page-header";
 
 const overviewStats = [
   { label: "Live shipments", value: "148", meta: "23 high-priority stops" },
-  { label: "Drivers online", value: "86", meta: "12 in reserve pool" },
+  { label: "Taskers online", value: "86", meta: "12 in reserve pool" },
   { label: "On-time rate", value: "94.8%", meta: "Stable vs 7-day average" },
   { label: "SLA risks", value: "09", meta: "4 require dispatch action" },
 ];

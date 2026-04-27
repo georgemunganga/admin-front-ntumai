@@ -7,7 +7,7 @@ export const crmStats = [
     lastMonth: "1,110",
   },
   {
-    title: "Drivers online",
+    title: "Taskers online",
     value: "326",
     percentage: 5.6,
     increased: true,
@@ -71,7 +71,7 @@ export const activityData = [
   { label: "Support", completed: 68, inProgress: 41 },
   { label: "Catalog", completed: 52, inProgress: 28 },
   { label: "Vendors", completed: 61, inProgress: 35 },
-  { label: "Drivers", completed: 78, inProgress: 44 },
+  { label: "Taskers", completed: 78, inProgress: 44 },
 ];
 
 export const overallProgressData = [
@@ -109,12 +109,12 @@ export const recentActivities = [
   { id: 1, title: "Dispatch rules adjusted", date: "2m ago", activity: "Peak-hour balancing updated for two zones." },
   { id: 2, title: "Support escalation cleared", date: "14m ago", activity: "Wallet dispute resolved after finance review." },
   { id: 3, title: "Merchant menu approved", date: "39m ago", activity: "Catalog content pushed live for a high-volume partner." },
-  { id: 4, title: "Driver batch verified", date: "1h ago", activity: "Eight onboarding profiles moved to active." },
+  { id: 4, title: "Tasker batch verified", date: "1h ago", activity: "Eight onboarding profiles moved to active." },
 ];
 
 export const summaryRows = [
   { name: "Orders desk", owner: "Ops pod A", status: "Live", volume: "214 active deliveries" },
   { name: "Support queue", owner: "Care team", status: "Monitoring", volume: "41 open tickets" },
   { name: "Vendors", owner: "Partner ops", status: "Review", volume: "18 exceptions" },
-  { name: "Drivers", owner: "Fleet success", status: "Stable", volume: "326 online" },
+  { name: "Taskers", owner: "Fleet success", status: "Stable", volume: "326 online" },
 ];

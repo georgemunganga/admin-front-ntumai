@@ -12,10 +12,10 @@ export default function GrowthDriverIncentivesPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
-        breadcrumb={["Home", "Growth", "Driver Incentives"]}
+        breadcrumb={["Home", "Growth", "Tasker Incentives"]}
         eyebrow="Growth"
-        title="Driver incentives"
-        description="Manage quest bonuses, peak-hour supply incentives, and campaign performance for the driver network."
+        title="Tasker incentives"
+        description="Manage quest bonuses, peak-hour supply incentives, and campaign performance for the tasker network."
         badge="Supply growth"
       />
 
@@ -26,7 +26,7 @@ export default function GrowthDriverIncentivesPage() {
             value="6"
             change="2 new zones"
             tone="positive"
-            detail="Driver incentive programs currently running across supply-critical corridors."
+            detail="Tasker incentive programs currently running across supply-critical corridors."
           />
           <StatCard
             label="Reward validations"

@@ -12,9 +12,9 @@ export default function FleetDriverDocumentsPage() {
   return (
     <div className="@container space-y-6">
       <PageHeader
-        breadcrumb={["Home", "Fleet", "Driver Documents"]}
+        breadcrumb={["Home", "Fleet", "Tasker Documents"]}
         eyebrow="Operations"
-        title="Driver documents"
+        title="Tasker documents"
         description="Manage licenses, insurance, inspection status, and expiry-driven compliance actions."
         badge="Compliance"
       />
@@ -51,7 +51,7 @@ export default function FleetDriverDocumentsPage() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              ["License monitoring", "Driver permits tracked against renewal thresholds"],
+              ["License monitoring", "Tasker permits tracked against renewal thresholds"],
               ["Insurance validation", "Vehicle policy checks before supply release"],
               ["Inspection readiness", "Physical clearance queue for active and new assets"],
               ["Auto-suspend protection", "Governance controls before accounts fall out of compliance"],
@@ -71,7 +71,7 @@ export default function FleetDriverDocumentsPage() {
         >
           <div className="space-y-3">
             {[
-              ["License expiry wave", "Several drivers are approaching the same deadline window", "monitoring"],
+              ["License expiry wave", "Several taskers are approaching the same deadline window", "monitoring"],
               ["Insurance renewal delay", "Policy uploads have not been confirmed for active assets", "review"],
               ["Suspension candidates", "Accounts may fall out of supply without urgent action", "at_risk"],
             ].map(([title, meta, status]) => (

@@ -17,8 +17,8 @@ export type CrudPageConfig = {
 
 export const crudPages: Record<string, CrudPageConfig> = {
   logisticsDrivers: {
-    title: "Drivers",
-    breadcrumb: ["Home", "Logistics", "Drivers"],
+    title: "Taskers",
+    breadcrumb: ["Home", "Logistics", "Taskers"],
     searchPlaceholder: "Search drivers...",
     rows: [
       { id: "DRV-511", primary: "Onboarding cohort April B", secondary: "12 document checks", tertiary: "New riders", status: "review", owner: "Driver success", updatedAt: "Apr 26, 09:03" },
@@ -173,8 +173,8 @@ export const crudPages: Record<string, CrudPageConfig> = {
     ],
   },
   drivers: {
-    title: "Drivers",
-    breadcrumb: ["Home", "Fleet", "Drivers"],
+    title: "Taskers",
+    breadcrumb: ["Home", "Fleet", "Taskers"],
     searchPlaceholder: "Search drivers...",
     rows: [
       { id: "DRV-511", primary: "Onboarding cohort April B", secondary: "12 document checks", tertiary: "New riders", status: "review", owner: "Driver success", updatedAt: "Apr 26, 09:03" },
