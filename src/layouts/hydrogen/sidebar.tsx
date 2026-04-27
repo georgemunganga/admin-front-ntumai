@@ -19,7 +19,7 @@ export default function Sidebar({ className }: { className?: string }) {
         className
       )}
     >
-      <div className="sticky top-0 z-40 border-b border-white/10 bg-primary/95 px-6 pb-5 pt-5 backdrop-blur 2xl:px-8 2xl:pt-6">
+      <div className="sticky top-0 z-40 border-b border-white/10 bg-primary/95 px-5 pb-5 pt-5 backdrop-blur 2xl:px-6 2xl:pt-6">
         <Link
           href={"/"}
           aria-label="Site Logo"
@@ -59,7 +59,7 @@ export default function Sidebar({ className }: { className?: string }) {
                           <div
                             onClick={toggle}
                             className={cn(
-                              "group relative mx-3 flex cursor-pointer items-center justify-between rounded-2xl px-3 py-2.5 font-medium lg:my-1 2xl:mx-5 2xl:my-2",
+                              "group relative mx-2.5 flex cursor-pointer items-center justify-between rounded-2xl px-2.5 py-2.5 font-medium lg:my-1 2xl:mx-4 2xl:my-2",
                               isDropdownOpen
                                 ? "bg-white/14 text-white shadow-sm shadow-black/10"
                                 : "text-white transition-colors duration-200 hover:bg-white/10 hover:text-white"
@@ -101,8 +101,8 @@ export default function Sidebar({ className }: { className?: string }) {
                               href={dropdownItem?.href}
                               key={dropdownItem?.name + index}
                               className={cn(
-                                "mx-3.5 mb-0.5 flex items-center justify-between rounded-2xl px-3.5 py-2.5 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-5",
-                                isChildActive
+                                "mx-3 mb-0.5 flex items-center justify-between rounded-2xl px-3 py-2.5 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-4",
+                              isChildActive
                                   ? "bg-white/16 text-secondary"
                                   : "text-white/78 transition-colors duration-200 hover:bg-white/10 hover:text-secondary"
                               )}
@@ -110,7 +110,7 @@ export default function Sidebar({ className }: { className?: string }) {
                               <div className="flex items-center truncate">
                                 <span
                                   className={cn(
-                                    "me-[18px] ms-1 inline-flex h-1 w-1 rounded-full bg-current transition-all duration-200",
+                                    "me-3 inline-flex h-1 w-1 rounded-full bg-current transition-all duration-200",
                                     isChildActive
                                       ? "bg-secondary ring-[1px] ring-secondary/70"
                                       : "opacity-40"
@@ -128,7 +128,7 @@ export default function Sidebar({ className }: { className?: string }) {
                       <Link
                         href={item?.href}
                         className={cn(
-                          "group relative mx-3 my-0.5 flex items-center justify-between rounded-2xl px-3 py-2.5 font-medium capitalize lg:my-1 2xl:mx-5 2xl:my-2",
+                          "group relative mx-2.5 my-0.5 flex items-center justify-between rounded-2xl px-2.5 py-2.5 font-medium capitalize lg:my-1 2xl:mx-4 2xl:my-2",
                           isActive
                             ? "bg-white/14 text-white shadow-sm shadow-black/10"
                             : "text-white transition-colors duration-200 hover:bg-white/10 hover:text-white"
@@ -164,7 +164,7 @@ export default function Sidebar({ className }: { className?: string }) {
                   <Title
                     as="h6"
                       className={cn(
-                      "mb-2 truncate px-6 text-xs font-normal uppercase tracking-widest text-white/80 2xl:px-8",
+                      "mb-2 truncate px-5 text-xs font-normal uppercase tracking-widest text-white/80 2xl:px-6",
                       index !== 0 && "mt-6 3xl:mt-7"
                     )}
                   >
