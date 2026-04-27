@@ -1,114 +1,280 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import {
+  ColumnDef,
+  PaginationState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Badge, Button, Input, Select, Table, Text } from "rizzui";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import ShellCard from "@/components/admin/shell-card";
-import StatCard from "@/components/admin/stat-card";
-import DataTable from "@/components/admin/data-table";
-import StatusBadge from "@/components/admin/status-badge";
-import { crmCorporateRows } from "@/components/admin/section-data";
-import { Text } from "rizzui";
+
+type CorporateAccountRecord = {
+  id: string;
+  primary: string;
+  secondary: string;
+  tertiary: string;
+  status: string;
+  owner: string;
+  updatedAt: string;
+};
+
+const rows: CorporateAccountRecord[] = [
+  {
+    id: "COR-101",
+    primary: "Atlas Logistics Ltd",
+    secondary: "Monthly invoice dispute on departmental allocation",
+    tertiary: "Billing exception",
+    status: "review",
+    owner: "Finance care",
+    updatedAt: "Apr 26, 09:06",
+  },
+  {
+    id: "COR-100",
+    primary: "Lusaka Health Group",
+    secondary: "Policy change request for staff travel caps",
+    tertiary: "Policy controls",
+    status: "monitoring",
+    owner: "B2B success",
+    updatedAt: "Apr 26, 08:43",
+  },
+  {
+    id: "COR-099",
+    primary: "Copperline Mining",
+    secondary: "Healthy usage with stable billing and no open client issues",
+    tertiary: "Account health",
+    status: "stable",
+    owner: "Corporate desk",
+    updatedAt: "Apr 26, 08:17",
+  },
+  {
+    id: "COR-098",
+    primary: "BluePeak Foods",
+    secondary: "Employee import and team structure still pending final activation",
+    tertiary: "Onboarding",
+    status: "queued",
+    owner: "B2B onboarding",
+    updatedAt: "Apr 26, 07:55",
+  },
+  {
+    id: "COR-097",
+    primary: "Kafue Retail Group",
+    secondary: "Spend-control breach triggered after multiple departments exceeded policy limits",
+    tertiary: "Policy controls",
+    status: "at_risk",
+    owner: "Governance",
+    updatedAt: "Apr 26, 07:28",
+  },
+];
+
+const statusOptions = [
+  { label: "All statuses", value: "all" },
+  { label: "Stable", value: "stable" },
+  { label: "Review", value: "review" },
+  { label: "Monitoring", value: "monitoring" },
+  { label: "Queued", value: "queued" },
+  { label: "At risk", value: "at_risk" },
+] as const;
+
+const segmentOptions = [
+  { label: "All segments", value: "all" },
+  ...Array.from(new Set(rows.map((row) => row.tertiary))).map((value) => ({ label: value, value })),
+];
 
 export default function CrmCorporateAccountsPage() {
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [segment, setSegment] = useState("all");
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 8,
+  });
+
+  const filteredRows = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+
+    return rows.filter((row) => {
+      const matchesStatus = status === "all" ? true : row.status === status;
+      const matchesSegment = segment === "all" ? true : row.tertiary === segment;
+      const haystack = [row.id, row.primary, row.secondary, row.tertiary, row.owner, row.status]
+        .join(" ")
+        .toLowerCase();
+
+      return matchesStatus && matchesSegment && (!needle || haystack.includes(needle));
+    });
+  }, [query, segment, status]);
+
+  const columns = useMemo<ColumnDef<CorporateAccountRecord>[]>(
+    () => [
+      {
+        accessorKey: "primary",
+        header: "Corporate account",
+        cell: ({ row }) => (
+          <div>
+            <Text className="font-semibold text-gray-900">{row.original.primary}</Text>
+            <Text className="text-xs text-gray-500">{row.original.id}</Text>
+          </div>
+        ),
+      },
+      { accessorKey: "secondary", header: "Context" },
+      { accessorKey: "tertiary", header: "Segment" },
+      { accessorKey: "owner", header: "Owner" },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => <CorporateStatus status={row.original.status} />,
+      },
+      { accessorKey: "updatedAt", header: "Updated" },
+    ],
+    [],
+  );
+
+  const table = useReactTable({
+    data: filteredRows,
+    columns,
+    state: { pagination },
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
   return (
-    <div className="@container space-y-6">
+    <div className="space-y-6">
       <PageHeader
         breadcrumb={["Home", "CRM", "Corporate Accounts"]}
         eyebrow="Customer CRM"
         title="Corporate accounts"
-        description="Manage business clients, team allocations, spend controls, and monthly billing exceptions."
-        badge="B2B"
+        description="B2B account list."
+        action={
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="outline" className="h-11 rounded-2xl px-4">
+              <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
+              Export
+            </Button>
+            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+              <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
+              Add Account
+            </Button>
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-12">
-        <div className="@4xl:col-span-full grid gap-4 md:grid-cols-3">
-          <StatCard
-            label="Active companies"
-            value="19"
-            change="+2 onboarding"
-            tone="positive"
-            detail="Business clients currently using billing, employee, or policy controls."
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_220px_auto]">
+          <Input
+            type="search"
+            placeholder="Search corporate accounts..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
+            inputClassName="h-10"
           />
-          <StatCard
-            label="Billing exceptions"
-            value="7"
-            change="Needs finance"
-            tone="warning"
-            detail="Company accounts with invoice, policy, or reconciliation issues needing manual review."
+          <Select
+            options={segmentOptions as any}
+            value={segment}
+            onChange={(option: any) => setSegment(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
           />
-          <StatCard
-            label="Policy requests"
-            value="11"
-            change="Queue open"
-            tone="neutral"
-            detail="Client asks for changes to spend limits, departments, or ride permissions."
+          <Select
+            options={statusOptions as any}
+            value={status}
+            onChange={(option: any) => setStatus(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
           />
+          <Button
+            variant="outline"
+            className="h-10 rounded-2xl px-4"
+            onClick={() => {
+              setQuery("");
+              setSegment("all");
+              setStatus("all");
+            }}
+          >
+            Reset
+          </Button>
         </div>
 
-        <ShellCard
-          title="B2B operations"
-          description="Major control lanes for company accounts."
-          className="@4xl:col-span-8"
-        >
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              ["Billing and invoicing", "Monthly statements, reconciliation, and collection support"],
-              ["Policy controls", "Spend caps, travel rules, and departmental ride limits"],
-              ["Onboarding", "New company setup, employee import, and role configuration"],
-              ["Account health", "Client exceptions, escalation handling, and service recovery"],
-            ].map(([title, detail]) => (
-              <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
-                <Text className="font-semibold text-gray-900">{title}</Text>
-                <Text className="mt-3 text-sm leading-6 text-gray-500">{detail}</Text>
-              </div>
-            ))}
-          </div>
-        </ShellCard>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <Text className="text-sm text-gray-500">{filteredRows.length} corporate accounts</Text>
+          <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
+            B2B monitored
+          </Badge>
+        </div>
 
-        <ShellCard
-          title="Attention queue"
-          description="B2B issues needing account or finance follow-up."
-          className="@4xl:col-span-4"
-        >
-          <div className="space-y-3">
-            {[
-              ["Invoice dispute review", "A major client is challenging employee trip allocation on the latest bill", "review"],
-              ["Usage cap breach", "One account exceeded agreed department limits in the last cycle", "monitoring"],
-              ["Policy change batch", "Multiple clients need updated travel rules before month-end", "queued"],
-            ].map(([title, meta, status]) => (
-              <div key={title} className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Text className="font-semibold text-gray-900">{title}</Text>
-                    <Text className="mt-1 text-sm text-gray-500">{meta}</Text>
-                  </div>
-                  <StatusBadge status={status} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </ShellCard>
+        <div className="custom-scrollbar overflow-x-auto">
+          <Table variant="modern" className="min-w-[980px]">
+            <Table.Header>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <Table.Row key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <Table.Head key={header.id} className="bg-gray-100">
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </Table.Head>
+                  ))}
+                </Table.Row>
+              ))}
+            </Table.Header>
+            <Table.Body>
+              {table.getRowModel().rows.map((row) => (
+                <Table.Row key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <Table.Cell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </Table.Cell>
+                  ))}
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
 
-        <ShellCard
-          title="Corporate working set"
-          description="Current business-account priorities."
-          className="@4xl:col-span-full"
-        >
-          <DataTable
-            rows={crmCorporateRows.map((row) => ({
-              primary: row.primary,
-              secondary: row.secondary,
-              tertiary: row.tertiary,
-              status: <StatusBadge status={row.status} />,
-            }))}
-            columns={[
-              { key: "primary", label: "B2B lane" },
-              { key: "secondary", label: "Context" },
-              { key: "tertiary", label: "Owner" },
-              { key: "status", label: "Status", className: "md:justify-self-end" },
-            ]}
-          />
-        </ShellCard>
+        <div className="mt-4 flex items-center justify-between">
+          <Text className="text-sm text-gray-500">
+            Showing {table.getRowModel().rows.length} of {filteredRows.length} corporate accounts
+          </Text>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="h-9 px-3"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Text className="text-sm text-gray-500">
+              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            </Text>
+            <Button
+              variant="outline"
+              className="h-9 px-3"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function CorporateStatus({ status }: { status: string }) {
+  const tones: Record<string, string> = {
+    stable: "bg-emerald-50 text-emerald-700",
+    review: "bg-amber-50 text-amber-700",
+    monitoring: "bg-sky-50 text-sky-700",
+    queued: "bg-gray-100 text-gray-700",
+    at_risk: "bg-red-50 text-red-700",
+  };
+
+  return (
+    <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>
+      {status.replace("_", " ")}
+    </span>
   );
 }
