@@ -1,0 +1,567 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
+import {
+  PiArrowClockwiseBold,
+  PiCaretRightBold,
+  PiMagnifyingGlassBold,
+  PiWarningCircleBold,
+} from "react-icons/pi";
+import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import PageHeader from "@/components/admin/page-header";
+import ShellCard from "@/components/admin/shell-card";
+import StatCard from "@/components/admin/stat-card";
+import StatusBadge from "@/components/admin/status-badge";
+import { Modal } from "@/components/modal";
+
+type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
+type TicketLane = "billing" | "service" | "merchant";
+type DecisionAction = "assign" | "escalate" | "resolve";
+
+type TicketCase = {
+  id: string;
+  customerName: string;
+  lane: TicketLane;
+  city: string;
+  status: ReviewStatus;
+  owner: string;
+  age: string;
+  contact: string;
+  subject: string;
+  summary: string;
+  tags: string[];
+  timeline: Array<{
+    label: string;
+    detail: string;
+    time: string;
+  }>;
+  notes: string[];
+};
+
+const laneLabels: Record<TicketLane, string> = {
+  billing: "Billing",
+  service: "Service",
+  merchant: "Merchant",
+};
+
+const tabs = [
+  { value: "all", label: "All tickets" },
+  { value: "billing", label: "Billing" },
+  { value: "service", label: "Service" },
+  { value: "merchant", label: "Merchant" },
+] as const;
+
+const seed: TicketCase[] = [
+  {
+    id: "TKT-4211",
+    customerName: "Loveness Phiri",
+    lane: "billing",
+    city: "Lusaka",
+    status: "review",
+    owner: "Finance support",
+    age: "9m",
+    contact: "+260 977 210 188",
+    subject: "Refund not reflected in wallet",
+    summary: "Customer canceled the order and the refund was approved, but the wallet balance still has not updated.",
+    tags: ["Wallet follow-up", "Refund trace"],
+    timeline: [
+      { label: "Ticket opened", detail: "Customer reported a missing wallet refund after order cancellation.", time: "09:28" },
+      { label: "Refund approved", detail: "Finance approval was already recorded in the refund queue.", time: "09:34" },
+      { label: "Ticket routed", detail: "Support should trace wallet posting before closure.", time: "09:39" },
+    ],
+    notes: ["Likely depends on wallet confirmation, not a new refund decision."],
+  },
+  {
+    id: "TKT-4202",
+    customerName: "Chisomo Tembo",
+    lane: "service",
+    city: "Kitwe",
+    status: "monitoring",
+    owner: "Resolution pod",
+    age: "18m",
+    contact: "+260 969 004 512",
+    subject: "Delivery arrived after promised time",
+    summary: "Customer accepted the order but is asking for a service credit after the delivery arrived far outside the ETA window.",
+    tags: ["Late delivery", "Service recovery"],
+    timeline: [
+      { label: "Ticket opened", detail: "Customer raised late-delivery complaint after order completion.", time: "08:57" },
+      { label: "ETA reviewed", detail: "Ops data confirms a route delay in the final delivery corridor.", time: "09:05" },
+      { label: "Waiting action", detail: "Support should decide whether to close or route to disputes.", time: "09:12" },
+    ],
+    notes: ["May be closable with a goodwill note if no refund is requested."],
+  },
+  {
+    id: "TKT-4194",
+    customerName: "Agnes Mumba",
+    lane: "billing",
+    city: "Kabwe",
+    status: "at_risk",
+    owner: "Payments review",
+    age: "31m",
+    contact: "+260 963 118 044",
+    subject: "Duplicate charge after checkout retry",
+    summary: "Customer says checkout failed once but the card statement now shows two debits for the same order.",
+    tags: ["Duplicate charge", "Payments risk"],
+    timeline: [
+      { label: "Ticket opened", detail: "Duplicate-charge complaint entered the support queue.", time: "08:12" },
+      { label: "Payments link found", detail: "Similar case already exists in the payments queue.", time: "08:25" },
+      { label: "Risk flag raised", detail: "Support should not resolve until payments confirms the gateway trail.", time: "08:33" },
+    ],
+    notes: ["Should sync with payments before any support promise is sent."],
+  },
+  {
+    id: "TKT-4186",
+    customerName: "Brian Zulu",
+    lane: "merchant",
+    city: "Ndola",
+    status: "queued",
+    owner: "Partner support",
+    age: "47m",
+    contact: "+260 971 301 228",
+    subject: "Merchant says item menu is unavailable",
+    summary: "A vendor is asking support why a new category is still hidden from the storefront after catalog approval.",
+    tags: ["Catalog issue", "Partner-facing"],
+    timeline: [
+      { label: "Ticket opened", detail: "Merchant support complaint created from vendor portal callback.", time: "07:36" },
+      { label: "Catalog context added", detail: "Marketplace state suggests a stale publish step.", time: "07:49" },
+      { label: "Queued for owner", detail: "Partner support should decide whether to solve or escalate to marketplace ops.", time: "07:57" },
+    ],
+    notes: ["Likely a quick escalation to marketplace rather than a prolonged support case."],
+  },
+  {
+    id: "TKT-4179",
+    customerName: "Natasha Chinyama",
+    lane: "service",
+    city: "Lusaka",
+    status: "paused",
+    owner: "Trust support",
+    age: "1h 02m",
+    contact: "+260 978 441 200",
+    subject: "Abusive chat during delivery",
+    summary: "Customer and tasker both reported abusive language in chat, and the ticket is waiting on trust review before response.",
+    tags: ["Conduct review", "Trust dependency"],
+    timeline: [
+      { label: "Ticket opened", detail: "Conduct complaint was opened after delivery chat exchange.", time: "06:54" },
+      { label: "Trust linked", detail: "Support linked the case to an open trust review.", time: "07:01" },
+      { label: "Paused", detail: "No final support closure until trust returns an outcome.", time: "07:08" },
+    ],
+    notes: ["Keep paused until trust clears the conduct review."],
+  },
+];
+
+function TicketDecisionModal({
+  item,
+  action,
+  onClose,
+  onSubmit,
+}: {
+  item: TicketCase;
+  action: DecisionAction;
+  onClose: () => void;
+  onSubmit: (payload: { reasonCode: string; note: string }) => void;
+}) {
+  const [reasonCode, setReasonCode] = useState(
+    action === "assign" ? "assigned_for_follow_up" : action === "escalate" ? "escalated_to_specialist" : "ticket_resolved",
+  );
+  const [note, setNote] = useState("");
+
+  const tone =
+    action === "assign"
+      ? "bg-primary text-white hover:bg-primary/90"
+      : action === "escalate"
+        ? "bg-secondary text-secondary-foreground hover:bg-secondary/90"
+        : "bg-red-dark text-white hover:bg-red-dark/90";
+
+  return (
+    <div className="rounded-3xl bg-white p-6 sm:p-7">
+      <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">{item.id}</Text>
+      <Title as="h3" className="mt-2 text-xl font-semibold text-gray-900">
+        {action === "assign" ? "Assign ticket" : action === "escalate" ? "Escalate ticket" : "Resolve ticket"}
+      </Title>
+      <Text className="mt-2 text-sm leading-6 text-gray-500">
+        Record the support outcome for {item.subject} so all teams share the same ticket trail.
+      </Text>
+
+      <div className="mt-6 space-y-4">
+        <Select
+          label="Reason code"
+          options={[
+            { label: "Assigned for follow-up", value: "assigned_for_follow_up" },
+            { label: "Escalated to specialist", value: "escalated_to_specialist" },
+            { label: "Finance handoff", value: "finance_handoff" },
+            { label: "Operations handoff", value: "operations_handoff" },
+            { label: "Ticket resolved", value: "ticket_resolved" },
+          ]}
+          value={reasonCode}
+          onChange={(option: any) => setReasonCode(option?.value ?? "")}
+          selectClassName="rounded-2xl"
+        />
+        <div>
+          <Text className="mb-2 text-sm font-medium text-gray-700">Operator note</Text>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={4}
+            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+            placeholder="Add the follow-up, escalation, or resolution context the next operator will need."
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-wrap justify-end gap-3">
+        <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button className={`h-11 rounded-2xl px-4 ${tone}`} onClick={() => onSubmit({ reasonCode, note })}>
+          {action === "assign" ? "Confirm assignment" : action === "escalate" ? "Confirm escalation" : "Confirm resolution"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function TicketDrawer({
+  item,
+  onApplyDecision,
+}: {
+  item: TicketCase;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+}) {
+  const { closeDrawer } = useDrawer();
+  const [decision, setDecision] = useState<DecisionAction | null>(null);
+
+  return (
+    <div className="flex h-full flex-col bg-white">
+      <div className="border-b border-gray-100 px-6 py-5">
+        <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">{item.id}</Text>
+        <div className="mt-3 flex items-start justify-between gap-4">
+          <div>
+            <Title as="h3" className="text-xl font-semibold text-gray-900">{item.subject}</Title>
+            <Text className="mt-2 text-sm text-gray-500">
+              {laneLabels[item.lane]} · {item.customerName} · {item.city}
+            </Text>
+          </div>
+          <StatusBadge status={item.status} />
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoTile label="Customer" value={item.customerName} />
+          <InfoTile label="Contact" value={item.contact} />
+          <InfoTile label="Current owner" value={item.owner} />
+          <InfoTile label="Age in queue" value={item.age} />
+        </div>
+
+        <SectionBlock title="Ticket summary">
+          <Text className="text-sm leading-6 text-gray-600">{item.summary}</Text>
+        </SectionBlock>
+
+        <SectionBlock title="Ticket tags">
+          <div className="flex flex-wrap gap-2">
+            {item.tags.map((tag) => (
+              <Badge key={tag} variant="flat" color="info" rounded="pill">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </SectionBlock>
+
+        <SectionBlock title="Ticket trail">
+          <div className="space-y-4">
+            {item.timeline.map((entry) => (
+              <div key={`${entry.label}-${entry.time}`} className="flex gap-3">
+                <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Text className="font-semibold text-gray-900">{entry.label}</Text>
+                    <Text className="text-xs uppercase tracking-[0.18em] text-gray-400">{entry.time}</Text>
+                  </div>
+                  <Text className="mt-1 text-sm leading-6 text-gray-600">{entry.detail}</Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionBlock>
+
+        <SectionBlock title="Operator notes">
+          <div className="space-y-3">
+            {item.notes.map((note) => (
+              <div key={note} className="rounded-2xl border border-dashed border-primary/25 bg-primary/5 px-4 py-3">
+                <Text className="text-sm leading-6 text-gray-700">{note}</Text>
+              </div>
+            ))}
+          </div>
+        </SectionBlock>
+      </div>
+
+      <div className="border-t border-gray-100 px-6 py-5">
+        <div className="flex flex-wrap gap-3">
+          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => setDecision("assign")}>
+            Assign
+          </Button>
+          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => setDecision("escalate")}>
+            Escalate
+          </Button>
+          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => setDecision("resolve")}>
+            Resolve
+          </Button>
+          <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={closeDrawer}>
+            Close
+          </Button>
+        </div>
+      </div>
+
+      {decision ? (
+        <Modal isOpen onClose={() => setDecision(null)} containerClassName="max-w-xl">
+          <TicketDecisionModal
+            item={item}
+            action={decision}
+            onClose={() => setDecision(null)}
+            onSubmit={({ reasonCode, note }) => {
+              onApplyDecision(item.id, decision, reasonCode, note);
+              setDecision(null);
+              closeDrawer();
+            }}
+          />
+        </Modal>
+      ) : null}
+    </div>
+  );
+}
+
+export default function SupportTicketQueuePage() {
+  const { openDrawer } = useDrawer();
+  const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
+  const [owner, setOwner] = useState("all");
+  const [query, setQuery] = useState("");
+  const [cases, setCases] = useState(seed);
+
+  const filteredCases = useMemo(() => {
+    return cases.filter((item) => {
+      const matchesLane = lane === "all" ? true : item.lane === lane;
+      const matchesOwner = owner === "all" ? true : item.owner === owner;
+      const needle = query.trim().toLowerCase();
+      const haystack = [item.id, item.subject, item.customerName, item.city, item.summary].join(" ").toLowerCase();
+      return matchesLane && matchesOwner && (!needle || haystack.includes(needle));
+    });
+  }, [cases, lane, owner, query]);
+
+  const ownerOptions = useMemo(() => {
+    const values = Array.from(new Set(seed.map((item) => item.owner)));
+    return [{ label: "All owners", value: "all" }, ...values.map((value) => ({ label: value, value }))];
+  }, []);
+
+  const stats = useMemo(() => {
+    const open = filteredCases.length;
+    const sla = filteredCases.filter((item) => item.status === "review" || item.status === "at_risk").length;
+    const merchant = filteredCases.filter((item) => item.lane === "merchant").length;
+    return { open, sla, merchant };
+  }, [filteredCases]);
+
+  function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    setCases((current) =>
+      current.map((item) => {
+        if (item.id !== id) return item;
+        const status: ReviewStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
+        const timelineLabel =
+          action === "assign" ? "Ticket assigned" : action === "escalate" ? "Ticket escalated" : "Ticket resolved";
+        return {
+          ...item,
+          status,
+          owner: action === "escalate" ? "Specialist follow-up" : item.owner,
+          notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
+          timeline: [
+            {
+              label: timelineLabel,
+              detail: `Operator action saved with code ${reasonCode}.`,
+              time: "Just now",
+            },
+            ...item.timeline,
+          ],
+        };
+      }),
+    );
+  }
+
+  return (
+    <div className="@container space-y-6">
+      <PageHeader
+        breadcrumb={["Home", "Support", "Tickets"]}
+        eyebrow="Support CRM"
+        title="Support tickets"
+        description="Core support queue for customer, tasker, and merchant follow-up."
+        badge="Tickets"
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          label="Open tickets"
+          value={String(stats.open)}
+          change="Working set"
+          tone="warning"
+          detail="Tickets currently sitting in the active support queue."
+        />
+        <StatCard
+          label="SLA watch"
+          value={String(stats.sla)}
+          change="Needs action"
+          tone="warning"
+          detail="Tickets in review or risk states that should not wait longer."
+        />
+        <StatCard
+          label="Merchant queue"
+          value={String(stats.merchant)}
+          change="Partner-facing"
+          tone="neutral"
+          detail="Merchant-facing cases mixed into the current support working set."
+        />
+      </div>
+
+      <ShellCard
+        title="Ticket queue"
+        description="Filter the queue, then open a case to assign, escalate, or resolve it."
+      >
+        <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
+          <div className="flex flex-wrap gap-2">
+            {tabs.map((tab) => {
+              const active = lane === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => setLane(tab.value)}
+                  className={`inline-flex h-10 items-center rounded-2xl px-4 text-sm font-semibold transition ${
+                    active ? "bg-primary text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-primary/10 hover:text-primary"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_140px]">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search tickets, customers, subjects..."
+              rounded="lg"
+              prefix={<PiMagnifyingGlassBold className="h-4 w-4 text-gray-400" />}
+            />
+            <Select
+              options={ownerOptions}
+              value={owner}
+              onChange={(option: any) => setOwner(option?.value ?? "all")}
+              selectClassName="rounded-2xl"
+            />
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() => {
+                setLane("all");
+                setOwner("all");
+                setQuery("");
+              }}
+            >
+              <PiArrowClockwiseBold className="me-2 h-4 w-4" />
+              Reset
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-5 overflow-hidden rounded-2xl border border-gray-100">
+          <Table>
+            <Table.Header>
+              <Table.Row className="bg-gray-50/80">
+                <Table.Head className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Ticket</Table.Head>
+                <Table.Head className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Lane</Table.Head>
+                <Table.Head className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Contact</Table.Head>
+                <Table.Head className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Owner</Table.Head>
+                <Table.Head className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Status</Table.Head>
+                <Table.Head className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Open</Table.Head>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {filteredCases.map((item) => (
+                <Table.Row key={item.id} className="border-t border-gray-100 text-sm text-gray-700">
+                  <Table.Cell className="px-4 py-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar name={item.customerName} size="sm" rounded="full" />
+                      <div>
+                        <Text className="font-semibold text-gray-900">{item.subject}</Text>
+                        <Text className="text-xs uppercase tracking-[0.18em] text-gray-400">{item.id}</Text>
+                        <Text className="mt-2 text-sm leading-6 text-gray-500">{item.summary}</Text>
+                      </div>
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell className="px-4 py-4">
+                    <div>
+                      <Badge variant="flat" color="info" rounded="pill">{laneLabels[item.lane]}</Badge>
+                      <Text className="mt-2 text-sm text-gray-500">{item.city}</Text>
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell className="px-4 py-4">
+                    <Text className="font-semibold text-gray-900">{item.customerName}</Text>
+                    <Text className="mt-1 text-sm text-gray-500">{item.contact}</Text>
+                  </Table.Cell>
+                  <Table.Cell className="px-4 py-4">
+                    <Text className="font-semibold text-gray-900">{item.owner}</Text>
+                    <Text className="mt-1 text-sm text-gray-500">{item.age} in queue</Text>
+                  </Table.Cell>
+                  <Table.Cell className="px-4 py-4">
+                    <StatusBadge status={item.status} />
+                  </Table.Cell>
+                  <Table.Cell className="px-4 py-4 text-right">
+                    <Button
+                      variant="text"
+                      className="h-auto p-0 text-primary hover:text-primary/80"
+                      onClick={() =>
+                        openDrawer({
+                          view: <TicketDrawer item={item} onApplyDecision={applyDecision} />,
+                          placement: "right",
+                          containerClassName: "max-w-[540px]",
+                        })
+                      }
+                    >
+                      Open
+                      <PiCaretRightBold className="ms-1 h-4 w-4" />
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
+
+        {!filteredCases.length ? (
+          <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-8 text-center">
+            <PiWarningCircleBold className="mx-auto h-8 w-8 text-primary/60" />
+            <Title as="h4" className="mt-3 text-base font-semibold text-gray-900">No tickets match this filter set</Title>
+            <Text className="mt-2 text-sm text-gray-500">Clear one or more filters to return to the active support queue.</Text>
+          </div>
+        ) : null}
+      </ShellCard>
+    </div>
+  );
+}
+
+function SectionBlock({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{title}</Text>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
+      <Text className="mt-2 text-sm font-semibold text-gray-900">{value}</Text>
+    </div>
+  );
+}
