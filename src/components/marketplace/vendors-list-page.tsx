@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -10,11 +11,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
-import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import { crudPages, CrudRecord } from "@/components/crud/crud-data";
-
-const rows = crudPages.marketplaceVendors.rows;
+import { marketplaceVendors, type MarketplaceVendor } from "@/components/marketplace/vendor-data";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -27,7 +26,7 @@ const statusOptions = [
 
 const segmentOptions = [
   { label: "All segments", value: "all" },
-  ...Array.from(new Set(rows.map((row) => row.tertiary))).map((value) => ({ label: value, value })),
+  ...Array.from(new Set(marketplaceVendors.map((row) => row.segment))).map((value) => ({ label: value, value })),
 ];
 
 export default function VendorsListPage() {
@@ -42,10 +41,10 @@ export default function VendorsListPage() {
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return rows.filter((row) => {
+    return marketplaceVendors.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
-      const matchesSegment = segment === "all" ? true : row.tertiary === segment;
-      const haystack = [row.id, row.primary, row.secondary, row.tertiary, row.owner, row.status]
+      const matchesSegment = segment === "all" ? true : row.segment === segment;
+      const haystack = [row.id, row.name, row.context, row.segment, row.owner, row.status]
         .join(" ")
         .toLowerCase();
 
@@ -53,20 +52,22 @@ export default function VendorsListPage() {
     });
   }, [query, segment, status]);
 
-  const columns = useMemo<ColumnDef<CrudRecord>[]>(
+  const columns = useMemo<ColumnDef<MarketplaceVendor>[]>(
     () => [
       {
-        accessorKey: "primary",
+        accessorKey: "name",
         header: "Vendor",
         cell: ({ row }) => (
           <div>
-            <Text className="font-semibold text-gray-900">{row.original.primary}</Text>
+            <Link href={`/marketplace/vendors/${row.original.slug}`} className="font-semibold text-gray-900 hover:text-primary">
+              {row.original.name}
+            </Link>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
           </div>
         ),
       },
-      { accessorKey: "secondary", header: "Context" },
-      { accessorKey: "tertiary", header: "Segment" },
+      { accessorKey: "context", header: "Context" },
+      { accessorKey: "segment", header: "Segment" },
       { accessorKey: "owner", header: "Owner" },
       {
         accessorKey: "status",
@@ -74,6 +75,20 @@ export default function VendorsListPage() {
         cell: ({ row }) => <VendorStatus status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Link href={`/marketplace/vendors/${row.original.slug}/edit`}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Edit
+                <PiNotePencilBold className="ms-1 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        ),
+      },
     ],
     [],
   );
