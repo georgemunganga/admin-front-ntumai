@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -10,11 +11,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
-import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import { crudPages, CrudRecord } from "@/components/crud/crud-data";
-
-const rows = crudPages.marketplaceCategories.rows;
+import { marketplaceCategories, type MarketplaceCategory } from "@/components/marketplace/category-data";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -27,7 +26,7 @@ const statusOptions = [
 
 const segmentOptions = [
   { label: "All groups", value: "all" },
-  ...Array.from(new Set(rows.map((row) => row.tertiary))).map((value) => ({ label: value, value })),
+  ...Array.from(new Set(marketplaceCategories.map((row) => row.group))).map((value) => ({ label: value, value })),
 ];
 
 export default function CategoriesListPage() {
@@ -42,10 +41,10 @@ export default function CategoriesListPage() {
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return rows.filter((row) => {
+    return marketplaceCategories.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
-      const matchesSegment = segment === "all" ? true : row.tertiary === segment;
-      const haystack = [row.id, row.primary, row.secondary, row.tertiary, row.owner, row.status]
+      const matchesSegment = segment === "all" ? true : row.group === segment;
+      const haystack = [row.id, row.name, row.description, row.group, row.owner, row.status]
         .join(" ")
         .toLowerCase();
 
@@ -53,20 +52,20 @@ export default function CategoriesListPage() {
     });
   }, [query, segment, status]);
 
-  const columns = useMemo<ColumnDef<CrudRecord>[]>(
+  const columns = useMemo<ColumnDef<MarketplaceCategory>[]>(
     () => [
       {
-        accessorKey: "primary",
+        accessorKey: "name",
         header: "Category",
         cell: ({ row }) => (
           <div>
-            <Text className="font-semibold text-gray-900">{row.original.primary}</Text>
+            <Text className="font-semibold text-gray-900">{row.original.name}</Text>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
           </div>
         ),
       },
-      { accessorKey: "secondary", header: "Context" },
-      { accessorKey: "tertiary", header: "Group" },
+      { accessorKey: "description", header: "Context" },
+      { accessorKey: "group", header: "Group" },
       { accessorKey: "owner", header: "Owner" },
       {
         accessorKey: "status",
@@ -74,6 +73,20 @@ export default function CategoriesListPage() {
         cell: ({ row }) => <CategoryStatus status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Link href={`/marketplace/categories/${row.original.id}/edit`}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Edit
+                <PiNotePencilBold className="ms-1 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        ),
+      },
     ],
     [],
   );
@@ -100,10 +113,12 @@ export default function CategoriesListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Link href="/marketplace/categories/create">
+              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
               <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
               Add Category
-            </Button>
+              </Button>
+            </Link>
           </div>
         }
       />
