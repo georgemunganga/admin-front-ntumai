@@ -10,42 +10,115 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Badge, Button, Input, Table, Text } from "rizzui";
+import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import { salesOrders, type SalesOrder } from "@/components/sales/order-data";
 
+const laneOptions = [
+  { label: "All lanes", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Preparing", value: "preparing" },
+  { label: "History", value: "history" },
+] as const;
+
+const statusOptions = [
+  { label: "All statuses", value: "all" },
+  { label: "Live", value: "live" },
+  { label: "Review", value: "review" },
+  { label: "Monitoring", value: "monitoring" },
+  { label: "Queued", value: "queued" },
+] as const;
+
 export default function OrdersListPage() {
   const [query, setQuery] = useState("");
+  const [lane, setLane] = useState("all");
+  const [status, setStatus] = useState("all");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 8 });
 
   const filteredRows = useMemo(() => {
     const term = query.toLowerCase();
-    return salesOrders.filter((row) =>
-      [row.id, row.customer, row.vendor, row.city, row.status, row.paymentState, row.fulfillment].join(" ").toLowerCase().includes(term),
-    );
-  }, [query]);
+    return salesOrders.filter((row) => {
+      const haystack = [
+        row.id,
+        row.orderNumber,
+        row.customer,
+        row.customerPhone,
+        row.vendor,
+        row.city,
+        row.status,
+        row.paymentState,
+        row.paymentMethod,
+        row.fulfillment,
+        row.trackingId,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesQuery = haystack.includes(term);
+      const matchesStatus = status === "all" ? true : row.status === status;
+      const matchesLane =
+        lane === "all"
+          ? true
+          : lane === "active"
+            ? row.status === "live"
+            : lane === "preparing"
+              ? row.status === "review" || row.status === "monitoring"
+              : row.status === "queued" || row.status === "stable";
+
+      return matchesQuery && matchesStatus && matchesLane;
+    });
+  }, [lane, query, status]);
 
   const columns = useMemo<ColumnDef<SalesOrder>[]>(
     () => [
       {
-        accessorKey: "customer",
+        accessorKey: "orderNumber",
         header: "Order",
         cell: ({ row }) => (
           <div>
             <Link href={routes.sales.orderDetails(row.original.slug)} className="font-semibold text-gray-900 hover:text-primary">
-              {row.original.customer}
+              {row.original.orderNumber}
             </Link>
-            <Text className="text-xs text-gray-500">{row.original.id}</Text>
+            <Text className="text-xs text-gray-500">
+              {row.original.customer} · {row.original.itemCount}
+            </Text>
           </div>
         ),
       },
       { accessorKey: "vendor", header: "Vendor" },
-      { accessorKey: "city", header: "City" },
+      {
+        accessorKey: "deliveryAddress",
+        header: "Destination",
+        cell: ({ row }) => (
+          <div>
+            <Text className="font-medium text-gray-900">{row.original.city}</Text>
+            <Text className="text-xs text-gray-500">{row.original.deliveryAddress}</Text>
+          </div>
+        ),
+      },
       { accessorKey: "fulfillment", header: "Fulfillment" },
-      { accessorKey: "paymentState", header: "Payment" },
-      { accessorKey: "value", header: "Value" },
+      {
+        accessorKey: "paymentState",
+        header: "Payment",
+        cell: ({ row }) => (
+          <div>
+            <Text className="font-medium text-gray-900">{row.original.paymentState}</Text>
+            <Text className="text-xs text-gray-500">{row.original.paymentMethod}</Text>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "value",
+        header: "Value",
+        cell: ({ row }) => (
+          <div>
+            <Text className="font-medium text-gray-900">{row.original.totalAmount}</Text>
+            <Text className="text-xs text-gray-500">{row.original.subtotal} subtotal</Text>
+          </div>
+        ),
+      },
       {
         accessorKey: "status",
         header: "Status",
@@ -84,7 +157,7 @@ export default function OrdersListPage() {
         breadcrumb={["Home", "Sales", "Orders"]}
         eyebrow="Sales Kit"
         title="Orders"
-        description="Commercial order list."
+        description="Order list aligned to checkout, vendor handoff, and tracking workflows."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">
@@ -102,7 +175,7 @@ export default function OrdersListPage() {
       />
 
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_200px_200px_auto]">
           <Input
             type="search"
             placeholder="Search orders..."
@@ -110,15 +183,64 @@ export default function OrdersListPage() {
             onChange={(event) => setQuery(event.target.value)}
             prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
             inputClassName="h-10"
-            className="w-full max-w-md"
           />
+          <Select
+            options={laneOptions as any}
+            value={lane}
+            onChange={(option: any) => setLane(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
+          />
+          <Select
+            options={statusOptions as any}
+            value={status}
+            onChange={(option: any) => setStatus(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
+          />
+          <Button
+            variant="outline"
+            className="h-10 rounded-2xl px-4"
+            onClick={() => {
+              setQuery("");
+              setLane("all");
+              setStatus("all");
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: "All", value: "all" },
+              { label: "Active", value: "active" },
+              { label: "Preparing", value: "preparing" },
+              { label: "History", value: "history" },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setLane(tab.value)}
+                className={`rounded-2xl px-3 py-1.5 text-sm font-medium ${
+                  lane === tab.value ? "bg-primary text-white" : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-            Revenue monitored
+            Order ops
           </Badge>
         </div>
 
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <Text className="text-sm text-gray-500">{filteredRows.length} orders</Text>
+          <Text className="text-xs text-gray-500">Customer checkout and vendor handoff view</Text>
+        </div>
+
         <div className="custom-scrollbar overflow-x-auto">
-          <Table variant="modern" className="min-w-[1080px]">
+          <Table variant="modern" className="min-w-[1180px]">
             <Table.Header>
               {table.getHeaderGroups().map((headerGroup) => (
                 <Table.Row key={headerGroup.id}>
