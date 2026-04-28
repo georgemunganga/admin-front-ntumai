@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button, Input, Select, Text, Textarea } from "rizzui";
-import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
+import { Badge, Button, Input, Select, Text, Textarea } from "rizzui";
+import {
+  PiArrowLeftBold,
+  PiCheckCircleBold,
+  PiFloppyDiskBold,
+  PiWarningCircleBold,
+} from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { getMarketplaceVendor } from "@/components/marketplace/vendor-data";
@@ -23,6 +28,17 @@ const visibilityOptions = [
   { label: "Draft", value: "Draft" },
 ];
 
+const payoutMethodOptions = [
+  { label: "Mobile money", value: "Mobile money" },
+  { label: "Bank", value: "Bank" },
+];
+
+const planOptions = [
+  { label: "Starter plan", value: "Starter plan" },
+  { label: "Growth plan", value: "Growth plan" },
+  { label: "Scale plan", value: "Scale plan" },
+];
+
 export default function VendorEditPage({ slug }: { slug: string }) {
   const vendor = getMarketplaceVendor(slug);
 
@@ -34,7 +50,7 @@ export default function VendorEditPage({ slug }: { slug: string }) {
         breadcrumb={["Home", "Marketplace", "Vendors", vendor.id, "Edit"]}
         eyebrow="Marketplace Kit"
         title={`Edit ${vendor.name}`}
-        description="Partner form preview."
+        description="Partner form aligned to onboarding, store readiness, and payout setup."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={`/marketplace/vendors/${vendor.slug}`}>
@@ -55,14 +71,14 @@ export default function VendorEditPage({ slug }: { slug: string }) {
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        <ShellCard title="Partner information" description="Core marketplace fields.">
+        <ShellCard title="Partner information" description="Core marketplace and store fields.">
           <div className="grid gap-4 md:grid-cols-2">
             <Input label="Vendor name" defaultValue={vendor.name} rounded="lg" />
             <Input label="Segment" defaultValue={vendor.segment} rounded="lg" />
             <Input label="City" defaultValue={vendor.city} rounded="lg" />
             <Input label="Store type" defaultValue={vendor.storeType} rounded="lg" />
             <Input label="Owner" defaultValue={vendor.owner} rounded="lg" />
-            <Input label="Payout schedule" defaultValue={vendor.payoutSchedule} rounded="lg" />
+            <Input label="Business hours" defaultValue={vendor.businessHours} rounded="lg" />
           </div>
 
           <div className="mt-4">
@@ -73,24 +89,68 @@ export default function VendorEditPage({ slug }: { slug: string }) {
 
         <ShellCard title="Visibility" description="Marketplace state.">
           <div className="space-y-4">
-            <Select label="Status" options={statusOptions} defaultValue={statusOptions.find((option) => option.value === vendor.status)} selectClassName="rounded-2xl" />
-            <Select label="Visibility" options={visibilityOptions} defaultValue={visibilityOptions.find((option) => option.value === vendor.visibility)} selectClassName="rounded-2xl" />
+            <Select
+              label="Status"
+              options={statusOptions}
+              defaultValue={statusOptions.find((option) => option.value === vendor.status)}
+              selectClassName="rounded-2xl"
+            />
+            <Select
+              label="Visibility"
+              options={visibilityOptions}
+              defaultValue={visibilityOptions.find((option) => option.value === vendor.visibility)}
+              selectClassName="rounded-2xl"
+            />
             <Input label="Fulfillment" defaultValue={vendor.fulfillment} rounded="lg" />
           </div>
         </ShellCard>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ShellCard title="Performance markers" description="Current vendor metrics.">
+        <ShellCard title="Finance and setup" description="Payout and subscription fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            {vendor.metrics.map((metric) => (
-              <Input key={metric.label} label={metric.label} defaultValue={metric.value} rounded="lg" />
-            ))}
+            <Input label="Payout schedule" defaultValue={vendor.payoutSchedule} rounded="lg" />
+            <Select
+              label="Payout method"
+              options={payoutMethodOptions}
+              defaultValue={payoutMethodOptions.find((option) => option.value === vendor.payoutMethod)}
+              selectClassName="rounded-2xl"
+            />
+            <Select
+              label="Subscription plan"
+              options={planOptions}
+              defaultValue={planOptions.find((option) => option.value === vendor.subscriptionPlan)}
+              selectClassName="rounded-2xl"
+            />
+            <Input label="Categories" defaultValue={vendor.categories.join(", ")} rounded="lg" />
           </div>
         </ShellCard>
 
         <ShellCard title="Review notes" description="Internal marketplace trail.">
-          <div className="space-y-3">
+          <div className="space-y-4">
+            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    Store readiness
+                  </Text>
+                  <Text className="mt-2 font-semibold text-gray-900">{vendor.visibility}</Text>
+                </div>
+                <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
+                  {vendor.storeType}
+                </Badge>
+              </div>
+            </div>
+            <WorkflowNote
+              icon={<PiCheckCircleBold className="h-4 w-4 text-emerald-600" />}
+              title="Categories selected"
+              detail="Vendor onboarding requires at least one category before store setup is complete."
+            />
+            <WorkflowNote
+              icon={<PiWarningCircleBold className="h-4 w-4 text-amber-600" />}
+              title="Payout setup required"
+              detail="Payout method and subscription state should be visible before vendor finance actions begin."
+            />
             {vendor.timeline.map((item) => (
               <div key={`${item.label}-${item.time}`} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{item.label}</Text>
@@ -99,6 +159,26 @@ export default function VendorEditPage({ slug }: { slug: string }) {
             ))}
           </div>
         </ShellCard>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowNote({
+  icon,
+  title,
+  detail,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-[20px] border border-gray-100 bg-white p-4">
+      <div className="mt-0.5">{icon}</div>
+      <div>
+        <Text className="font-semibold text-gray-900">{title}</Text>
+        <Text className="mt-1 text-sm leading-6 text-gray-500">{detail}</Text>
       </div>
     </div>
   );

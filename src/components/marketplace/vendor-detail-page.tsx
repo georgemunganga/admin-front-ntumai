@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Button, Text, Title } from "rizzui";
-import { PiArrowLeftBold, PiNotePencilBold, PiStorefrontBold, PiTruckBold } from "react-icons/pi";
+import {
+  PiArrowLeftBold,
+  PiClockBold,
+  PiCreditCardBold,
+  PiNotePencilBold,
+  PiStorefrontBold,
+  PiTruckBold,
+} from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { getMarketplaceVendor } from "@/components/marketplace/vendor-data";
@@ -47,6 +54,8 @@ export default function VendorDetailPage({ slug }: { slug: string }) {
             <InfoTile label="Store type" value={vendor.storeType} icon={<PiStorefrontBold className="h-4 w-4 text-primary" />} />
             <InfoTile label="Fulfillment" value={vendor.fulfillment} icon={<PiTruckBold className="h-4 w-4 text-primary" />} />
             <InfoTile label="Payout schedule" value={vendor.payoutSchedule} />
+            <InfoTile label="Payout method" value={vendor.payoutMethod} icon={<PiCreditCardBold className="h-4 w-4 text-primary" />} />
+            <InfoTile label="Business hours" value={vendor.businessHours} icon={<PiClockBold className="h-4 w-4 text-primary" />} />
           </div>
 
           <div className="mt-5 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
@@ -80,6 +89,13 @@ export default function VendorDetailPage({ slug }: { slug: string }) {
                 </Badge>
               ))}
             </div>
+            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Subscription plan</Text>
+              <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
+                {vendor.subscriptionPlan}
+              </Title>
+              <Text className="mt-1 text-xs leading-5 text-gray-500">Vendor finance and billing context</Text>
+            </div>
           </div>
         </ShellCard>
       </div>
@@ -100,6 +116,16 @@ export default function VendorDetailPage({ slug }: { slug: string }) {
 
         <ShellCard title="Recent activity" description="Latest marketplace actions.">
           <div className="space-y-4">
+            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Categories</Text>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {vendor.categories.map((category) => (
+                  <Badge key={category} variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1 text-primary">
+                    {category}
+                  </Badge>
+                ))}
+              </div>
+            </div>
             {vendor.timeline.map((item) => (
               <div key={`${item.label}-${item.time}`} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
                 <div className="flex items-start justify-between gap-3">

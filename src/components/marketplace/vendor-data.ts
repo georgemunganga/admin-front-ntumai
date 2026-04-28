@@ -5,6 +5,7 @@ export type MarketplaceVendor = {
   slug: string;
   name: string;
   segment: string;
+  categories: string[];
   context: string;
   owner: string;
   status: "live" | "stable" | "review" | "monitoring" | "queued" | "at_risk";
@@ -13,6 +14,9 @@ export type MarketplaceVendor = {
   storeType: string;
   fulfillment: string;
   payoutSchedule: string;
+  payoutMethod: string;
+  subscriptionPlan: string;
+  businessHours: string;
   visibility: string;
   description: string;
   tags: string[];
@@ -26,6 +30,7 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     slug: "VND-2401",
     name: "Green Basket Market",
     segment: "Fresh produce",
+    categories: ["Fresh produce", "Household"],
     context: "Daily produce catalog with same-day neighborhood delivery.",
     owner: "Partner ops",
     status: "live",
@@ -34,6 +39,9 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     storeType: "Grocery",
     fulfillment: "Same-day",
     payoutSchedule: "Weekly",
+    payoutMethod: "Mobile money",
+    subscriptionPlan: "Growth plan",
+    businessHours: "06:00 - 20:00",
     visibility: "Marketplace live",
     description: "Neighborhood produce partner with high repeat order volume and same-day restock cycles.",
     tags: ["Top seller", "Same-day", "Fresh"],
@@ -54,6 +62,7 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     slug: "VND-2398",
     name: "QuickBite Kitchens",
     segment: "Quick meals",
+    categories: ["Quick meals", "Drinks"],
     context: "Prepared meal partner with lunch and evening peak demand.",
     owner: "Merchant success",
     status: "stable",
@@ -62,6 +71,9 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     storeType: "Restaurant",
     fulfillment: "On-demand",
     payoutSchedule: "Twice weekly",
+    payoutMethod: "Bank",
+    subscriptionPlan: "Scale plan",
+    businessHours: "10:00 - 22:00",
     visibility: "Marketplace live",
     description: "Prepared meals vendor with strong lunch demand and rotating menu operations.",
     tags: ["Hot food", "Lunch peak"],
@@ -82,6 +94,7 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     slug: "VND-2394",
     name: "CityCare Pharmacy",
     segment: "Pharmacy",
+    categories: ["Pharmacy"],
     context: "Restricted-category partner with compliance-controlled listings.",
     owner: "Compliance ops",
     status: "review",
@@ -90,6 +103,9 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     storeType: "Pharmacy",
     fulfillment: "Scheduled",
     payoutSchedule: "Weekly",
+    payoutMethod: "Bank",
+    subscriptionPlan: "Growth plan",
+    businessHours: "08:00 - 18:00",
     visibility: "Review hold",
     description: "Regulated-product partner with listings routed through compliance review before release.",
     tags: ["Restricted", "Compliance review"],
@@ -110,6 +126,7 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     slug: "VND-2388",
     name: "HomeBox Supplies",
     segment: "Household",
+    categories: ["Household", "Essentials"],
     context: "Bulk essentials partner with replenishment sensitivity on top bundles.",
     owner: "Catalog ops",
     status: "monitoring",
@@ -118,6 +135,9 @@ export const marketplaceVendors: MarketplaceVendor[] = [
     storeType: "Household",
     fulfillment: "Next-slot",
     payoutSchedule: "Weekly",
+    payoutMethod: "Mobile money",
+    subscriptionPlan: "Starter plan",
+    businessHours: "07:30 - 19:00",
     visibility: "Marketplace live",
     description: "Household partner under watch for low-stock pressure across top bundled items.",
     tags: ["Low stock", "Bundles"],
