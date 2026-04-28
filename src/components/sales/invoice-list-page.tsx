@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -10,25 +11,10 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge, Button, Input, Table, Text, Title } from "rizzui";
-import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-
-type InvoiceRecord = {
-  id: string;
-  customer: string;
-  dueDate: string;
-  amount: string;
-  status: string;
-  createdAt: string;
-};
-
-const invoiceRows: InvoiceRecord[] = [
-  { id: "INV-4021", customer: "QuickBite Kitchens", dueDate: "Apr 29, 2026", amount: "ZMW 8,450", status: "Paid", createdAt: "Apr 20, 2026" },
-  { id: "INV-4020", customer: "Green Basket Market", dueDate: "May 02, 2026", amount: "ZMW 5,120", status: "Pending", createdAt: "Apr 19, 2026" },
-  { id: "INV-4019", customer: "CityCare Pharmacy", dueDate: "Apr 27, 2026", amount: "ZMW 2,380", status: "Overdue", createdAt: "Apr 17, 2026" },
-  { id: "INV-4018", customer: "HomeBox Supplies", dueDate: "May 05, 2026", amount: "ZMW 6,975", status: "Draft", createdAt: "Apr 16, 2026" },
-  { id: "INV-4017", customer: "FreshHub", dueDate: "Apr 30, 2026", amount: "ZMW 4,210", status: "Pending", createdAt: "Apr 15, 2026" },
-];
+import { routes } from "@/config/routes";
+import { salesInvoices, type SalesInvoice } from "@/components/sales/invoice-data";
 
 const invoiceStats = [
   { label: "Collected this week", value: "ZMW 126K", meta: "18 settlements cleared" },
@@ -46,14 +32,22 @@ export default function InvoiceListPage() {
 
   const filteredRows = useMemo(() => {
     const term = query.toLowerCase();
-    return invoiceRows.filter((row) =>
+    return salesInvoices.filter((row) =>
       [row.id, row.customer, row.status].join(" ").toLowerCase().includes(term)
     );
   }, [query]);
 
-  const columns = useMemo<ColumnDef<InvoiceRecord>[]>(
+  const columns = useMemo<ColumnDef<SalesInvoice>[]>(
     () => [
-      { accessorKey: "id", header: "Invoice ID" },
+      {
+        accessorKey: "id",
+        header: "Invoice ID",
+        cell: ({ row }) => (
+          <Link href={routes.sales.invoiceDetails(row.original.id)} className="font-semibold text-gray-900 hover:text-primary">
+            {row.original.id}
+          </Link>
+        ),
+      },
       { accessorKey: "customer", header: "Customer" },
       { accessorKey: "dueDate", header: "Due Date" },
       { accessorKey: "amount", header: "Amount" },
@@ -63,6 +57,20 @@ export default function InvoiceListPage() {
         cell: ({ row }) => <InvoiceStatus status={row.original.status} />,
       },
       { accessorKey: "createdAt", header: "Created At" },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Link href={routes.sales.editInvoice(row.original.id)}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Edit
+                <PiNotePencilBold className="ms-1 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        ),
+      },
     ],
     []
   );
@@ -89,10 +97,12 @@ export default function InvoiceListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
-              <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
-              Add Invoice
-            </Button>
+            <Link href={routes.sales.createInvoice}>
+              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
+                Add Invoice
+              </Button>
+            </Link>
           </div>
         }
       />

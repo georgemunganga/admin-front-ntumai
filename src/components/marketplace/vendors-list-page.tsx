@@ -14,6 +14,7 @@ import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { marketplaceVendors, type MarketplaceVendor } from "@/components/marketplace/vendor-data";
+import { routes } from "@/config/routes";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -59,7 +60,7 @@ export default function VendorsListPage() {
         header: "Vendor",
         cell: ({ row }) => (
           <div>
-            <Link href={`/marketplace/vendors/${row.original.slug}`} className="font-semibold text-gray-900 hover:text-primary">
+            <Link href={routes.marketplace.vendorDetails(row.original.slug)} className="font-semibold text-gray-900 hover:text-primary">
               {row.original.name}
             </Link>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
@@ -80,7 +81,7 @@ export default function VendorsListPage() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Link href={`/marketplace/vendors/${row.original.slug}/edit`}>
+            <Link href={routes.marketplace.editVendor(row.original.slug)}>
               <Button variant="text" className="h-auto p-0 text-primary">
                 Edit
                 <PiNotePencilBold className="ms-1 h-4 w-4" />
@@ -115,10 +116,12 @@ export default function VendorsListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
-              <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
-              Add Vendor
-            </Button>
+            <Link href={routes.marketplace.createVendor}>
+              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
+                Add Vendor
+              </Button>
+            </Link>
           </div>
         }
       />
