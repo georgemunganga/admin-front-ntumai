@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Button, Text, Title } from "rizzui";
-import { PiArrowLeftBold, PiNotePencilBold } from "react-icons/pi";
+import {
+  PiArrowLeftBold,
+  PiMapPinBold,
+  PiNotePencilBold,
+  PiPhoneBold,
+  PiReceiptBold,
+  PiStorefrontBold,
+  PiTruckBold,
+  PiUserBold,
+} from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
@@ -18,7 +27,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
       <PageHeader
         breadcrumb={["Home", "Sales", "Orders", order.id]}
         eyebrow="Sales Kit"
-        title={`Order ${order.id}`}
+        title={order.orderNumber}
         description={order.summary}
         action={
           <div className="flex flex-wrap gap-3">
@@ -39,14 +48,22 @@ export default function OrderDetailPage({ id }: { id: string }) {
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-        <ShellCard title="Order summary" description="Commercial order details.">
+        <ShellCard title="Order summary" description="Customer and fulfillment detail.">
           <div className="grid gap-4 md:grid-cols-2">
-            <InfoTile label="Customer" value={order.customer} />
-            <InfoTile label="Vendor" value={order.vendor} />
-            <InfoTile label="City" value={order.city} />
-            <InfoTile label="Fulfillment" value={order.fulfillment} />
-            <InfoTile label="Payment" value={order.paymentState} />
-            <InfoTile label="Value" value={order.value} />
+            <InfoTile label="Customer" value={order.customer} icon={<PiUserBold className="h-4 w-4 text-primary" />} />
+            <InfoTile label="Phone" value={order.customerPhone} icon={<PiPhoneBold className="h-4 w-4 text-primary" />} />
+            <InfoTile label="Vendor" value={order.vendor} icon={<PiStorefrontBold className="h-4 w-4 text-primary" />} />
+            <InfoTile label="Tracking ID" value={order.trackingId} icon={<PiTruckBold className="h-4 w-4 text-primary" />} />
+            <InfoTile label="Fulfillment" value={order.fulfillment} icon={<PiTruckBold className="h-4 w-4 text-primary" />} />
+            <InfoTile label="Payment" value={`${order.paymentMethod} · ${order.paymentState}`} icon={<PiReceiptBold className="h-4 w-4 text-primary" />} />
+          </div>
+
+          <div className="mt-5 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+            <div className="flex items-center gap-2">
+              <PiMapPinBold className="h-4 w-4 text-primary" />
+              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Delivery address</Text>
+            </div>
+            <Text className="mt-2 text-sm leading-6 text-gray-600">{order.deliveryAddress}</Text>
           </div>
         </ShellCard>
 
@@ -59,6 +76,32 @@ export default function OrderDetailPage({ id }: { id: string }) {
                 <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
                   {order.updatedAt}
                 </Badge>
+              </div>
+            </div>
+
+            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Commercial totals</Text>
+              <div className="mt-3 space-y-2 text-sm text-gray-600">
+                <div className="flex items-center justify-between gap-3">
+                  <Text>Items</Text>
+                  <Text className="font-semibold text-gray-900">{order.itemCount}</Text>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <Text>Subtotal</Text>
+                  <Text className="font-semibold text-gray-900">{order.subtotal}</Text>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <Text>Delivery fee</Text>
+                  <Text className="font-semibold text-gray-900">{order.deliveryFee}</Text>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <Text>Tax</Text>
+                  <Text className="font-semibold text-gray-900">{order.tax}</Text>
+                </div>
+                <div className="flex items-center justify-between gap-3 border-t border-gray-200 pt-2">
+                  <Text className="font-semibold text-gray-900">Total</Text>
+                  <Text className="font-semibold text-gray-900">{order.totalAmount}</Text>
+                </div>
               </div>
             </div>
           </div>
@@ -102,10 +145,21 @@ export default function OrderDetailPage({ id }: { id: string }) {
   );
 }
 
-function InfoTile({ label, value }: { label: string; value: string }) {
+function InfoTile({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon?: React.ReactNode;
+}) {
   return (
     <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
+      <div className="flex items-center gap-2">
+        {icon}
+        <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
+      </div>
       <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
         {value}
       </Title>
