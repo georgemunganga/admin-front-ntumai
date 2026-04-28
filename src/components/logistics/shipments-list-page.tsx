@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -10,11 +11,10 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
-import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import { crudPages, CrudRecord } from "@/components/crud/crud-data";
-
-const rows = crudPages.deliveries.rows;
+import { routes } from "@/config/routes";
+import { logisticsShipments, type LogisticsShipment } from "@/components/logistics/shipment-data";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -28,7 +28,7 @@ const statusOptions = [
 
 const segmentOptions = [
   { label: "All lanes", value: "all" },
-  ...Array.from(new Set(rows.map((row) => row.tertiary))).map((value) => ({ label: value, value })),
+  ...Array.from(new Set(logisticsShipments.map((row) => row.lane))).map((value) => ({ label: value, value })),
 ];
 
 export default function ShipmentsListPage() {
@@ -43,10 +43,10 @@ export default function ShipmentsListPage() {
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return rows.filter((row) => {
+    return logisticsShipments.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
-      const matchesSegment = segment === "all" ? true : row.tertiary === segment;
-      const haystack = [row.id, row.primary, row.secondary, row.tertiary, row.owner, row.status]
+      const matchesSegment = segment === "all" ? true : row.lane === segment;
+      const haystack = [row.id, row.customer, row.pickup, row.dropoff, row.lane, row.owner, row.status]
         .join(" ")
         .toLowerCase();
 
@@ -54,20 +54,26 @@ export default function ShipmentsListPage() {
     });
   }, [query, segment, status]);
 
-  const columns = useMemo<ColumnDef<CrudRecord>[]>(
+  const columns = useMemo<ColumnDef<LogisticsShipment>[]>(
     () => [
       {
-        accessorKey: "primary",
+        accessorKey: "customer",
         header: "Shipment lane",
         cell: ({ row }) => (
           <div>
-            <Text className="font-semibold text-gray-900">{row.original.primary}</Text>
+            <Link href={routes.logistics.shipmentDetails(row.original.id)} className="font-semibold text-gray-900 hover:text-primary">
+              {row.original.customer}
+            </Link>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
           </div>
         ),
       },
-      { accessorKey: "secondary", header: "Context" },
-      { accessorKey: "tertiary", header: "Segment" },
+      {
+        accessorKey: "pickup",
+        header: "Context",
+        cell: ({ row }) => <Text className="text-sm text-gray-600">{`${row.original.pickup} → ${row.original.dropoff}`}</Text>,
+      },
+      { accessorKey: "lane", header: "Segment" },
       { accessorKey: "owner", header: "Owner" },
       {
         accessorKey: "status",
@@ -75,6 +81,20 @@ export default function ShipmentsListPage() {
         cell: ({ row }) => <ShipmentStatus status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Link href={routes.logistics.editShipment(row.original.id)}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Edit
+                <PiNotePencilBold className="ms-1 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        ),
+      },
     ],
     [],
   );
@@ -101,10 +121,12 @@ export default function ShipmentsListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
-              <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
-              New Shipment
-            </Button>
+            <Link href={routes.logistics.createShipment}>
+              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
+                New Shipment
+              </Button>
+            </Link>
           </div>
         }
       />
