@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Button, Text, Title } from "rizzui";
-import { PiArrowLeftBold, PiNotePencilBold, PiPackageBold, PiStorefrontBold } from "react-icons/pi";
+import {
+  PiArrowLeftBold,
+  PiCheckCircleBold,
+  PiNotePencilBold,
+  PiPackageBold,
+  PiStorefrontBold,
+  PiWarningCircleBold,
+} from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { getMarketplaceProduct } from "@/components/marketplace/product-data";
@@ -44,9 +51,12 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
             <InfoTile label="Product ID" value={product.id} />
             <InfoTile label="SKU" value={product.sku} />
             <InfoTile label="Category" value={product.category} />
+            <InfoTile label="Subcategory" value={product.subcategory} />
             <InfoTile label="Vendor" value={product.vendor} icon={<PiStorefrontBold className="h-4 w-4 text-primary" />} />
             <InfoTile label="Price" value={product.price} />
             <InfoTile label="Fulfillment" value={product.fulfillment} />
+            <InfoTile label="Business type" value={product.businessType} />
+            <InfoTile label="Review lane" value={product.reviewLane} />
           </div>
 
           <div className="mt-5 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
@@ -65,6 +75,19 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
                   {product.visibility}
                 </Badge>
               </div>
+            </div>
+            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+              <div className="flex items-center gap-2">
+                {product.isAvailable ? (
+                  <PiCheckCircleBold className="h-4 w-4 text-emerald-600" />
+                ) : (
+                  <PiWarningCircleBold className="h-4 w-4 text-amber-600" />
+                )}
+                <Text className="font-semibold text-gray-900">Availability</Text>
+              </div>
+              <Text className="mt-2 text-sm text-gray-600">
+                {product.isAvailable ? "Available for sale" : "Temporarily paused"}
+              </Text>
             </div>
             <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
               <div className="flex items-center gap-2">

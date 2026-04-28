@@ -5,6 +5,8 @@ export type MarketplaceProduct = {
   slug: string;
   name: string;
   category: string;
+  subcategory: string;
+  businessType: string;
   vendor: string;
   stock: string;
   stockLevel: number;
@@ -17,6 +19,8 @@ export type MarketplaceProduct = {
   visibility: string;
   updatedAt: string;
   tags: string[];
+  isAvailable: boolean;
+  reviewLane: string;
   attributes: Array<{ label: string; value: string }>;
   timeline: Array<{ label: string; detail: string; time: string }>;
 };
@@ -27,6 +31,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     slug: "PRD-4201",
     name: "Organic tomato basket",
     category: "Fresh produce",
+    subcategory: "Tomatoes & onions",
+    businessType: "Grocery vendor",
     vendor: "Green Basket Market",
     stock: "84",
     stockLevel: 84,
@@ -39,6 +45,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     visibility: "Marketplace live",
     updatedAt: "Today, 08:42",
     tags: ["Fresh", "Top seller", "Same-day"],
+    isAvailable: true,
+    reviewLane: "Auto-review",
     attributes: [
       { label: "Unit", value: "Basket" },
       { label: "Weight", value: "4kg" },
@@ -56,6 +64,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     slug: "PRD-4198",
     name: "Family essentials pack",
     category: "Household",
+    subcategory: "Cleaning bundles",
+    businessType: "Retail vendor",
     vendor: "HomeBox Supplies",
     stock: "36",
     stockLevel: 36,
@@ -68,6 +78,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     visibility: "Marketplace live",
     updatedAt: "Today, 07:16",
     tags: ["Bundle", "Low stock"],
+    isAvailable: true,
+    reviewLane: "Catalog QA",
     attributes: [
       { label: "Unit", value: "Pack" },
       { label: "Weight", value: "6.5kg" },
@@ -85,6 +97,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     slug: "PRD-4192",
     name: "Pain relief combo",
     category: "Pharmacy",
+    subcategory: "Pain relief",
+    businessType: "Pharmacy vendor",
     vendor: "CityCare Pharmacy",
     stock: "122",
     stockLevel: 122,
@@ -97,6 +111,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     visibility: "Review hold",
     updatedAt: "Today, 09:04",
     tags: ["Restricted", "Compliance review"],
+    isAvailable: false,
+    reviewLane: "Compliance review",
     attributes: [
       { label: "Unit", value: "Combo pack" },
       { label: "Weight", value: "0.4kg" },
@@ -114,6 +130,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     slug: "PRD-4187",
     name: "Lunch bowl combo",
     category: "Quick meals",
+    subcategory: "Prepared lunch bowls",
+    businessType: "Food vendor",
     vendor: "QuickBite Kitchens",
     stock: "Daily menu",
     stockLevel: 999,
@@ -126,6 +144,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     visibility: "Marketplace live",
     updatedAt: "Today, 10:05",
     tags: ["Hot food", "Lunch"],
+    isAvailable: true,
+    reviewLane: "Auto-review",
     attributes: [
       { label: "Unit", value: "Meal" },
       { label: "Weight", value: "0.8kg" },
@@ -143,6 +163,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     slug: "PRD-4181",
     name: "USB charger cable",
     category: "Accessories",
+    subcategory: "Charging accessories",
+    businessType: "Electronics vendor",
     vendor: "Digital Point",
     stock: "12",
     stockLevel: 12,
@@ -155,6 +177,8 @@ export const marketplaceProducts: MarketplaceProduct[] = [
     visibility: "Marketplace live",
     updatedAt: "Today, 06:54",
     tags: ["Accessory", "Low stock"],
+    isAvailable: true,
+    reviewLane: "Catalog QA",
     attributes: [
       { label: "Unit", value: "Cable" },
       { label: "Weight", value: "0.1kg" },
