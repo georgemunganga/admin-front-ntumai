@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Button, Input, Select, Text, Textarea } from "rizzui";
-import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
+import { Badge, Button, Input, Select, Text, Textarea } from "rizzui";
+import {
+  PiArrowLeftBold,
+  PiCheckCircleBold,
+  PiFloppyDiskBold,
+  PiWarningCircleBold,
+} from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 
@@ -21,6 +26,18 @@ const statusOptions = [
   { label: "Queued", value: "queued" },
 ];
 
+const visibilityOptions = [
+  { label: "Marketplace live", value: "Marketplace live" },
+  { label: "Review hold", value: "Review hold" },
+  { label: "Draft", value: "Draft" },
+];
+
+const rulePresetOptions = [
+  { label: "Same-day eligible", value: "Same-day eligible" },
+  { label: "Restricted review required", value: "Restricted review required" },
+  { label: "Bundle support", value: "Bundle support" },
+];
+
 export default function CategoryCreatePage() {
   return (
     <div className="space-y-6">
@@ -28,7 +45,7 @@ export default function CategoryCreatePage() {
         breadcrumb={["Home", "Marketplace", "Categories", "Create"]}
         eyebrow="Marketplace Kit"
         title="Create Category"
-        description="Category form preview."
+        description="Catalog taxonomy flow for marketplace product grouping and storefront governance."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href="/marketplace/categories">
@@ -51,24 +68,111 @@ export default function CategoryCreatePage() {
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <ShellCard title="Category information" description="Core catalog fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Category name" rounded="lg" placeholder="Fresh produce" />
-            <Input label="Category ID" rounded="lg" placeholder="CAT-1105" />
-            <Select label="Group" options={groupOptions} selectClassName="rounded-2xl" />
-            <Input label="Owner" rounded="lg" placeholder="Catalog ops" />
+            <Input label="Category name" rounded="lg" defaultValue="Fresh produce" />
+            <Input label="Category ID" rounded="lg" defaultValue="CAT-1105" />
+            <Select
+              label="Group"
+              options={groupOptions}
+              defaultValue={groupOptions[0]}
+              selectClassName="rounded-2xl"
+            />
+            <Input label="Owner" rounded="lg" defaultValue="Catalog ops" />
           </div>
           <div className="mt-4">
             <Text className="mb-2 text-sm font-medium text-gray-700">Description</Text>
-            <Textarea rows={5} textareaClassName="rounded-2xl" placeholder="Describe the category and how it should behave in the marketplace." />
+            <Textarea
+              rows={5}
+              textareaClassName="rounded-2xl"
+              defaultValue="High-frequency produce category for fruit, vegetables, and same-day grocery stock."
+            />
           </div>
         </ShellCard>
 
         <ShellCard title="Visibility" description="Category state.">
           <div className="space-y-4">
-            <Select label="Status" options={statusOptions} selectClassName="rounded-2xl" />
-            <Input label="Visibility label" rounded="lg" placeholder="Marketplace live" />
-            <Input label="Product count" rounded="lg" placeholder="0 products" />
+            <Select
+              label="Status"
+              options={statusOptions}
+              defaultValue={statusOptions[0]}
+              selectClassName="rounded-2xl"
+            />
+            <Select
+              label="Visibility label"
+              options={visibilityOptions}
+              defaultValue={visibilityOptions[0]}
+              selectClassName="rounded-2xl"
+            />
+            <Input label="Product count" rounded="lg" defaultValue="0 products" />
           </div>
         </ShellCard>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <ShellCard title="Rules and merchandising" description="Category behavior and routing.">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Select
+              label="Rule preset"
+              options={rulePresetOptions}
+              defaultValue={rulePresetOptions[0]}
+              selectClassName="rounded-2xl"
+            />
+            <Input label="Sort priority" rounded="lg" defaultValue="10" />
+            <Input label="Storefront badge" rounded="lg" defaultValue="Freshness badge" />
+            <Input label="Review owner" rounded="lg" defaultValue="Catalog QA" />
+          </div>
+        </ShellCard>
+
+        <ShellCard title="Summary" description="Governance and release readiness.">
+          <div className="space-y-4">
+            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    Category state
+                  </Text>
+                  <Text className="mt-2 font-semibold text-gray-900">Ready for storefront grouping</Text>
+                </div>
+                <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
+                  Grocery
+                </Badge>
+              </div>
+              <Text className="mt-2 text-sm text-gray-500">
+                Categories govern how vendor products are grouped and discovered across storefront and admin workflows.
+              </Text>
+            </div>
+
+            <WorkflowNote
+              icon={<PiCheckCircleBold className="h-4 w-4 text-emerald-600" />}
+              title="Shared taxonomy"
+              detail="Vendors depend on category and subcategory options when creating products from mobile."
+            />
+            <WorkflowNote
+              icon={<PiWarningCircleBold className="h-4 w-4 text-amber-600" />}
+              title="Review hold available"
+              detail="Restricted or policy-sensitive categories can stay visible only to operations until approved."
+            />
+          </div>
+        </ShellCard>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowNote({
+  icon,
+  title,
+  detail,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-[20px] border border-gray-100 bg-white p-4">
+      <div className="mt-0.5">{icon}</div>
+      <div>
+        <Text className="font-semibold text-gray-900">{title}</Text>
+        <Text className="mt-1 text-sm leading-6 text-gray-500">{detail}</Text>
       </div>
     </div>
   );
