@@ -203,3 +203,134 @@ That means `Marketplace > Products > Create/Edit` should not be generic catalog 
    - list/detail/edit/create should be tightened as one family
 6. `Support > Snippets` and `Templates`
    - recover-first, not redesign
+
+## Focused Pause Audit
+
+This section is the current stop/go checkpoint after the latest tightening passes.
+
+### Stable Enough To Stop Touching For Now
+
+These pages are aligned enough to pause unless:
+- a missing backend workflow forces a new control
+- we recover a more exact local Furyroad source
+- the user explicitly asks for more literal template matching
+
+#### Operations and case flows
+
+- `Support > Inbox`
+  - direct enough to the support app-kit direction
+- `Support > Tickets`
+- `Support > Disputes`
+- `Support > Escalations`
+- `Sales > Payments`
+- `Sales > Refunds`
+- `Sales > Payouts`
+- `Fleet > Tasker Applications`
+- `Fleet > Tasker Documents`
+- `Marketplace > Vendor Applications`
+- `Logistics > Exceptions`
+
+Reason:
+- these are queue/case pages, not classic CRUD pages
+- they already use the shared drawer/modal primitives correctly
+- they are operationally useful and do not need template-perfect CRUD treatment
+
+#### CRUD families that are good enough for now
+
+- `Marketplace > Products > Create`
+  - now aligned to the mobile vendor product workflow
+- `Marketplace > Categories > Create`
+- `Marketplace > Categories > Edit`
+- `Sales > Orders > Detail`
+- `Sales > Orders > Create`
+- `Sales > Orders > Edit`
+- `Sales > Invoices > Create`
+- `Sales > Invoices > Edit`
+- `Sales > Invoices > Builder`
+- `Logistics > Shipments > Create`
+- `Logistics > Shipments > Edit`
+
+Reason:
+- these were the most obvious drift pages in their families
+- they now carry the real workflow fields from mobile or finance flows
+- further work here would mostly be “more exact template literalness,” not a workflow gap
+
+#### Simple list-first CRUD pages that should stay simple
+
+- `Marketplace > Vendors`
+- `Marketplace > Categories`
+- `Marketplace > Reviews`
+- `CRM > Customers`
+- `CRM > Riders`
+- `CRM > Corporate Accounts`
+- `CRM > Wallets`
+- `CRM > Ratings & Reviews`
+- `CRM > Blocked Users`
+- `Logistics > Taskers`
+- `Logistics > Shipments`
+
+Reason:
+- these are better as list-first screens
+- they already follow the simpler admin rule the user asked for
+- more decoration would likely make them worse, not better
+
+### Still Drifting Or Temporary
+
+These are the pages that still have clear custom drift or incomplete template recovery and are the best candidates if work resumes.
+
+#### Marketplace
+
+- `Marketplace > Products > Detail`
+- `Marketplace > Products > Edit`
+- `Marketplace > Vendors > Create`
+- `Marketplace > Vendors > Detail`
+- `Marketplace > Vendors > Edit`
+- `Marketplace > Marketplace Overview`
+
+Reason:
+- still adapted from product-family patterns rather than copied from an exact local page source
+- overview is still custom-composed
+
+#### Sales / Finance
+
+- `Sales > Invoices > Detail`
+  - acceptable, but still an adapted page
+- `Sales > Invoices > List`
+  - good enough, but not truly “stop forever” if a stricter invoice family pass is wanted
+- `Sales > Orders > List`
+  - acceptable but still clearly adapted
+
+#### Logistics
+
+- `Logistics > Shipment Detail`
+  - acceptable, but still adapted rather than truly recovered
+- `Logistics > Logistics Overview`
+- `Logistics > Tracking`
+
+Reason:
+- overview/tracking are still custom-composed and not yet tied to a stronger recovered page source
+
+#### Global temporary scaffolds
+
+These remain the biggest architectural drift points:
+
+- [section-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/section-page.tsx:1)
+- [module-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/module-page.tsx:1)
+- [marketplace-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/marketplace/marketplace-entity-list-page.tsx:1)
+- [sales-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/sales/sales-entity-list-page.tsx:1)
+- [logistics-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/logistics/logistics-entity-list-page.tsx:1)
+
+Reason:
+- even when individual pages improved, these abstractions still represent the “we wrote our own UI” layer
+- any page still depending on them should be treated as temporary
+
+### Practical Resume Order
+
+If work resumes later, the best next targets are:
+
+1. `Marketplace > Products > Edit / Detail`
+2. `Marketplace > Vendors > Create / Detail / Edit`
+3. `Sales > Orders > List`
+4. `Sales > Invoices > Detail / List`
+5. `Logistics > Shipment Detail`
+6. overview pages still using `SectionPage` / `ModulePage`
