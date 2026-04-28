@@ -2,9 +2,12 @@
 
 export type LogisticsShipment = {
   id: string;
+  trackingId: string;
   customer: string;
+  customerPhone: string;
   pickup: string;
   dropoff: string;
+  recipient: string;
   lane: string;
   owner: string;
   status: "live" | "stable" | "review" | "monitoring" | "queued" | "at_risk";
@@ -19,9 +22,12 @@ export type LogisticsShipment = {
 export const logisticsShipments: LogisticsShipment[] = [
   {
     id: "SHP-50012",
+    trackingId: "TRK-50012-LSK",
     customer: "Chipo Mwansa",
+    customerPhone: "+260 97 411 2084",
     pickup: "Roma, Lusaka",
     dropoff: "Kabulonga, Lusaka",
+    recipient: "Mwila Household",
     lane: "CBD dispatch lane",
     owner: "Dispatch ops",
     status: "live",
@@ -42,9 +48,12 @@ export const logisticsShipments: LogisticsShipment[] = [
   },
   {
     id: "SHP-50004",
+    trackingId: "TRK-50004-LSK",
     customer: "Mercy Zulu",
+    customerPhone: "+260 96 771 2234",
     pickup: "Woodlands, Lusaka",
     dropoff: "Chalala, Lusaka",
+    recipient: "Returns desk",
     lane: "Woodlands returns",
     owner: "Recovery ops",
     status: "review",
@@ -65,9 +74,12 @@ export const logisticsShipments: LogisticsShipment[] = [
   },
   {
     id: "SHP-49991",
+    trackingId: "TRK-49991-LSK",
     customer: "Brian Phiri",
+    customerPhone: "+260 97 114 3892",
     pickup: "Airport, Lusaka",
     dropoff: "Ibex, Lusaka",
+    recipient: "Airport corridor office",
     lane: "Airport corridor",
     owner: "Zone watch",
     status: "monitoring",
@@ -88,9 +100,12 @@ export const logisticsShipments: LogisticsShipment[] = [
   },
   {
     id: "SHP-49974",
+    trackingId: "TRK-49974-KTW",
     customer: "Tina Mwale",
+    customerPhone: "+260 95 445 2001",
     pickup: "Kitwe CBD",
     dropoff: "Parklands, Kitwe",
+    recipient: "Parklands home delivery",
     lane: "Scheduled lane",
     owner: "Planning desk",
     status: "queued",
