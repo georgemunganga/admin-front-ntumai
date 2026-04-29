@@ -302,13 +302,15 @@ Reason:
 
 #### Global temporary scaffolds
 
-The main remaining architectural drift point is:
+The generic scaffold layer has been removed.
 
-- [section-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/section-page.tsx:1)
+What was removed:
+- `ModulePage`
+- `SectionPage`
+- fallback `[slug]` module routes
+- unused marketplace / sales / logistics entity-list wrappers
 
-Reason:
-- the fallback `ModulePage` layer and unused entity-list wrappers were removed
-- remaining config-style pages still depending on `SectionPage` should still be treated as temporary
+Remaining drift is now page-specific, not wrapper-driven.
 
 ### Practical Resume Order
 
@@ -316,5 +318,5 @@ If work resumes later, the best next targets are:
 
 1. `Marketplace > Marketplace Overview`
 2. `Logistics > Logistics Overview`
-3. `Platform > Settings / Admin Users / Activity Logs / App Version Control`
-4. `Logistics > Zones / Service Types / Pricing`
+3. selective polish on `Platform > Settings / Admin Users / Activity Logs / App Version Control`
+4. selective polish on `Logistics > Zones / Service Types / Pricing`
