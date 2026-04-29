@@ -10,11 +10,11 @@ import { routes } from "@/config/routes";
 import { getSalesOrder } from "@/components/sales/order-data";
 
 const orderStatusSteps = [
-  "Order Pending",
-  "Order Processing",
-  "Order At Local Facility",
-  "Order Out For Delivery",
-  "Order Completed",
+  "Order Created",
+  "Vendor Confirmed",
+  "Preparing For Dispatch",
+  "Out For Delivery",
+  "Delivered",
 ];
 
 export default function OrderDetailPage({ id }: { id: string }) {
@@ -44,6 +44,11 @@ export default function OrderDetailPage({ id }: { id: string }) {
                 Edit Order
               </Button>
             </Link>
+            <Link href={routes.supportDesk.inbox}>
+              <Button variant="outline" className="h-11 rounded-2xl px-4">
+                Open Support
+              </Button>
+            </Link>
           </div>
         }
       />
@@ -57,13 +62,13 @@ export default function OrderDetailPage({ id }: { id: string }) {
 
       <div className="items-start @5xl:grid @5xl:grid-cols-12 @5xl:gap-7 @6xl:grid-cols-10 @7xl:gap-10">
         <div className="space-y-7 @5xl:col-span-8 @5xl:space-y-10 @6xl:col-span-7">
-          <ShellCard title="Notes About Order" description="Customer-facing and internal handoff context.">
+          <ShellCard title="Order Context" description="Customer, vendor, and dispatch context carried through the Ntumai order flow.">
             <div className="rounded-xl border border-gray-200 px-5 py-3 text-sm leading-[1.85] text-gray-600">
               {order.summary}
             </div>
           </ShellCard>
 
-          <ShellCard title="Ordered Items" description="Marketplace basket and commercial totals.">
+          <ShellCard title="Ordered Items" description="Marketplace basket and commercial totals ready for merchant and finance review.">
             <div className="space-y-4">
               {order.items.map((item) => (
                 <div key={item.name} className="flex items-center justify-between rounded-lg border border-gray-100 px-5 py-5 shadow-sm transition-shadow">
@@ -85,7 +90,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
             </div>
           </ShellCard>
 
-          <ShellCard title="Transactions" description="Order payment trail adapted to Ntumai collection methods.">
+          <ShellCard title="Transactions" description="Payment, settlement hold, and reserve trail used by support and finance teams.">
             <div className="space-y-4">
               {[order.paymentMethod, "Vendor settlement hold", "Support adjustment reserve"].map((method, index) => (
                 <div key={`${method}-${index}`} className="flex items-center justify-between rounded-lg border border-gray-100 px-5 py-5 font-medium shadow-sm transition-shadow">
@@ -101,7 +106,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
             </div>
           </ShellCard>
 
-          <ShellCard title="Balance" description="Order-level financial position.">
+          <ShellCard title="Balance" description="Order-level financial position after customer collection and vendor reserve handling.">
             <div className="space-y-6 rounded-xl border border-gray-200 px-5 py-6 @5xl:space-y-7 @5xl:p-7">
               <SummaryLine label="Total order" value={order.totalAmount} />
               <SummaryLine label="Refunded" value="ZMW 0" />
@@ -113,7 +118,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
         </div>
 
         <div className="space-y-7 pt-8 @container @5xl:col-span-4 @5xl:space-y-10 @5xl:pt-0 @6xl:col-span-3">
-          <ShellCard title="Order Status" description="Template-style progress ladder aligned to Ntumai state names.">
+          <ShellCard title="Order Status" description="Ntumai order movement from checkout to handoff completion.">
             <div className="ms-2 w-full space-y-7 border-s-2 border-gray-100 py-5 @5xl:py-8">
               {orderStatusSteps.map((label, index) => {
                 const step = index + 1;

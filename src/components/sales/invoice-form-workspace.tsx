@@ -152,12 +152,12 @@ export default function InvoiceFormWorkspace({
           <div className="col-span-full rounded-[22px] border border-gray-200 bg-gray-50/70 p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Settlement state</Text>
+                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Settlement summary</Text>
                 <Title as="h3" className="mt-3 text-2xl font-semibold tracking-tight">
                   {amount}
                 </Title>
                 <Text className="mt-2 text-sm text-gray-500">
-                  Merchant finance flows depend on invoice state, payout route, and a clean line-item audit trail before release.
+                  Merchant finance flows depend on invoice state, payout route, and a clean line-item audit trail before release to the payout queue.
                 </Text>
               </div>
               <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1 text-primary">

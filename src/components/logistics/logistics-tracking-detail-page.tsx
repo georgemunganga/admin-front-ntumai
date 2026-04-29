@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { useState } from "react";
 import { Badge, Button, Input, Text, Title } from "rizzui";
 import {
   PiArrowLeftBold,
   PiCheckCircle,
   PiCopySimple,
+  PiEnvelopeSimpleBold,
   PiMoped,
   PiPackageFill,
   PiTriangle,
@@ -22,6 +24,7 @@ import { routes } from "@/config/routes";
 export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
   const shipment = getLogisticsShipment(id);
   if (!shipment) notFound();
+  const [copied, setCopied] = useState(false);
 
   const packageType =
     shipment.items.find((item) => item.label === "Package type")?.value ?? "Shipment";
@@ -64,16 +67,24 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
           </Title>
 
           <div className="mb-7 flex flex-wrap items-center gap-x-5 gap-y-3">
-            <Button variant="text" className="inline-flex h-auto w-auto items-center gap-1 px-0 py-0 font-normal">
+            <Button
+              variant="text"
+              className="inline-flex h-auto w-auto items-center gap-1 px-0 py-0 font-normal"
+              onClick={async () => {
+                await navigator.clipboard.writeText(shipment.trackingId);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1800);
+              }}
+            >
               <PiCopySimple className="h-5 w-5" />
               <Text as="span" className="text-gray-700">
-                Copy
+                {copied ? "Copied" : "Copy tracking code"}
               </Text>
             </Button>
             <Text className="inline-flex items-center gap-1">
               <PiMoped className="h-5 w-5" />
               <Text as="span" className="text-gray-700">
-                Add to delivery information
+                Dispatch lane: {shipment.lane}
               </Text>
             </Text>
           </div>
@@ -92,18 +103,19 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
 
           <div className="mt-10">
             <Text className="mb-3">
-              Want updates on this shipment? Enter your email address and Ntumai will send the next movement change.
+              Add an operations watcher email if support, dispatch, or merchant ops should receive the next movement update automatically.
             </Text>
             <div className="flex w-full max-w-3xl items-start gap-4">
               <Input
                 rounded="lg"
-                placeholder="smith@example.com"
+                placeholder="ops@ntumai.com"
                 inputClassName="w-full text-base"
                 size="lg"
                 className="flex-grow"
               />
               <Button type="button" className="w-full max-w-[118px] flex-shrink-0 rounded-lg" size="lg">
-                Submit
+                <PiEnvelopeSimpleBold className="me-1.5 h-4 w-4" />
+                Watch
               </Button>
             </div>
           </div>
@@ -233,7 +245,7 @@ function TimelineList({
             href="#tracking-history"
             className="ms-10 mt-10 flex flex-grow cursor-pointer items-center gap-3 text-sm font-medium text-gray-900"
           >
-            View Travel History
+            View full movement history
           </a>
         </div>
       ) : null}
@@ -244,7 +256,7 @@ function TimelineList({
 function getLatestUpdate(shipment: LogisticsShipment) {
   const latest = shipment.timeline[shipment.timeline.length - 1];
   return {
-    text: `${latest?.detail ?? shipment.notes} `,
+    text: `${latest?.detail ?? shipment.notes} Destination currently tracked at `,
     highlight: shipment.dropoff,
   };
 }
@@ -291,10 +303,10 @@ function getShipmentInfo(
       icon: <PiPackageFill className="h-6 w-6 text-primary" />,
       data: [
         { name: "Tracking Number", value: shipment.trackingId },
-        { name: "Delivered To", value: shipment.dropoff },
-        { name: "Shipping Date", value: shipment.updatedAt },
-        { name: "Standard Transit", value: `${eta} expected window` },
-        { name: "Actual Delivery", value: shipment.status === "stable" ? shipment.updatedAt : "Still in movement" },
+        { name: "Destination", value: shipment.dropoff },
+        { name: "Last Ops Update", value: shipment.updatedAt },
+        { name: "Customer ETA", value: `${eta} expected window` },
+        { name: "Delivery State", value: shipment.status === "stable" ? "Delivered" : "Still in movement" },
       ],
     },
     {

@@ -80,7 +80,7 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
               <del className="pb-1 text-base font-medium text-gray-400">
                 ZMW {product.priceValue + 15}
               </del>
-              <Text className="pb-1 text-sm font-medium text-red-600">Vendor live rate</Text>
+              <Text className="pb-1 text-sm font-medium text-red-600">Current storefront price</Text>
             </div>
             <Text className="mt-2 font-medium text-emerald-700">Inclusive of marketplace and tasker delivery pricing rules</Text>
           </div>
