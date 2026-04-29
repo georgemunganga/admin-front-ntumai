@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Badge, Button, Select, Text, Title } from "rizzui";
@@ -268,15 +268,19 @@ export default function LiveDispatchMap() {
   const [vehicleFilter, setVehicleFilter] = useState<string>("all");
   const [zoneFilter, setZoneFilter] = useState<string>("all");
 
-  const filteredEntities = dispatchEntities.filter((entity) => {
-    const kindMatch = kindFilter === "all" || entity.kind === kindFilter;
-    const vehicleMatch =
-      vehicleFilter === "all" ||
-      (entity.kind === "tasker" && entity.vehicleType === vehicleFilter);
-    const zoneMatch = zoneFilter === "all" || entity.zone === zoneFilter;
+  const filteredEntities = useMemo(
+    () =>
+      dispatchEntities.filter((entity) => {
+        const kindMatch = kindFilter === "all" || entity.kind === kindFilter;
+        const vehicleMatch =
+          vehicleFilter === "all" ||
+          (entity.kind === "tasker" && entity.vehicleType === vehicleFilter);
+        const zoneMatch = zoneFilter === "all" || entity.zone === zoneFilter;
 
-    return kindMatch && vehicleMatch && zoneMatch;
-  });
+        return kindMatch && vehicleMatch && zoneMatch;
+      }),
+    [kindFilter, vehicleFilter, zoneFilter],
+  );
 
   const selectedEntity =
     filteredEntities.find((entity) => entity.id === selectedId) ??
@@ -330,6 +334,36 @@ export default function LiveDispatchMap() {
 
           marker.addListener("click", () => {
             setSelectedId(entity.id);
+            map.panTo({ lat: entity.lat, lng: entity.lng });
+            map.setZoom(entity.kind === "alert" ? 14 : 13);
+
+            polylinesRef.current.forEach((polyline) => polyline.setMap(null));
+            polylinesRef.current = [];
+
+            if (entity.kind === "tasker" && entity.routePath?.length) {
+              const routeLine = new google.maps.Polyline({
+                map,
+                path: entity.routePath,
+                geodesic: true,
+                strokeColor: "#1ABAA6",
+                strokeOpacity: 0.9,
+                strokeWeight: 5,
+                icons: [
+                  {
+                    icon: {
+                      path: "M 0,-1 0,1",
+                      strokeOpacity: 1,
+                      scale: 3,
+                    },
+                    offset: "0",
+                    repeat: "14px",
+                  },
+                ],
+              });
+
+              polylinesRef.current = [routeLine];
+            }
+
             infoWindow.setContent(
               `<div style="min-width:180px;padding:6px 4px;font-family:Ubuntu, sans-serif;">
                 <div style="font-weight:700;color:#111827;">${entity.name}</div>
