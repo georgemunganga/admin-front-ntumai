@@ -236,6 +236,43 @@
   q {
     @apply text-lg;
   }
+
+  .input-container,
+  .select-button,
+  .textarea-field,
+  .select-search {
+    background-color: rgb(var(--gray-0) / 0.98);
+    border-color: rgb(var(--gray-300) / 0.95);
+  }
+
+  .input-container:hover,
+  .select-button:hover,
+  .textarea-field.is-hover,
+  .select-search:hover {
+    border-color: rgb(var(--primary-default) / 0.55);
+  }
+
+  .input-container[data-focus="true"],
+  .select-button[data-focus="true"],
+  .textarea-field.is-focus,
+  .select-search:focus {
+    background-color: rgb(var(--gray-0) / 1);
+    border-color: rgb(var(--primary-default) / 0.9);
+    box-shadow: 0 0 0 2px rgb(var(--primary-lighter) / 0.9);
+  }
+
+  .input-container input,
+  .select-button .select-value,
+  .textarea-field,
+  .select-search {
+    color: rgb(var(--gray-900) / 1);
+  }
+
+  .input-container input::placeholder,
+  .textarea-field::placeholder,
+  .select-search::placeholder {
+    color: rgb(var(--gray-500) / 0.95);
+  }
 }
 
 @layer utilities {
