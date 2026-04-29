@@ -125,6 +125,55 @@ const toneLabel: Record<MarkerTone, string> = {
   alert: "Alerts",
 };
 
+function markerSvg(kind: MarkerTone) {
+  if (kind === "tasker") {
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="20" fill="#1ABAA6" />
+        <circle cx="14.5" cy="28.5" r="4.5" fill="none" stroke="#fff" stroke-width="2.4"/>
+        <circle cx="29.5" cy="28.5" r="4.5" fill="none" stroke="#fff" stroke-width="2.4"/>
+        <path d="M16 18h5l3 6h5l-2.4-6.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 18l-5.2 10.3M24 24l-4.8 4.5M29 18h-3.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  if (kind === "vendor") {
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
+        <path d="M22 50c8.7-10 14-17.2 14-25.3C36 14.4 29.7 8 22 8S8 14.4 8 24.7C8 32.8 13.3 40 22 50z" fill="#EAB308"/>
+        <path d="M14 19.5h16l-1.7-5.2H15.7L14 19.5z" fill="#fff"/>
+        <path d="M15.5 20.5h13v9h-13z" fill="#fff"/>
+        <path d="M19 20.5v9M25 20.5v9" stroke="#EAB308" stroke-width="1.8"/>
+        <rect x="20.5" y="24" width="3" height="5.5" fill="#EAB308"/>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
+      <path d="M22 50c8.7-10 14-17.2 14-25.3C36 14.4 29.7 8 22 8S8 14.4 8 24.7C8 32.8 13.3 40 22 50z" fill="#EF4444"/>
+      <circle cx="22" cy="23" r="8.5" fill="#fff"/>
+      <path d="M22 18v6" stroke="#EF4444" stroke-width="2.8" stroke-linecap="round"/>
+      <circle cx="22" cy="27.8" r="1.6" fill="#EF4444"/>
+    </svg>
+  `;
+}
+
+function markerIcon(kind: MarkerTone): google.maps.Icon {
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(markerSvg(kind))}`,
+    scaledSize:
+      kind === "tasker"
+        ? new google.maps.Size(44, 44)
+        : new google.maps.Size(44, 52),
+    anchor:
+      kind === "tasker"
+        ? new google.maps.Point(22, 22)
+        : new google.maps.Point(22, 50),
+  };
+}
+
 export default function LiveDispatchMap() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -180,25 +229,7 @@ export default function LiveDispatchMap() {
             map,
             position: { lat: entity.lat, lng: entity.lng },
             title: entity.name,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              fillColor:
-                entity.kind === "tasker"
-                  ? "#1ABAA6"
-                  : entity.kind === "vendor"
-                    ? "#EAB308"
-                    : "#EF4444",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 3,
-              scale: entity.kind === "alert" ? 10 : 8,
-            },
-            label: {
-              text: entity.kind === "tasker" ? "T" : entity.kind === "vendor" ? "V" : "!",
-              color: "#ffffff",
-              fontWeight: "700",
-              fontSize: "11px",
-            },
+            icon: markerIcon(entity.kind),
           });
 
           marker.addListener("click", () => {
