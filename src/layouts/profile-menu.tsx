@@ -6,19 +6,20 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { routes } from "@/config/routes";
 
 const menuItems = [
   {
     name: "Admin Profile",
-    href: "#",
+    href: routes.profileSettings.profile,
   },
   {
     name: "Role Permissions",
-    href: "#",
+    href: routes.rolesPermissions,
   },
   {
     name: "Audit Log",
-    href: "#",
+    href: routes.platform.activityLogs,
   },
 ];
 

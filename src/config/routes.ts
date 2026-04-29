@@ -4,6 +4,12 @@ export const routes = {
     forgotPassword1: "/auth/forgot-password-1",
     otp1: "/auth/otp-1",
   },
+  profileSettings: {
+    overview: "/profile-settings",
+    profile: "/profile-settings/profile",
+    password: "/profile-settings/password",
+    notification: "/profile-settings/notification",
+  },
   dashboard: "/",
   dispatch: {
     overview: "/dispatch",
@@ -129,6 +135,7 @@ export const routes = {
   support: "/support",
   settings: "/settings",
   emailTemplates: "/email-templates",
+  accessDenied: "/access-denied",
   profile: "/profile",
   signIn: "/signin",
 };
