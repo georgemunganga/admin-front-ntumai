@@ -1,5 +1,6 @@
-import LogisticsDashboardPage from "@/components/logistics/logistics-dashboard-page";
+import { redirect } from "next/navigation";
+import { routes } from "@/config/routes";
 
 export default function LogisticsPage() {
-  return <LogisticsDashboardPage />;
+  redirect(routes.logistics.shipments);
 }

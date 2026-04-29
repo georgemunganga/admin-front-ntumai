@@ -1,5 +1,6 @@
-import MarketplaceDashboardPage from "@/components/marketplace/marketplace-dashboard-page";
+import { redirect } from "next/navigation";
+import { routes } from "@/config/routes";
 
 export default function MarketplacePage() {
-  return <MarketplaceDashboardPage />;
+  redirect(routes.marketplace.vendors);
 }

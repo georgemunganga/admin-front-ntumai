@@ -285,20 +285,15 @@ These are the pages that still have clear custom drift or incomplete template re
 - `Marketplace > Vendors > Create`
 - `Marketplace > Vendors > Detail`
 - `Marketplace > Vendors > Edit`
-- `Marketplace > Marketplace Overview`
 
 Reason:
 - still adapted from product-family patterns rather than copied from an exact local page source
-- overview is still custom-composed
 
 #### Sales / Finance
 
 #### Logistics
 
-- `Logistics > Logistics Overview`
-
-Reason:
-- overview is still custom-composed and not yet tied to a stronger recovered page source
+No major overview-specific drift remains after redirecting the generic logistics entrypoint to the working shipment list.
 
 #### Global temporary scaffolds
 
@@ -316,7 +311,7 @@ Remaining drift is now page-specific, not wrapper-driven.
 
 If work resumes later, the best next targets are:
 
-1. `Marketplace > Marketplace Overview`
-2. `Logistics > Logistics Overview`
+1. `Marketplace > Products > Detail / Edit`
+2. `Marketplace > Vendors > Create / Detail / Edit`
 3. selective polish on `Platform > Settings / Admin Users / Activity Logs / App Version Control`
 4. selective polish on `Logistics > Zones / Service Types / Pricing`
