@@ -13,12 +13,15 @@ import {
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import {
   PiDownloadSimpleBold,
+  PiMapPinBold,
   PiMagnifyingGlassBold,
   PiNotePencilBold,
   PiPlusBold,
+  PiScooterBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
+import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
 
 type ManualDispatchItem = {
@@ -33,6 +36,18 @@ type ManualDispatchItem = {
   etaRisk: string;
   supply: string;
   updatedAt: string;
+  assignedTasker?: string;
+};
+
+type NearbyTasker = {
+  id: string;
+  name: string;
+  vehicle: string;
+  distance: string;
+  eta: string;
+  rating: string;
+  zone: string;
+  availability: string;
 };
 
 const manualDispatchSeed: ManualDispatchItem[] = [
@@ -48,6 +63,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
     etaRisk: "Contained",
     supply: "Backup driver locked",
     updatedAt: "2 min ago",
+    assignedTasker: "Alick Mumba",
   },
   {
     id: "MD-2111",
@@ -87,6 +103,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
     etaRisk: "Low",
     supply: "Reserved van",
     updatedAt: "18 min ago",
+    assignedTasker: "Titus Kunda",
   },
   {
     id: "MD-2133",
@@ -116,6 +133,161 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   },
 ];
 
+const nearbyTaskersByDispatchId: Record<string, NearbyTasker[]> = {
+  "MD-2104": [
+    {
+      id: "TSK-1108",
+      name: "Chola Sampa",
+      vehicle: "Motorbike",
+      distance: "0.8 km away",
+      eta: "5 min to pickup",
+      rating: "4.9",
+      zone: "CBD South",
+      availability: "Ready now",
+    },
+    {
+      id: "TSK-1041",
+      name: "Alick Mumba",
+      vehicle: "Motorbike",
+      distance: "1.1 km away",
+      eta: "7 min to pickup",
+      rating: "4.8",
+      zone: "Cairo Road",
+      availability: "On standby",
+    },
+    {
+      id: "TSK-1199",
+      name: "Mwila Daka",
+      vehicle: "Small van",
+      distance: "2.4 km away",
+      eta: "11 min to pickup",
+      rating: "4.7",
+      zone: "Longacres",
+      availability: "Available after dropoff",
+    },
+  ],
+  "MD-2111": [
+    {
+      id: "TSK-1214",
+      name: "Faith Chisanga",
+      vehicle: "Motorbike",
+      distance: "0.6 km away",
+      eta: "4 min to pickup",
+      rating: "4.9",
+      zone: "Longacres",
+      availability: "Preferred merchant runner",
+    },
+    {
+      id: "TSK-1075",
+      name: "Joseph Bwalya",
+      vehicle: "Motorbike",
+      distance: "1.5 km away",
+      eta: "8 min to pickup",
+      rating: "4.8",
+      zone: "Government route",
+      availability: "Ready now",
+    },
+    {
+      id: "TSK-1310",
+      name: "Sharon Mwewa",
+      vehicle: "Hatchback",
+      distance: "2.1 km away",
+      eta: "10 min to pickup",
+      rating: "4.8",
+      zone: "Makeni hub",
+      availability: "Can cover peak lane",
+    },
+  ],
+  "MD-2120": [
+    {
+      id: "TSK-1360",
+      name: "Peter Zulu",
+      vehicle: "Motorbike",
+      distance: "1.2 km away",
+      eta: "6 min to pickup",
+      rating: "4.6",
+      zone: "Airport inbound",
+      availability: "Ready now",
+    },
+    {
+      id: "TSK-1090",
+      name: "Lillian Bowa",
+      vehicle: "Sedan",
+      distance: "2.8 km away",
+      eta: "13 min to pickup",
+      rating: "4.8",
+      zone: "Airport corridor",
+      availability: "Queued for next assignment",
+    },
+  ],
+  "MD-2127": [
+    {
+      id: "TSK-1417",
+      name: "Titus Kunda",
+      vehicle: "Van",
+      distance: "0.9 km away",
+      eta: "5 min to pickup",
+      rating: "4.9",
+      zone: "B2B lane",
+      availability: "Reserved fleet",
+    },
+    {
+      id: "TSK-1455",
+      name: "Derrick Lungu",
+      vehicle: "Van",
+      distance: "1.8 km away",
+      eta: "9 min to pickup",
+      rating: "4.7",
+      zone: "Cresta corridor",
+      availability: "Can swap route",
+    },
+  ],
+  "MD-2133": [
+    {
+      id: "TSK-1512",
+      name: "Rabecca Phiri",
+      vehicle: "Motorbike",
+      distance: "1.7 km away",
+      eta: "8 min to pickup",
+      rating: "4.8",
+      zone: "Woodlands",
+      availability: "High-risk specialist",
+    },
+    {
+      id: "TSK-1519",
+      name: "Kennedy Siame",
+      vehicle: "Motorbike",
+      distance: "2.5 km away",
+      eta: "12 min to pickup",
+      rating: "4.6",
+      zone: "Chilenje branch",
+      availability: "Available after cancel review",
+    },
+  ],
+  "MD-2140": [
+    {
+      id: "TSK-1611",
+      name: "Ruth Hachipuka",
+      vehicle: "Motorbike",
+      distance: "1.0 km away",
+      eta: "6 min to pickup",
+      rating: "4.9",
+      zone: "Mass Media",
+      availability: "Ready now",
+    },
+    {
+      id: "TSK-1650",
+      name: "Brian Sinyangwe",
+      vehicle: "Pickup",
+      distance: "3.4 km away",
+      eta: "15 min to pickup",
+      rating: "4.7",
+      zone: "Industrial spur",
+      availability: "Can take bulky load",
+    },
+  ],
+};
+
 const statusOptions = [
   { label: "All statuses", value: "all" },
   { label: "Stable", value: "stable" },
@@ -135,9 +307,12 @@ const overrideOptions = [
 ];
 
 export default function DispatchManualDispatchPage() {
+  const [rows, setRows] = useState(manualDispatchSeed);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [overrideType, setOverrideType] = useState("all");
+  const [assigningItem, setAssigningItem] = useState<ManualDispatchItem | null>(null);
+  const [selectedTaskerId, setSelectedTaskerId] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 8,
@@ -146,7 +321,7 @@ export default function DispatchManualDispatchPage() {
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return manualDispatchSeed.filter((row) => {
+    return rows.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
       const matchesType = overrideType === "all" ? true : row.overrideType === overrideType;
       const haystack = [
@@ -163,7 +338,9 @@ export default function DispatchManualDispatchPage() {
 
       return matchesStatus && matchesType && (!needle || haystack.includes(needle));
     });
-  }, [overrideType, query, status]);
+  }, [overrideType, query, rows, status]);
+
+  const taskerOptions = assigningItem ? nearbyTaskersByDispatchId[assigningItem.id] ?? [] : [];
 
   const columns = useMemo<ColumnDef<ManualDispatchItem>[]>(
     () => [
@@ -188,7 +365,18 @@ export default function DispatchManualDispatchPage() {
       },
       { accessorKey: "overrideType", header: "Override type" },
       { accessorKey: "supply", header: "Supply state" },
-      { accessorKey: "owner", header: "Owner" },
+      {
+        accessorKey: "owner",
+        header: "Owner / Tasker",
+        cell: ({ row }) => (
+          <div>
+            <Text className="text-sm font-medium text-gray-700">{row.original.owner}</Text>
+            <Text className="text-xs text-gray-500">
+              {row.original.assignedTasker ?? "Unassigned"}
+            </Text>
+          </div>
+        ),
+      },
       {
         accessorKey: "status",
         header: "Status",
@@ -199,7 +387,17 @@ export default function DispatchManualDispatchPage() {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-4">
+            <Button
+              variant="text"
+              className="h-auto p-0 text-primary"
+              onClick={() => {
+                setAssigningItem(row.original);
+                setSelectedTaskerId(null);
+              }}
+            >
+              Assign
+            </Button>
             <Button variant="text" className="h-auto p-0 text-primary">
               Open
               <PiNotePencilBold className="ms-1 h-4 w-4" />
@@ -343,6 +541,164 @@ export default function DispatchManualDispatchPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={assigningItem !== null}
+        onClose={() => {
+          setAssigningItem(null);
+          setSelectedTaskerId(null);
+        }}
+        size="lg"
+        rounded="xl"
+      >
+        {assigningItem ? (
+          <div className="rounded-[28px] bg-white p-6 sm:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-5">
+              <div>
+                <Text className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+                  Assign nearest tasker
+                </Text>
+                <Text className="mt-2 text-2xl font-semibold text-gray-900">
+                  {assigningItem.booking} · {assigningItem.rider}
+                </Text>
+                <Text className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+                  Pick the nearest available tasker for this manual dispatch job. The shortlist is ordered around pickup proximity and lane fit.
+                </Text>
+              </div>
+              <Button
+                variant="outline"
+                className="h-11 rounded-2xl px-4"
+                onClick={() => {
+                  setAssigningItem(null);
+                  setSelectedTaskerId(null);
+                }}
+              >
+                Close
+              </Button>
+            </div>
+
+            <div className="mt-5 grid gap-4 rounded-3xl border border-gray-100 bg-gray-50/80 p-4 md:grid-cols-3">
+              <ModalMeta label="Corridor" value={assigningItem.corridor} />
+              <ModalMeta label="Override type" value={assigningItem.overrideType} />
+              <ModalMeta label="Supply state" value={assigningItem.supply} />
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {taskerOptions.map((tasker) => {
+                const isSelected = selectedTaskerId === tasker.id;
+
+                return (
+                  <button
+                    key={tasker.id}
+                    type="button"
+                    onClick={() => setSelectedTaskerId(tasker.id)}
+                    className={`w-full rounded-3xl border p-4 text-left transition ${
+                      isSelected
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-gray-200 bg-white hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                          <PiScooterBold className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <Text className="font-semibold text-gray-900">{tasker.name}</Text>
+                          <Text className="mt-1 text-sm text-gray-500">
+                            {tasker.vehicle} · {tasker.zone}
+                          </Text>
+                        </div>
+                      </div>
+                      <Badge
+                        variant="flat"
+                        className={`rounded-2xl px-3 py-1.5 ${
+                          isSelected
+                            ? "bg-primary text-white"
+                            : "bg-secondary/10 text-secondary"
+                        }`}
+                      >
+                        {tasker.availability}
+                      </Badge>
+                    </div>
+                    <div className="mt-4 grid gap-3 text-sm text-gray-600 md:grid-cols-4">
+                      <TaskerStat label="Distance" value={tasker.distance} />
+                      <TaskerStat label="ETA" value={tasker.eta} />
+                      <TaskerStat label="Rating" value={tasker.rating} />
+                      <TaskerStat label="Tasker ID" value={tasker.id} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-5">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <PiMapPinBold className="h-4 w-4 text-primary" />
+                Nearest taskers are ranked from the pickup zone first.
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-2xl px-4"
+                  onClick={() => {
+                    setAssigningItem(null);
+                    setSelectedTaskerId(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
+                  disabled={!selectedTaskerId}
+                  onClick={() => {
+                    const selectedTasker = taskerOptions.find((tasker) => tasker.id === selectedTaskerId);
+                    if (!selectedTasker || !assigningItem) return;
+
+                    setRows((currentRows) =>
+                      currentRows.map((row) =>
+                        row.id === assigningItem.id
+                          ? {
+                              ...row,
+                              assignedTasker: selectedTasker.name,
+                              supply: `${selectedTasker.vehicle} assigned`,
+                              updatedAt: "Just now",
+                              status: "live",
+                            }
+                          : row,
+                      ),
+                    );
+                    setAssigningItem(null);
+                    setSelectedTaskerId(null);
+                  }}
+                >
+                  Confirm assignment
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+    </div>
+  );
+}
+
+function ModalMeta({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">{label}</Text>
+      <Text className="mt-2 font-semibold text-gray-900">{value}</Text>
+    </div>
+  );
+}
+
+function TaskerStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+        {label}
+      </Text>
+      <Text className="mt-1 font-medium text-gray-900">{value}</Text>
     </div>
   );
 }
