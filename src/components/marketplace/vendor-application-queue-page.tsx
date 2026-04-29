@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
@@ -13,6 +14,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
@@ -46,6 +48,10 @@ type VendorApplication = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const stageLabels: Record<ReviewStage, string> = {
@@ -104,6 +110,10 @@ const seed: VendorApplication[] = [
       { label: "Waiting launch sign-off", detail: "Marketplace launch team should clear the last merchandising checks.", time: "09:58" },
     ],
     notes: ["Strong candidate for same-day launch."],
+    links: [
+      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Products", href: routes.marketplace.products },
+    ],
   },
   {
     id: "VND-24003",
@@ -132,6 +142,10 @@ const seed: VendorApplication[] = [
       { label: "Missing license pages", detail: "Document packet failed completeness check.", time: "07:41" },
     ],
     notes: ["Do not move this to standard launch flow until restricted-goods checks are closed."],
+    links: [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Support escalations", href: routes.supportDesk.escalations },
+    ],
   },
   {
     id: "VND-23996",
@@ -160,6 +174,10 @@ const seed: VendorApplication[] = [
       { label: "Catalog cleanup opened", detail: "Marketplace ops queue now owns product readiness.", time: "07:02" },
     ],
     notes: ["This should stay in catalog lane, not reopen compliance work."],
+    links: [
+      { label: "Categories", href: routes.marketplace.categories },
+      { label: "Products", href: routes.marketplace.products },
+    ],
   },
   {
     id: "VND-23988",
@@ -188,6 +206,10 @@ const seed: VendorApplication[] = [
       { label: "Config gaps found", detail: "Missing service radius and settlement details.", time: "17:18" },
     ],
     notes: ["Good launch candidate after ops settings are filled."],
+    links: [
+      { label: "Payouts", href: routes.sales.payouts },
+      { label: "Zones", href: routes.logistics.zones },
+    ],
   },
   {
     id: "VND-23970",
@@ -216,6 +238,10 @@ const seed: VendorApplication[] = [
       { label: "Resubmission requested", detail: "Merchant must correct payout owner or business record.", time: "11:06" },
     ],
     notes: ["Keep this in follow-up lane until corrected legal entity data arrives."],
+    links: [
+      { label: "Payouts", href: routes.sales.payouts },
+      { label: "Support inbox", href: routes.supportDesk.inbox },
+    ],
   },
 ];
 
@@ -338,6 +364,19 @@ function VendorApplicationDrawer({
               <Badge key={tag} variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
                 {tag}
               </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <Title as="h4" className="text-sm font-semibold text-gray-900">Related workflow</Title>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {item.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
             ))}
           </div>
         </section>
@@ -681,17 +720,26 @@ export default function VendorApplicationQueuePage() {
                     <StatusBadge status={item.status} />
                   </Table.Cell>
                   <Table.Cell className="text-right">
-                    <Button
-                      variant="text"
-                      className="h-auto p-0 text-primary"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openApplication(item);
-                      }}
-                    >
-                      Review
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link
+                        href={item.links[0].href}
+                        className="text-xs font-semibold text-gray-500 transition hover:text-primary"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {item.links[0].label}
+                      </Link>
+                      <Button
+                        variant="text"
+                        className="h-auto p-0 text-primary"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openApplication(item);
+                        }}
+                      >
+                        Review
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}

@@ -1,10 +1,12 @@
 "use client";
 
-import { Badge, Text, Title } from "rizzui";
+import Link from "next/link";
+import { Badge, Button, Text, Title } from "rizzui";
 import DataTable from "@/components/admin/data-table";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { routes } from "@/config/routes";
 
 const insights = [
   { label: "Logged actions today", value: "1,284", detail: "Tracked admin events across the ERP." },
@@ -13,9 +15,33 @@ const insights = [
 ];
 
 const queue = [
-  { title: "Manual payout override", meta: "Treasury action needs secondary approval confirmation.", status: "review" },
-  { title: "Restriction history gap", meta: "Abuse-related action needs more context in the log.", status: "monitoring" },
-  { title: "Bulk role change import", meta: "Bulk access-change set queued for signoff.", status: "queued" },
+  {
+    title: "Manual payout override",
+    meta: "Treasury action needs secondary approval confirmation.",
+    status: "review",
+    links: [
+      { label: "Payouts", href: routes.sales.payouts },
+      { label: "Refunds", href: routes.sales.refunds },
+    ],
+  },
+  {
+    title: "Restriction history gap",
+    meta: "Abuse-related action needs more context in the log.",
+    status: "monitoring",
+    links: [
+      { label: "Escalations", href: routes.supportDesk.escalations },
+      { label: "Safety compliance", href: routes.risk.compliance },
+    ],
+  },
+  {
+    title: "Bulk role change import",
+    meta: "Bulk access-change set queued for signoff.",
+    status: "queued",
+    links: [
+      { label: "Roles", href: routes.rolesPermissions },
+      { label: "Admin users", href: routes.platform.adminUsers },
+    ],
+  },
 ];
 
 const rows = [
@@ -24,24 +50,28 @@ const rows = [
     secondary: "Manual payment, payout, and refund interventions captured for treasury review.",
     tertiary: "Finance governance",
     status: "stable",
+    href: routes.sales.payments,
   },
   {
     primary: "Trust and restriction logs",
     secondary: "Account blocks, appeals, and safety-related overrides requiring strong traceability.",
     tertiary: "Risk audit",
     status: "review",
+    href: routes.supportDesk.escalations,
   },
   {
     primary: "Role and permission changes",
     secondary: "Administrative access edits tracked for security and compliance oversight.",
     tertiary: "IAM control",
     status: "monitoring",
+    href: routes.rolesPermissions,
   },
   {
     primary: "Exception reconciliation",
     secondary: "Audit rows still queued for metadata completion or linked approval evidence.",
     tertiary: "Platform governance",
     status: "queued",
+    href: routes.logistics.exceptions,
   },
 ];
 
@@ -77,6 +107,15 @@ export default function PlatformAdminActivityLogsPage() {
                   <div>
                     <Title as="h4" className="text-sm font-semibold">{item.title}</Title>
                     <Text className="mt-1 text-sm text-gray-500">{item.meta}</Text>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {item.links.map((link) => (
+                        <Link key={link.label} href={link.href}>
+                          <Button variant="outline" className="h-9 rounded-2xl px-3 text-xs">
+                            {link.label}
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                   <StatusBadge status={item.status} />
                 </div>
@@ -96,7 +135,14 @@ export default function PlatformAdminActivityLogsPage() {
       >
         <DataTable
           rows={rows.map((row) => ({
-            primary: <Text className="font-semibold text-gray-900">{row.primary}</Text>,
+            primary: (
+              <div className="space-y-2">
+                <Text className="font-semibold text-gray-900">{row.primary}</Text>
+                <Link href={row.href} className="text-xs font-semibold text-primary transition hover:text-primary/80">
+                  Open workflow
+                </Link>
+              </div>
+            ),
             secondary: row.secondary,
             tertiary: row.tertiary,
             status: <StatusBadge status={row.status} />,

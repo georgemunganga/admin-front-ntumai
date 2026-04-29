@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
@@ -13,6 +14,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
 type ApplicationStatus =
@@ -57,6 +59,10 @@ type TaskerApplication = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const stageLabels: Record<ReviewStage, string> = {
@@ -114,6 +120,10 @@ const applicationsSeed: TaskerApplication[] = [
       "Strong candidate for same-day activation.",
       "Customer-support experience noted in profile.",
     ],
+    links: [
+      { label: "Taskers", href: routes.logistics.taskers },
+      { label: "Driver documents", href: routes.fleet.driverDocuments },
+    ],
   },
   {
     id: "TSK-24007",
@@ -141,6 +151,10 @@ const applicationsSeed: TaskerApplication[] = [
       { label: "Needs resubmission", detail: "Awaiting address proof and clearer ID image", time: "08:15" },
     ],
     notes: ["Candidate should be nudged before end of day to avoid churn."],
+    links: [
+      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Support inbox", href: routes.supportDesk.inbox },
+    ],
   },
   {
     id: "TSK-23992",
@@ -168,6 +182,10 @@ const applicationsSeed: TaskerApplication[] = [
       { label: "Escalation hold", detail: "Insurance horizon requires human confirmation", time: "08:10" },
     ],
     notes: ["High-value mode applicant. Do not reject until insurance follow-up is complete."],
+    links: [
+      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Safety compliance", href: routes.risk.compliance },
+    ],
   },
   {
     id: "TSK-23971",
@@ -195,6 +213,10 @@ const applicationsSeed: TaskerApplication[] = [
       { label: "Resubmission requested", detail: "Identity evidence must be replaced", time: "12:14" },
     ],
     notes: ["Do not activate until duplicate check is resolved."],
+    links: [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Support escalations", href: routes.supportDesk.escalations },
+    ],
   },
   {
     id: "TSK-23958",
@@ -221,6 +243,10 @@ const applicationsSeed: TaskerApplication[] = [
       { label: "Queued for review", detail: "Awaiting first-touch by fleet team", time: "09:18" },
     ],
     notes: ["Good candidate, but still very early in pipeline."],
+    links: [
+      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Taskers", href: routes.logistics.taskers },
+    ],
   },
 ];
 
@@ -361,6 +387,21 @@ function TaskerApplicationDrawer({
               <Badge key={tag} variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
                 {tag}
               </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <Title as="h4" className="text-sm font-semibold text-gray-900">
+            Related workflow
+          </Title>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {application.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
             ))}
           </div>
         </section>
@@ -721,13 +762,22 @@ export default function TaskerApplicationQueuePage() {
                     <StatusBadge status={application.status} />
                   </Table.Cell>
                   <Table.Cell className="text-right">
-                    <Button variant="text" className="h-auto p-0 text-primary" onClick={(event) => {
-                      event.stopPropagation();
-                      openApplication(application);
-                    }}>
-                      Review
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link
+                        href={application.links[0].href}
+                        className="text-xs font-semibold text-gray-500 transition hover:text-primary"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {application.links[0].label}
+                      </Link>
+                      <Button variant="text" className="h-auto p-0 text-primary" onClick={(event) => {
+                        event.stopPropagation();
+                        openApplication(application);
+                      }}>
+                        Review
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
@@ -13,6 +14,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
@@ -44,6 +46,10 @@ type TaskerDocumentCase = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const documentLabels: Record<DocumentType, string> = {
@@ -99,6 +105,10 @@ const casesSeed: TaskerDocumentCase[] = [
       "High-value supply mode. Avoid suspension unless no corrected upload arrives.",
       "If approved, create a renewal reminder 7 days before expiry.",
     ],
+    links: [
+      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Taskers", href: routes.logistics.taskers },
+    ],
   },
   {
     id: "DOC-1837",
@@ -125,6 +135,10 @@ const casesSeed: TaskerDocumentCase[] = [
       { label: "Awaiting reviewer", detail: "Manual decision required before resubmission notice.", time: "07:51" },
     ],
     notes: ["Likely resubmission case, not a rejection case."],
+    links: [
+      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Support inbox", href: routes.supportDesk.inbox },
+    ],
   },
   {
     id: "DOC-1824",
@@ -151,6 +165,10 @@ const casesSeed: TaskerDocumentCase[] = [
       { label: "Queued for manual read", detail: "Moved to road-readiness queue.", time: "07:15" },
     ],
     notes: ["If approved, application can stay in final approval lane."],
+    links: [
+      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Taskers", href: routes.logistics.taskers },
+    ],
   },
   {
     id: "DOC-1818",
@@ -177,6 +195,10 @@ const casesSeed: TaskerDocumentCase[] = [
       { label: "Manual risk review", detail: "Awaiting identity decision.", time: "05:29" },
     ],
     notes: ["Do not convert this to a normal compliance resubmission without risk sign-off."],
+    links: [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Support escalations", href: routes.supportDesk.escalations },
+    ],
   },
   {
     id: "DOC-1802",
@@ -203,6 +225,10 @@ const casesSeed: TaskerDocumentCase[] = [
       { label: "Manual lane assigned", detail: "Compliance agent must validate the strip.", time: "04:24" },
     ],
     notes: ["Low-friction approval if the issue-date strip is readable enough on zoom."],
+    links: [
+      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Taskers", href: routes.logistics.taskers },
+    ],
   },
 ];
 
@@ -319,6 +345,21 @@ function TaskerDocumentDrawer({
             Review issue
           </Title>
           <Text className="mt-3 text-sm leading-6 text-gray-600">{item.issue}</Text>
+        </section>
+
+        <section>
+          <Title as="h4" className="text-sm font-semibold text-gray-900">
+            Related workflow
+          </Title>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {item.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
+            ))}
+          </div>
         </section>
 
         <section>
@@ -659,17 +700,26 @@ export default function TaskerDocumentQueuePage() {
                     <StatusBadge status={item.status} />
                   </Table.Cell>
                   <Table.Cell className="text-right">
-                    <Button
-                      variant="text"
-                      className="h-auto p-0 text-primary"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openCase(item);
-                      }}
-                    >
-                      Review
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link
+                        href={item.links[0].href}
+                        className="text-xs font-semibold text-gray-500 transition hover:text-primary"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {item.links[0].label}
+                      </Link>
+                      <Button
+                        variant="text"
+                        className="h-auto p-0 text-primary"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openCase(item);
+                        }}
+                      >
+                        Review
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}
