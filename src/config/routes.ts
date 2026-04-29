@@ -1,4 +1,9 @@
 export const routes = {
+  auth: {
+    signIn: "/signin",
+    forgotPassword1: "/auth/forgot-password-1",
+    otp1: "/auth/otp-1",
+  },
   dashboard: "/",
   dispatch: {
     overview: "/dispatch",

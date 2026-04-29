@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Checkbox, Input, Password, Text, Title } from "rizzui";
 import { useMedia } from "@/hooks/use-media";
 import { useAuth } from "@/components/auth/auth-provider";
 import AuthWrapperSplit from "@/components/auth/auth-wrapper-split";
+import { routes } from "@/config/routes";
 import { PiArrowBendUpRightBold, PiShieldCheckeredDuotone } from "react-icons/pi";
 
 export default function SignInPage() {
@@ -103,9 +105,12 @@ export default function SignInPage() {
             label="Remember Me"
             className="[&>label>span]:font-medium"
           />
-          <span className="text-sm font-semibold text-gray-500">
-            Resume path: {next}
-          </span>
+          <Link
+            href={routes.auth.forgotPassword1}
+            className="text-sm font-semibold text-gray-500 transition-colors hover:text-primary"
+          >
+            Forgot password?
+          </Link>
         </div>
 
         <Button
