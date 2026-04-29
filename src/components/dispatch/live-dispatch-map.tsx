@@ -3,16 +3,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { Badge, Button, Select, Text, Title } from "rizzui";
+import { Badge, Button, Input, Select, Text, Title } from "rizzui";
 import {
   PiArrowClockwiseBold,
   PiArrowsOutCardinalBold,
+  PiBicycleBold,
+  PiBusBold,
+  PiCarBold,
   PiClockCounterClockwiseBold,
   PiEyeBold,
   PiFadersHorizontalBold,
+  PiMagnifyingGlassBold,
   PiMapPinBold,
   PiNavigationArrowBold,
   PiPhoneCallBold,
+  PiPersonSimpleWalkBold,
   PiStackPlusBold,
   PiStorefrontBold,
   PiWarningCircleBold,
@@ -32,6 +37,10 @@ type MapEntity = {
   zone: "CBD" | "Roma" | "Woodlands" | "Airport" | "Rhodes Park";
   heartbeatSec?: number;
   routePath?: Array<{ lat: number; lng: number }>;
+  trackingId?: string;
+  orderId?: string;
+  pickup?: { lat: number; lng: number; label: string };
+  dropoff?: { lat: number; lng: number; label: string };
 };
 
 type ZoneOverlay = {
@@ -57,6 +66,10 @@ const dispatchEntities: MapEntity[] = [
     vehicleType: "Bicycle",
     zone: "Roma",
     heartbeatSec: 8,
+    trackingId: "TRK-24081",
+    orderId: "ORD-10091",
+    pickup: { lat: -15.4143, lng: 28.3051, label: "Green Basket pickup" },
+    dropoff: { lat: -15.4262, lng: 28.3278, label: "Kabulonga dropoff" },
     routePath: [
       { lat: -15.4165, lng: 28.3118 },
       { lat: -15.4214, lng: 28.3189 },
@@ -74,6 +87,10 @@ const dispatchEntities: MapEntity[] = [
     vehicleType: "Bicycle",
     zone: "CBD",
     heartbeatSec: 21,
+    trackingId: "TRK-24075",
+    orderId: "ORD-10084",
+    pickup: { lat: -15.4141, lng: 28.2794, label: "Quick pickup" },
+    dropoff: { lat: -15.4098, lng: 28.2922, label: "CBD customer" },
     routePath: [
       { lat: -15.4136, lng: 28.2823 },
       { lat: -15.4123, lng: 28.2873 },
@@ -91,6 +108,10 @@ const dispatchEntities: MapEntity[] = [
     vehicleType: "Van",
     zone: "Woodlands",
     heartbeatSec: 34,
+    trackingId: "TRK-24062",
+    orderId: "ORD-10063",
+    pickup: { lat: -15.4382, lng: 28.3202, label: "QuickBite pickup" },
+    dropoff: { lat: -15.4325, lng: 28.3112, label: "Woodlands handoff" },
     routePath: [
       { lat: -15.445, lng: 28.3346 },
       { lat: -15.4382, lng: 28.3202 },
@@ -108,6 +129,10 @@ const dispatchEntities: MapEntity[] = [
     vehicleType: "Bicycle",
     zone: "Airport",
     heartbeatSec: 5,
+    trackingId: "TRK-24096",
+    orderId: "ORD-10112",
+    pickup: { lat: -15.3337, lng: 28.4486, label: "Airport pickup lane" },
+    dropoff: { lat: -15.3491, lng: 28.4277, label: "Airport corridor handoff" },
     routePath: [
       { lat: -15.329, lng: 28.4532 },
       { lat: -15.3384, lng: 28.4419 },
@@ -240,9 +265,32 @@ function markerSvg(kind: MarkerTone) {
   `;
 }
 
-function markerIcon(kind: MarkerTone): google.maps.Icon {
+function taskerMarkerSvg(vehicleType?: MapEntity["vehicleType"]) {
+  const glyph =
+    vehicleType === "Walking"
+      ? "W"
+      : vehicleType === "Bicycle"
+        ? "B"
+        : vehicleType === "Motorbike"
+          ? "M"
+          : vehicleType === "Car"
+            ? "C"
+            : "V";
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+      <circle cx="22" cy="22" r="20" fill="#1ABAA6" />
+      <circle cx="22" cy="22" r="12" fill="rgba(255,255,255,0.18)" />
+      <text x="22" y="27" text-anchor="middle" font-family="Ubuntu, sans-serif" font-size="16" font-weight="700" fill="#fff">${glyph}</text>
+    </svg>
+  `;
+}
+
+function markerIcon(kind: MarkerTone, vehicleType?: MapEntity["vehicleType"]): google.maps.Icon {
   return {
-    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(markerSvg(kind))}`,
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+      kind === "tasker" ? taskerMarkerSvg(vehicleType) : markerSvg(kind),
+    )}`,
     scaledSize:
       kind === "tasker"
         ? new google.maps.Size(44, 44)
@@ -261,12 +309,15 @@ export default function LiveDispatchMap() {
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const circlesRef = useRef<google.maps.Circle[]>([]);
+  const routeMarkersRef = useRef<google.maps.Marker[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "missing-key" | "error">("loading");
   const [selectedId, setSelectedId] = useState<string>(dispatchEntities[0]?.id ?? "");
   const [kindFilter, setKindFilter] = useState<"all" | MarkerTone>("all");
   const [vehicleFilter, setVehicleFilter] = useState<string>("all");
   const [zoneFilter, setZoneFilter] = useState<string>("all");
+  const [query, setQuery] = useState("");
+  const [liveFollow, setLiveFollow] = useState(true);
 
   const filteredEntities = useMemo(
     () =>
@@ -286,6 +337,13 @@ export default function LiveDispatchMap() {
     filteredEntities.find((entity) => entity.id === selectedId) ??
     filteredEntities[0] ??
     dispatchEntities[0];
+
+  useEffect(() => {
+    if (!liveFollow || !selectedEntity) return;
+    if (selectedEntity.kind !== "tasker") return;
+    focusEntity(selectedEntity, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, liveFollow]);
 
   useEffect(() => {
     if (!GOOGLE_MAPS_API_KEY) {
@@ -329,40 +387,12 @@ export default function LiveDispatchMap() {
             map,
             position: { lat: entity.lat, lng: entity.lng },
             title: entity.name,
-            icon: markerIcon(entity.kind),
+            icon: markerIcon(entity.kind, entity.vehicleType),
           });
 
           marker.addListener("click", () => {
             setSelectedId(entity.id);
-            map.panTo({ lat: entity.lat, lng: entity.lng });
-            map.setZoom(entity.kind === "alert" ? 14 : 13);
-
-            polylinesRef.current.forEach((polyline) => polyline.setMap(null));
-            polylinesRef.current = [];
-
-            if (entity.kind === "tasker" && entity.routePath?.length) {
-              const routeLine = new google.maps.Polyline({
-                map,
-                path: entity.routePath,
-                geodesic: true,
-                strokeColor: "#1ABAA6",
-                strokeOpacity: 0.9,
-                strokeWeight: 5,
-                icons: [
-                  {
-                    icon: {
-                      path: "M 0,-1 0,1",
-                      strokeOpacity: 1,
-                      scale: 3,
-                    },
-                    offset: "0",
-                    repeat: "14px",
-                  },
-                ],
-              });
-
-              polylinesRef.current = [routeLine];
-            }
+            focusEntity(entity);
 
             infoWindow.setContent(
               `<div style="min-width:180px;padding:6px 4px;font-family:Ubuntu, sans-serif;">
@@ -422,6 +452,8 @@ export default function LiveDispatchMap() {
       clustererRef.current = null;
       polylinesRef.current.forEach((polyline) => polyline.setMap(null));
       polylinesRef.current = [];
+      routeMarkersRef.current.forEach((marker) => marker.setMap(null));
+      routeMarkersRef.current = [];
       circlesRef.current.forEach((circle) => circle.setMap(null));
       circlesRef.current = [];
       markersRef.current.forEach((marker) => marker.setMap(null));
@@ -432,15 +464,19 @@ export default function LiveDispatchMap() {
     };
   }, [filteredEntities]);
 
-  function focusEntity(entity: MapEntity) {
+  function focusEntity(entity: MapEntity, force = false) {
     if (!mapInstanceRef.current) return;
 
     setSelectedId(entity.id);
+    if (force || mapInstanceRef.current.getZoom()! < (entity.kind === "alert" ? 14 : 13)) {
+      mapInstanceRef.current.setZoom(entity.kind === "alert" ? 14 : 13);
+    }
     mapInstanceRef.current.panTo({ lat: entity.lat, lng: entity.lng });
-    mapInstanceRef.current.setZoom(entity.kind === "alert" ? 14 : 13);
 
     polylinesRef.current.forEach((polyline) => polyline.setMap(null));
     polylinesRef.current = [];
+    routeMarkersRef.current.forEach((marker) => marker.setMap(null));
+    routeMarkersRef.current = [];
 
     if (entity.kind === "tasker" && entity.routePath?.length) {
       const routeLine = new google.maps.Polyline({
@@ -464,6 +500,52 @@ export default function LiveDispatchMap() {
       });
 
       polylinesRef.current = [routeLine];
+
+      if (entity.pickup) {
+        routeMarkersRef.current.push(
+          new google.maps.Marker({
+            map: mapInstanceRef.current,
+            position: entity.pickup,
+            title: entity.pickup.label,
+            label: {
+              text: "P",
+              color: "#ffffff",
+              fontWeight: "700",
+            },
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: "#EAB308",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+              scale: 9,
+            },
+          }),
+        );
+      }
+
+      if (entity.dropoff) {
+        routeMarkersRef.current.push(
+          new google.maps.Marker({
+            map: mapInstanceRef.current,
+            position: entity.dropoff,
+            title: entity.dropoff.label,
+            label: {
+              text: "D",
+              color: "#ffffff",
+              fontWeight: "700",
+            },
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: "#ef4444",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+              scale: 9,
+            },
+          }),
+        );
+      }
     }
 
     const marker = markersRef.current[dispatchEntities.findIndex((item) => item.id === entity.id)];
@@ -508,6 +590,15 @@ export default function LiveDispatchMap() {
         <div className="flex items-center gap-2 pe-2 text-sm font-medium text-gray-700">
           <PiFadersHorizontalBold className="h-4 w-4 text-primary" />
           Filters
+        </div>
+        <div className="min-w-[220px] flex-1 sm:max-w-[280px]">
+          <Input
+            placeholder="Search tasker, vendor, order, tracking ID"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
+            rounded="lg"
+          />
         </div>
         <div className="min-w-[180px] flex-1 sm:max-w-[220px]">
           <Select
@@ -555,6 +646,31 @@ export default function LiveDispatchMap() {
             selectClassName="rounded-2xl"
           />
         </div>
+        <Button
+          variant={liveFollow ? "solid" : "outline"}
+          className={`h-10 rounded-2xl px-4 ${liveFollow ? "bg-primary text-white hover:bg-primary/90" : ""}`}
+          onClick={() => setLiveFollow((value) => !value)}
+        >
+          Live follow {liveFollow ? "on" : "off"}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-10 rounded-2xl px-4"
+          onClick={() => {
+            const found = dispatchEntities.find((entity) => {
+              const q = query.trim().toLowerCase();
+              if (!q) return false;
+              return (
+                entity.name.toLowerCase().includes(q) ||
+                entity.orderId?.toLowerCase().includes(q) ||
+                entity.trackingId?.toLowerCase().includes(q)
+              );
+            });
+            if (found) focusEntity(found, true);
+          }}
+        >
+          Jump
+        </Button>
       </div>
 
       <div className="relative h-[72vh] min-h-[620px] max-h-[860px] w-full bg-gray-100">
@@ -622,7 +738,17 @@ export default function LiveDispatchMap() {
               ) : null}
               {selectedEntity.vehicleType ? (
                 <div className="flex items-center gap-2">
-                  <PiArrowsOutCardinalBold className="h-4 w-4 text-primary" />
+                  {selectedEntity.vehicleType === "Walking" ? (
+                    <PiPersonSimpleWalkBold className="h-4 w-4 text-primary" />
+                  ) : selectedEntity.vehicleType === "Bicycle" ? (
+                    <PiBicycleBold className="h-4 w-4 text-primary" />
+                  ) : selectedEntity.vehicleType === "Motorbike" ? (
+                    <PiArrowsOutCardinalBold className="h-4 w-4 text-primary" />
+                  ) : selectedEntity.vehicleType === "Car" ? (
+                    <PiCarBold className="h-4 w-4 text-primary" />
+                  ) : (
+                    <PiBusBold className="h-4 w-4 text-primary" />
+                  )}
                   <span>{selectedEntity.vehicleType}</span>
                 </div>
               ) : null}
@@ -630,6 +756,18 @@ export default function LiveDispatchMap() {
                 <div className="flex items-center gap-2">
                   <PiClockCounterClockwiseBold className="h-4 w-4 text-primary" />
                   <span>{heartbeatLabel(selectedEntity.heartbeatSec)}</span>
+                </div>
+              ) : null}
+              {selectedEntity.orderId ? (
+                <div className="flex items-center gap-2">
+                  <PiStackPlusBold className="h-4 w-4 text-primary" />
+                  <span>{selectedEntity.orderId}</span>
+                </div>
+              ) : null}
+              {selectedEntity.trackingId ? (
+                <div className="flex items-center gap-2">
+                  <PiMapPinBold className="h-4 w-4 text-primary" />
+                  <span>{selectedEntity.trackingId}</span>
                 </div>
               ) : null}
             </div>
