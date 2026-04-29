@@ -113,12 +113,6 @@ const toneClasses: Record<MarkerTone, string> = {
   alert: "bg-red-50 text-red-700",
 };
 
-const toneBorderClasses: Record<MarkerTone, string> = {
-  tasker: "border-primary/30",
-  vendor: "border-secondary/40",
-  alert: "border-red-200",
-};
-
 const toneLabel: Record<MarkerTone, string> = {
   tasker: "Taskers",
   vendor: "Vendors",
@@ -264,10 +258,9 @@ export default function LiveDispatchMap() {
   }, []);
 
   function focusEntity(entity: MapEntity) {
-    setSelectedId(entity.id);
-
     if (!mapInstanceRef.current) return;
 
+    setSelectedId(entity.id);
     mapInstanceRef.current.panTo({ lat: entity.lat, lng: entity.lng });
     mapInstanceRef.current.setZoom(entity.kind === "alert" ? 14 : 13);
 
@@ -285,153 +278,87 @@ export default function LiveDispatchMap() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.75fr)_380px]">
-      <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-          <div>
-            <Title as="h3" className="text-base font-semibold text-gray-900">
-              Live operations map
-            </Title>
-            <Text className="mt-1 text-sm text-gray-500">
-              Taskers, marketplace locations, and live dispatch alerts.
-            </Text>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1 text-primary">
-              Lusaka live
-            </Badge>
-            <Button
-              variant="outline"
-              className="h-10 rounded-2xl px-3"
-              onClick={() => selectedEntity && focusEntity(selectedEntity)}
-            >
-              <PiArrowClockwiseBold className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <div>
+          <Title as="h3" className="text-base font-semibold text-gray-900">
+            Live operations map
+          </Title>
+          <Text className="mt-1 text-sm text-gray-500">
+            Taskers, marketplace locations, and live dispatch alerts.
+          </Text>
         </div>
-
-        <div className="relative h-[620px] w-full bg-gray-100">
-          <div ref={mapRef} className="h-full w-full" />
-
-          {mapStatus !== "ready" ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/85 p-6">
-              <div className="max-w-md rounded-[28px] border border-gray-200 bg-white p-6 text-center shadow-sm">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <PiMapPinBold className="h-6 w-6" />
-                </div>
-                <Title as="h4" className="mt-4 text-base font-semibold text-gray-900">
-                  {mapStatus === "missing-key" ? "Google Maps API key needed" : mapStatus === "loading" ? "Loading map" : "Map unavailable"}
-                </Title>
-                <Text className="mt-2 text-sm leading-6 text-gray-500">
-                  {mapStatus === "missing-key"
-                    ? "Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to render the live dispatch map in this surface."
-                    : mapStatus === "loading"
-                      ? "Loading Google Maps and plotting taskers, vendors, and live alerts."
-                      : "Google Maps could not load right now. Check the API key, billing, and domain configuration."}
-                </Text>
-              </div>
-            </div>
-          ) : null}
+        <div className="flex items-center gap-2">
+          <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1 text-primary">
+            Lusaka live
+          </Badge>
+          <Button
+            variant="outline"
+            className="h-10 rounded-2xl px-3"
+            onClick={() => focusEntity(dispatchEntities[0])}
+          >
+            <PiArrowClockwiseBold className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-sm">
-          <Title as="h3" className="text-base font-semibold text-gray-900">
-            Live layers
-          </Title>
-          <div className="mt-4 grid gap-3">
-            {(["tasker", "vendor", "alert"] as MarkerTone[]).map((tone) => (
-              <div
-                key={tone}
-                className={`rounded-[22px] border ${toneBorderClasses[tone]} bg-gray-50/80 p-4`}
+      <div className="relative h-[72vh] min-h-[620px] max-h-[860px] w-full bg-gray-100">
+        <div ref={mapRef} className="h-full w-full" />
+
+        {selectedEntity ? (
+          <div className="pointer-events-none absolute left-5 top-5 z-10 max-w-sm rounded-[24px] border border-gray-200 bg-white/96 p-4 shadow-xl backdrop-blur">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Text className="font-semibold text-gray-900">{selectedEntity.name}</Text>
+                <Text className="mt-1 text-sm text-gray-500">{selectedEntity.detail}</Text>
+              </div>
+              <Badge
+                variant="flat"
+                className={`rounded-2xl px-3 py-1 ${toneClasses[selectedEntity.kind]}`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <Badge variant="flat" className={`rounded-2xl px-3 py-1 ${toneClasses[tone]}`}>
-                    {toneLabel[tone]}
-                  </Badge>
-                  <Text className="text-sm font-semibold text-gray-900">
-                    {dispatchEntities.filter((entity) => entity.kind === tone).length}
-                  </Text>
-                </div>
+                {selectedEntity.status}
+              </Badge>
+            </div>
+            <div className="mt-4 grid gap-3 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <PiNavigationArrowBold className="h-4 w-4 text-primary" />
+                <span>
+                  {selectedEntity.lat.toFixed(4)}, {selectedEntity.lng.toFixed(4)}
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-sm">
-          <Title as="h3" className="text-base font-semibold text-gray-900">
-            Live supervision
-          </Title>
-          <div className="mt-4 space-y-3">
-            {dispatchEntities.map((entity) => {
-              const isActive = entity.id === selectedEntity?.id;
-
-              return (
-                <button
-                  key={entity.id}
-                  type="button"
-                  onClick={() => focusEntity(entity)}
-                  className={`w-full rounded-[22px] border p-4 text-left transition ${
-                    isActive
-                      ? "border-primary/30 bg-primary/5"
-                      : "border-gray-200 bg-gray-50/80 hover:border-primary/20 hover:bg-white"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <Text className="font-semibold text-gray-900">{entity.name}</Text>
-                      <Text className="mt-1 text-sm text-gray-500">{entity.detail}</Text>
-                    </div>
-                    <Badge variant="flat" className={`rounded-2xl px-3 py-1 ${toneClasses[entity.kind]}`}>
-                      {entity.status}
-                    </Badge>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-sm">
-          <Title as="h3" className="text-base font-semibold text-gray-900">
-            Selected pin
-          </Title>
-          {selectedEntity ? (
-            <div className="mt-4 rounded-[22px] border border-gray-200 bg-gray-50/80 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <Text className="font-semibold text-gray-900">{selectedEntity.name}</Text>
-                  <Text className="mt-1 text-sm text-gray-500">{selectedEntity.detail}</Text>
-                </div>
-                <Badge
-                  variant="flat"
-                  className={`rounded-2xl px-3 py-1 ${toneClasses[selectedEntity.kind]}`}
-                >
-                  {selectedEntity.status}
-                </Badge>
-              </div>
-              <div className="mt-4 grid gap-3 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <PiNavigationArrowBold className="h-4 w-4 text-primary" />
-                  <span>
-                    {selectedEntity.lat.toFixed(4)}, {selectedEntity.lng.toFixed(4)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {selectedEntity.kind === "vendor" ? (
-                    <PiStorefrontBold className="h-4 w-4 text-primary" />
-                  ) : selectedEntity.kind === "alert" ? (
-                    <PiWarningCircleBold className="h-4 w-4 text-red-500" />
-                  ) : (
-                    <PiMapPinBold className="h-4 w-4 text-primary" />
-                  )}
-                  <span>{toneLabel[selectedEntity.kind]}</span>
-                </div>
+              <div className="flex items-center gap-2">
+                {selectedEntity.kind === "vendor" ? (
+                  <PiStorefrontBold className="h-4 w-4 text-primary" />
+                ) : selectedEntity.kind === "alert" ? (
+                  <PiWarningCircleBold className="h-4 w-4 text-red-500" />
+                ) : (
+                  <PiMapPinBold className="h-4 w-4 text-primary" />
+                )}
+                <span>{toneLabel[selectedEntity.kind]}</span>
               </div>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
+
+        {mapStatus !== "ready" ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/85 p-6">
+            <div className="max-w-md rounded-[28px] border border-gray-200 bg-white p-6 text-center shadow-sm">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <PiMapPinBold className="h-6 w-6" />
+              </div>
+              <Title as="h4" className="mt-4 text-base font-semibold text-gray-900">
+                {mapStatus === "missing-key" ? "Google Maps API key needed" : mapStatus === "loading" ? "Loading map" : "Map unavailable"}
+              </Title>
+              <Text className="mt-2 text-sm leading-6 text-gray-500">
+                {mapStatus === "missing-key"
+                  ? "Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to render the live dispatch map in this surface."
+                  : mapStatus === "loading"
+                    ? "Loading Google Maps and plotting taskers, vendors, and live alerts."
+                    : "Google Maps could not load right now. Check the API key, billing, and domain configuration."}
+              </Text>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
