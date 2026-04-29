@@ -14,12 +14,12 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
   if (!template) notFound();
 
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       <PageHeader
         breadcrumb={["Home", "Support", "Templates", template.id]}
         eyebrow="Support Desk"
         title={template.name}
-        description={template.preview}
+        description="Template detail view aligned more closely to the snippets/template workflow and Ntumai support communication usage."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.supportDesk.templates}>
@@ -38,31 +38,25 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-        <ShellCard title="Message preview" description="Current template content direction.">
-          <div className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-5">
-            <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-              Subject
-            </Text>
-            <Title as="h3" className="mt-2 text-lg font-semibold text-gray-900">
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+        <ShellCard title="Template Content" description="Current live or draft message body.">
+          <div className="rounded-[24px] border border-gray-200 bg-gray-50/70 p-5">
+            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Subject</Text>
+            <Title as="h3" className="mt-2 text-xl font-semibold text-gray-900">
               {template.subject}
             </Title>
-            <Text className="mt-4 text-sm leading-7 text-gray-600">
-              {template.preview}
-            </Text>
+            <Text className="mt-4 text-sm leading-7 text-gray-600">{template.preview}</Text>
           </div>
         </ShellCard>
 
-        <ShellCard title="Metadata" description="Ownership and targeting.">
+        <ShellCard title="Metadata" description="Targeting, ownership, and release state.">
           <div className="space-y-4">
             <MetaRow label="Channel" value={template.channel} />
             <MetaRow label="Audience" value={template.audience} />
             <MetaRow label="Owner" value={template.owner} />
             <MetaRow label="Updated" value={template.updatedAt} />
-            <div className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
-              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                Status
-              </Text>
+            <div className="rounded-[22px] border border-gray-200 bg-gray-50/70 p-4">
+              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Status</Text>
               <Badge variant="flat" className="mt-3 rounded-2xl bg-primary/10 px-3 py-1 text-primary">
                 {template.status}
               </Badge>
@@ -71,7 +65,7 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
         </ShellCard>
       </div>
 
-      <ShellCard title="Variables" description="Template placeholders expected from the backend.">
+      <ShellCard title="Variables" description="Runtime placeholders expected from Ntumai workflows and backend events.">
         <div className="flex flex-wrap gap-2">
           {template.variables.map((variable) => (
             <Badge key={variable} variant="flat" className="rounded-2xl bg-secondary/20 px-3 py-1 text-secondary-foreground">
@@ -86,7 +80,7 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
+    <div className="rounded-[22px] border border-gray-200 bg-gray-50/70 p-4">
       <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
       <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
         {value}
