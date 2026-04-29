@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { routes } from "@/config/routes";
+import SupportDashboardPage from "@/components/support/support-dashboard-page";
 
 export default function SupportPage() {
-  redirect(routes.supportDesk.inbox);
+  return <SupportDashboardPage />;
 }

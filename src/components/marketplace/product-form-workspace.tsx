@@ -1,0 +1,338 @@
+"use client";
+
+import Link from "next/link";
+import { Badge, Button, Checkbox, Input, Select, Text, Textarea } from "rizzui";
+import { PiArrowLeftBold, PiFloppyDiskBold, PiImageBold, PiUploadBold } from "react-icons/pi";
+import PageHeader from "@/components/admin/page-header";
+import { routes } from "@/config/routes";
+import type { MarketplaceProduct } from "@/components/marketplace/product-data";
+
+const formSections = [
+  { id: "summary", label: "Summary" },
+  { id: "media", label: "Images & Gallery" },
+  { id: "pricing-inventory", label: "Pricing & Inventory" },
+  { id: "product-identifiers", label: "Product Identifiers & Custom Fields" },
+  { id: "shipping", label: "Shipping" },
+  { id: "seo", label: "SEO" },
+  { id: "variant-options", label: "Variant Options" },
+  { id: "tags-category", label: "Tags & Category" },
+] as const;
+
+const vendorOptions = [
+  { label: "Green Basket Market", value: "Green Basket Market" },
+  { label: "QuickBite Kitchens", value: "QuickBite Kitchens" },
+  { label: "CityCare Pharmacy", value: "CityCare Pharmacy" },
+  { label: "HomeBox Supplies", value: "HomeBox Supplies" },
+  { label: "Digital Point", value: "Digital Point" },
+];
+
+const categoryOptions = [
+  { label: "Fresh produce", value: "Fresh produce" },
+  { label: "Quick meals", value: "Quick meals" },
+  { label: "Pharmacy", value: "Pharmacy" },
+  { label: "Household", value: "Household" },
+  { label: "Accessories", value: "Accessories" },
+];
+
+const subcategoryOptions = [
+  { label: "Tomatoes & onions", value: "Tomatoes & onions" },
+  { label: "Prepared lunch bowls", value: "Prepared lunch bowls" },
+  { label: "Pain relief", value: "Pain relief" },
+  { label: "Cleaning bundles", value: "Cleaning bundles" },
+  { label: "Charging accessories", value: "Charging accessories" },
+];
+
+const statusOptions = [
+  { label: "Published", value: "Published" },
+  { label: "Low stock", value: "Low stock" },
+  { label: "Review", value: "Review" },
+];
+
+const visibilityOptions = [
+  { label: "Marketplace live", value: "Marketplace live" },
+  { label: "Review hold", value: "Review hold" },
+  { label: "Draft", value: "Draft" },
+];
+
+const fulfillmentOptions = [
+  { label: "Same-day", value: "Same-day" },
+  { label: "On-demand", value: "On-demand" },
+  { label: "Scheduled", value: "Scheduled" },
+  { label: "Next-slot", value: "Next-slot" },
+];
+
+const reviewLaneOptions = [
+  { label: "Auto-review", value: "Auto-review" },
+  { label: "Catalog QA", value: "Catalog QA" },
+  { label: "Compliance review", value: "Compliance review" },
+];
+
+type ProductFormWorkspaceProps = {
+  mode: "create" | "edit";
+  product?: MarketplaceProduct;
+};
+
+export default function ProductFormWorkspace({
+  mode,
+  product,
+}: ProductFormWorkspaceProps) {
+  const title = mode === "edit" ? `Edit ${product?.name}` : "Create Product";
+  const name = product?.name ?? "Organic tomato basket";
+  const sku = product?.sku ?? "GBM-TOM-001";
+  const vendor = product?.vendor ?? "Green Basket Market";
+  const category = product?.category ?? "Fresh produce";
+  const subcategory = product?.subcategory ?? "Tomatoes & onions";
+  const description =
+    product?.description ?? "Fresh tomato basket prepared for same-day neighborhood delivery windows.";
+  const status = product?.status ?? "Published";
+  const visibility = product?.visibility ?? "Marketplace live";
+  const fulfillment = product?.fulfillment ?? "Same-day";
+  const reviewLane = product?.reviewLane ?? "Auto-review";
+  const unit = product?.attributes[0]?.value ?? "Basket";
+  const weight = product?.attributes[1]?.value ?? "4kg";
+  const leadTime = product?.attributes[2]?.value ?? "Under 2h";
+  const storage = product?.attributes[3]?.value ?? "Ambient";
+  const stockLevel = String(product?.stockLevel ?? 84);
+  const price = String(product?.priceValue ?? 95);
+  const backHref = mode === "edit" && product ? routes.marketplace.productDetails(product.slug) : routes.marketplace.products;
+
+  return (
+    <div className="@container space-y-6">
+      <PageHeader
+        breadcrumb={["Home", "Marketplace", "Products", ...(mode === "edit" && product ? [product.id, "Edit"] : ["Create"])]}
+        eyebrow="Marketplace Kit"
+        title={title}
+        description="Use the archived ecommerce product form structure, then align the fields to Ntumai marketplace, vendor, and catalog-review workflows."
+        action={
+          <div className="flex flex-wrap gap-3">
+            <Link href={backHref}>
+              <Button variant="outline" className="h-11 rounded-2xl px-4">
+                <PiArrowLeftBold className="me-1.5 h-4 w-4" />
+                Back
+              </Button>
+            </Link>
+            <Button variant="outline" className="h-11 rounded-2xl px-4">
+              Save Draft
+            </Button>
+            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+              <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
+              {mode === "edit" ? "Update Product" : "Create Product"}
+            </Button>
+          </div>
+        }
+      />
+
+      <div className="sticky top-[68px] z-20 border-b border-gray-300 bg-white/95 py-0 backdrop-blur @2xl:top-[72px] 2xl:top-20">
+        <div className="custom-scrollbar overflow-x-auto scroll-smooth">
+          <div className="inline-grid grid-flow-col gap-5 md:gap-7 lg:gap-10">
+            {formSections.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                className="relative whitespace-nowrap py-4 text-sm font-medium text-gray-500 transition hover:text-gray-900"
+              >
+                {section.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-7 divide-y divide-dashed divide-gray-200 @2xl:gap-9 @3xl:gap-11">
+        <FormSection
+          id="summary"
+          title="Summary"
+          description="Mirror the template summary section first, then map it to vendor identity, customer-facing copy, and storefront state."
+        >
+          <Input label="Product name" rounded="lg" defaultValue={name} />
+          <SelectField label="Vendor store" options={vendorOptions} value={vendor} />
+          <SelectField label="Main category" options={categoryOptions} value={category} />
+          <SelectField label="Subcategory" options={subcategoryOptions} value={subcategory} />
+          <Input label="Business type" rounded="lg" defaultValue={product?.businessType ?? "Grocery vendor"} />
+          <SelectField label="Catalog status" options={statusOptions} value={status} />
+          <Textarea
+            label="Description"
+            textareaClassName="rounded-2xl"
+            className="col-span-full"
+            defaultValue={description}
+          />
+        </FormSection>
+
+        <FormSection
+          id="media"
+          title="Images & Gallery"
+          description="Keep the gallery/media section visible as its own block so the product workspace behaves like the template rather than a basic CRUD form."
+        >
+          <UploadTile />
+          <div className="col-span-full grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {["Primary cover", "Vendor shelf", "Close detail", "Packaging angle"].map((label, index) => (
+              <div key={label} className="overflow-hidden rounded-[24px] border border-gray-200 bg-white shadow-sm">
+                <div className={`aspect-[4/4.65] bg-gradient-to-br ${
+                  index % 2 === 0 ? "from-primary/20 via-white to-secondary/20" : "from-secondary/15 via-white to-primary/10"
+                }`} />
+                <div className="border-t border-gray-200 px-4 py-3">
+                  <Text className="font-medium text-gray-900">{label}</Text>
+                  <Text className="mt-1 text-xs text-gray-500">Marketplace gallery slot</Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </FormSection>
+
+        <FormSection
+          id="pricing-inventory"
+          title="Pricing & Inventory"
+          description="Use the template pricing/inventory section and fill it with vendor stock, fee, and sale readiness controls."
+        >
+          <Input label="Price" rounded="lg" defaultValue={price} prefix="ZMW" />
+          <Input label="Stock level" rounded="lg" defaultValue={stockLevel} />
+          <Input label="Sale price" rounded="lg" defaultValue={status === "Low stock" ? price : String(Math.max(Number(price) - 10, 0))} prefix="ZMW" />
+          <Input label="Low-stock threshold" rounded="lg" defaultValue="20" />
+          <Input label="Unit label" rounded="lg" defaultValue={unit} />
+          <Input label="Lead time" rounded="lg" defaultValue={leadTime} />
+        </FormSection>
+
+        <FormSection
+          id="product-identifiers"
+          title="Product Identifiers & Custom Fields"
+          description="Follow the template identifier section so operators can manage SKU, vendor references, and Ntumai-specific catalog fields in one place."
+        >
+          <Input label="SKU" rounded="lg" defaultValue={sku} />
+          <Input label="Vendor reference" rounded="lg" defaultValue={`${sku}-NTM`} />
+          <Input label="Storage note" rounded="lg" defaultValue={storage} />
+          <Input label="Weight or size" rounded="lg" defaultValue={weight} />
+          <Input label="Storefront badge" rounded="lg" defaultValue={product?.tags[0] ?? "Top seller"} />
+          <Input label="Review lane" rounded="lg" defaultValue={reviewLane} />
+        </FormSection>
+
+        <FormSection
+          id="shipping"
+          title="Shipping"
+          description="Retain the dedicated shipping section, then align it to Ntumai tasker delivery expectations and dispatch promise windows."
+        >
+          <SelectField label="Fulfillment" options={fulfillmentOptions} value={fulfillment} />
+          <SelectField label="Visibility" options={visibilityOptions} value={visibility} />
+          <Input label="Pickup SLA" rounded="lg" defaultValue={fulfillment === "Same-day" ? "10 minutes" : "Within slot"} />
+          <Input label="Delivery promise" rounded="lg" defaultValue={leadTime} />
+          <Checkbox
+            label={<span className="text-sm text-gray-700">Eligible for customer live tracking</span>}
+            defaultChecked={visibility === "Marketplace live"}
+            size="sm"
+            className="col-span-full -mt-2 [&_svg]:top-0"
+          />
+        </FormSection>
+
+        <FormSection
+          id="seo"
+          title="SEO"
+          description="Preserve the template SEO block so the catalog entry has a clear search title, handle, and metadata path."
+        >
+          <Input label="Storefront title" rounded="lg" defaultValue={name} />
+          <Input label="URL handle" rounded="lg" defaultValue={product?.slug ?? "organic-tomato-basket"} />
+          <Textarea
+            label="Meta description"
+            textareaClassName="rounded-2xl"
+            className="col-span-full"
+            defaultValue={`Buy ${name.toLowerCase()} from ${vendor} on Ntumai with ${fulfillment.toLowerCase()} delivery.`}
+          />
+        </FormSection>
+
+        <FormSection
+          id="variant-options"
+          title="Variant Options"
+          description="Use the variant section even when a product is simple, so the form keeps template parity across all marketplace item types."
+        >
+          <Input label="Variant group" rounded="lg" defaultValue={category === "Quick meals" ? "Portion size" : "Pack size"} />
+          <Input label="Option 1" rounded="lg" defaultValue={category === "Quick meals" ? "Regular" : "Standard"} />
+          <Input label="Option 2" rounded="lg" defaultValue={category === "Quick meals" ? "Large" : "Family"} />
+          <Input label="Option 3" rounded="lg" defaultValue="Custom note" />
+        </FormSection>
+
+        <FormSection
+          id="tags-category"
+          title="Tags & Category"
+          description="Finish with the template taxonomy block so the product stays filterable, reviewable, and easy to place in the mobile app storefront."
+        >
+          <SelectField label="Main category" options={categoryOptions} value={category} />
+          <SelectField label="Subcategory" options={subcategoryOptions} value={subcategory} />
+          <Textarea
+            label="Tags"
+            textareaClassName="rounded-2xl"
+            className="col-span-full"
+            defaultValue={(product?.tags ?? ["Fresh", "Top seller", "Same-day"]).join(", ")}
+          />
+        </FormSection>
+      </div>
+    </div>
+  );
+}
+
+function FormSection({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="grid scroll-mt-40 gap-5 pt-7 first:pt-0 @3xl:grid-cols-12 @2xl:pt-9 @3xl:pt-11">
+      <div className="col-span-full @4xl:col-span-4">
+        <h4 className="text-base font-medium text-gray-900">{title}</h4>
+        <p className="mt-2 text-sm leading-6 text-gray-500">{description}</p>
+      </div>
+      <div className="col-span-full grid gap-4 @2xl:grid-cols-2 @4xl:col-span-8 @4xl:gap-5 xl:gap-7">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function SelectField({
+  label,
+  options,
+  value,
+}: {
+  label: string;
+  options: Array<{ label: string; value: string }>;
+  value: string;
+}) {
+  return (
+    <Select
+      label={label}
+      options={options}
+      defaultValue={options.find((option) => option.value === value) ?? options[0]}
+      selectClassName="rounded-2xl"
+    />
+  );
+}
+
+function UploadTile() {
+  return (
+    <div className="col-span-full rounded-[24px] border border-dashed border-gray-300 bg-gray-50/80 p-5">
+      <div className="flex items-start gap-4">
+        <div className="rounded-2xl bg-white p-3 text-gray-900 shadow-sm ring-1 ring-gray-200">
+          <PiUploadBold className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
+          <Text className="font-semibold text-gray-900">Upload media set</Text>
+          <Text className="mt-1 text-sm leading-6 text-gray-500">
+            Use product cover, detail shots, and packaging frames so the storefront view reads like the archived template gallery block.
+          </Text>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button variant="outline" className="rounded-2xl px-4">
+              <PiImageBold className="me-1.5 h-4 w-4" />
+              Select files
+            </Button>
+            <Badge variant="flat" className="rounded-2xl bg-gray-900 px-3 py-1.5 text-white">
+              JPG, PNG, WEBP
+            </Badge>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

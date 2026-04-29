@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
-import { PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
+import { Badge, Button, Input, Select, Table, Text } from "rizzui";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import StatCard from "@/components/admin/stat-card";
 import { routes } from "@/config/routes";
 import { supportTemplates } from "@/components/support/template-data";
 
@@ -30,44 +31,66 @@ export default function SupportTemplatesListPage() {
     });
   }, [query, channel]);
 
+  const liveCount = supportTemplates.filter((item) => item.status === "live").length;
+  const reviewCount = supportTemplates.filter((item) => item.status === "review").length;
+  const queuedCount = supportTemplates.filter((item) => item.status === "queued").length;
+
   return (
     <div className="space-y-6">
       <PageHeader
         breadcrumb={["Home", "Support", "Templates"]}
         eyebrow="Support Desk"
-        title="Templates"
-        description="Manage reusable message templates for customers, taskers, vendors, and ops alerts."
+        title="Support Templates"
+        description="Closer to the archived support snippets workspace, then adapted to Ntumai customer, tasker, vendor, and ops communication flows."
         action={
-          <Link href={routes.supportDesk.createTemplate}>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
-              <PiPlusBold className="me-1.5 h-4 w-4" />
-              Create Template
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" className="h-11 rounded-2xl px-4">
+              <PiDownloadSimpleBold className="me-1.5 h-4 w-4" />
+              Export
             </Button>
-          </Link>
+            <Link href={routes.supportDesk.createTemplate}>
+              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                <PiPlusBold className="me-1.5 h-4 w-4" />
+                Create Template
+              </Button>
+            </Link>
+          </div>
         }
       />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[240px] flex-1">
-          <Input
-            placeholder="Search templates"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
-            rounded="lg"
-          />
-        </div>
-        <div className="min-w-[220px]">
-          <Select
-            options={channelOptions}
-            value={channel}
-            onChange={(option: any) => setChannel(option?.value ?? "all")}
-            selectClassName="rounded-2xl"
-          />
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total templates" value={String(supportTemplates.length).padStart(2, "0")} change="Workspace" tone="neutral" detail="All customer, vendor, tasker, and internal communication templates." />
+        <StatCard label="Live" value={String(liveCount).padStart(2, "0")} change="Published" tone="positive" detail="Templates currently cleared for active use in support flows." />
+        <StatCard label="Review" value={String(reviewCount).padStart(2, "0")} change="Pending" tone="warning" detail="Templates waiting on copy, product, or compliance review." />
+        <StatCard label="Queued" value={String(queuedCount).padStart(2, "0")} change="Drafts" tone="neutral" detail="Templates prepared but not yet approved for live release." />
       </div>
 
-      <div className="overflow-hidden rounded-[26px] border border-gray-200 bg-white shadow-[0_10px_30px_-18px_rgba(15,23,42,0.24)]">
+      <div className="rounded-[26px] border border-gray-200 bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,23,42,0.24)]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <Input
+            type="search"
+            placeholder="Search by anything..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            prefix={<PiMagnifyingGlassBold className="size-4" />}
+            inputClassName="h-10"
+            className="w-full max-w-md"
+          />
+          <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+            <div className="min-w-[220px]">
+              <Select
+                options={channelOptions}
+                value={channel}
+                onChange={(option: any) => setChannel(option?.value ?? "all")}
+                selectClassName="rounded-2xl"
+              />
+            </div>
+            <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-2 text-primary">
+              {rows.length} shown
+            </Badge>
+          </div>
+        </div>
+
         <Table>
           <Table.Header>
             <Table.Row>

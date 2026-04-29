@@ -3,32 +3,33 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Button, Text, Title } from "rizzui";
-import {
-  PiArrowLeftBold,
-  PiMapPinBold,
-  PiNotePencilBold,
-  PiPhoneBold,
-  PiReceiptBold,
-  PiStorefrontBold,
-  PiTruckBold,
-  PiUserBold,
-} from "react-icons/pi";
+import { PiArrowLeftBold, PiCheckBold, PiNotePencilBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
 import { getSalesOrder } from "@/components/sales/order-data";
 
+const orderStatusSteps = [
+  "Order Pending",
+  "Order Processing",
+  "Order At Local Facility",
+  "Order Out For Delivery",
+  "Order Completed",
+];
+
 export default function OrderDetailPage({ id }: { id: string }) {
   const order = getSalesOrder(id);
   if (!order) notFound();
 
+  const currentStep = order.status === "queued" ? 1 : order.status === "review" ? 2 : order.status === "monitoring" ? 3 : order.status === "live" ? 4 : 5;
+
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       <PageHeader
         breadcrumb={["Home", "Sales", "Orders", order.id]}
         eyebrow="Sales Kit"
-        title={order.orderNumber}
-        description={order.summary}
+        title={`Order ${order.orderNumber}`}
+        description="Rebuilt closer to the archived ecommerce order-view workspace, then aligned to Ntumai marketplace and delivery operations."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.sales.orders}>
@@ -47,134 +48,139 @@ export default function OrderDetailPage({ id }: { id: string }) {
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-        <ShellCard title="Order summary" description="Customer and fulfillment detail.">
-          <div className="grid gap-4 md:grid-cols-2">
-            <InfoTile label="Customer" value={order.customer} icon={<PiUserBold className="h-4 w-4 text-primary" />} />
-            <InfoTile label="Phone" value={order.customerPhone} icon={<PiPhoneBold className="h-4 w-4 text-primary" />} />
-            <InfoTile label="Vendor" value={order.vendor} icon={<PiStorefrontBold className="h-4 w-4 text-primary" />} />
-            <InfoTile label="Tracking ID" value={order.trackingId} icon={<PiTruckBold className="h-4 w-4 text-primary" />} />
-            <InfoTile label="Fulfillment" value={order.fulfillment} icon={<PiTruckBold className="h-4 w-4 text-primary" />} />
-            <InfoTile label="Payment" value={`${order.paymentMethod} · ${order.paymentState}`} icon={<PiReceiptBold className="h-4 w-4 text-primary" />} />
-          </div>
-
-          <div className="mt-5 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-            <div className="flex items-center gap-2">
-              <PiMapPinBold className="h-4 w-4 text-primary" />
-              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Delivery address</Text>
-            </div>
-            <Text className="mt-2 text-sm leading-6 text-gray-600">{order.deliveryAddress}</Text>
-          </div>
-        </ShellCard>
-
-        <ShellCard title="Status" description="Operational state.">
-          <div className="space-y-4">
-            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Order state</Text>
-              <div className="mt-3 flex items-center gap-3">
-                <OrderStatus status={order.status} />
-                <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-                  {order.updatedAt}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Commercial totals</Text>
-              <div className="mt-3 space-y-2 text-sm text-gray-600">
-                <div className="flex items-center justify-between gap-3">
-                  <Text>Items</Text>
-                  <Text className="font-semibold text-gray-900">{order.itemCount}</Text>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <Text>Subtotal</Text>
-                  <Text className="font-semibold text-gray-900">{order.subtotal}</Text>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <Text>Delivery fee</Text>
-                  <Text className="font-semibold text-gray-900">{order.deliveryFee}</Text>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <Text>Tax</Text>
-                  <Text className="font-semibold text-gray-900">{order.tax}</Text>
-                </div>
-                <div className="flex items-center justify-between gap-3 border-t border-gray-200 pt-2">
-                  <Text className="font-semibold text-gray-900">Total</Text>
-                  <Text className="font-semibold text-gray-900">{order.totalAmount}</Text>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ShellCard>
+      <div className="flex flex-wrap justify-center rounded-[24px] border border-gray-200 bg-white px-4 py-4 font-medium text-gray-700 shadow-sm @5xl:justify-start">
+        <span className="my-2 border-r border-gray-200 px-5 py-0.5 first:ps-0 last:border-r-0">{order.updatedAt}</span>
+        <span className="my-2 border-r border-gray-200 px-5 py-0.5 first:ps-0 last:border-r-0">{order.itemCount}</span>
+        <span className="my-2 border-r border-gray-200 px-5 py-0.5 first:ps-0 last:border-r-0">Total {order.totalAmount}</span>
+        <span className="my-2 ms-5 rounded-3xl bg-green-100 px-2.5 py-1 text-xs text-green-700">{order.paymentState}</span>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ShellCard title="Items" description="Current basket.">
-          <div className="space-y-3">
-            {order.items.map((item) => (
-              <div key={item.name} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
+      <div className="items-start @5xl:grid @5xl:grid-cols-12 @5xl:gap-7 @6xl:grid-cols-10 @7xl:gap-10">
+        <div className="space-y-7 @5xl:col-span-8 @5xl:space-y-10 @6xl:col-span-7">
+          <ShellCard title="Notes About Order" description="Customer-facing and internal handoff context.">
+            <div className="rounded-xl border border-gray-200 px-5 py-3 text-sm leading-[1.85] text-gray-600">
+              {order.summary}
+            </div>
+          </ShellCard>
+
+          <ShellCard title="Ordered Items" description="Marketplace basket and commercial totals.">
+            <div className="space-y-4">
+              {order.items.map((item) => (
+                <div key={item.name} className="flex items-center justify-between rounded-lg border border-gray-100 px-5 py-5 shadow-sm transition-shadow">
                   <div>
                     <Text className="font-semibold text-gray-900">{item.name}</Text>
-                    <Text className="mt-1 text-sm text-gray-500">Qty {item.qty}</Text>
+                    <Text className="pt-1 text-[13px] font-normal text-gray-500">Quantity {item.qty}</Text>
                   </div>
-                  <Text className="font-semibold text-gray-900">{item.price}</Text>
+                  <div className="text-end font-medium text-gray-900">{item.price}</div>
                 </div>
+              ))}
+            </div>
+            <div className="mt-7 border-t border-gray-200 pt-7">
+              <div className="ms-auto max-w-lg space-y-6">
+                <SummaryLine label="Subtotal" value={order.subtotal} />
+                <SummaryLine label="Delivery fee" value={order.deliveryFee} />
+                <SummaryLine label="Tax" value={order.tax} />
+                <SummaryLine label="Total" value={order.totalAmount} strong />
               </div>
-            ))}
-          </div>
-        </ShellCard>
+            </div>
+          </ShellCard>
 
-        <ShellCard title="Timeline" description="Latest order events.">
-          <div className="space-y-3">
-            {order.timeline.map((item) => (
-              <div key={`${item.label}-${item.time}`} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Text className="font-semibold text-gray-900">{item.label}</Text>
-                    <Text className="mt-1 text-sm text-gray-500">{item.detail}</Text>
+          <ShellCard title="Transactions" description="Order payment trail adapted to Ntumai collection methods.">
+            <div className="space-y-4">
+              {[order.paymentMethod, "Vendor settlement hold", "Support adjustment reserve"].map((method, index) => (
+                <div key={`${method}-${index}`} className="flex items-center justify-between rounded-lg border border-gray-100 px-5 py-5 font-medium shadow-sm transition-shadow">
+                  <div className="flex flex-col">
+                    <Text as="span" className="font-semibold text-gray-700">
+                      {index === 0 ? "Payment" : index === 1 ? "Settlement" : "Reserve"}
+                    </Text>
+                    <span className="pt-1 text-[13px] font-normal text-gray-500">Via {method}</span>
                   </div>
-                  <Text className="text-xs text-gray-500">{item.time}</Text>
+                  <div className="text-end">{index === 0 ? order.totalAmount : index === 1 ? order.subtotal : order.deliveryFee}</div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </ShellCard>
+              ))}
+            </div>
+          </ShellCard>
+
+          <ShellCard title="Balance" description="Order-level financial position.">
+            <div className="space-y-6 rounded-xl border border-gray-200 px-5 py-6 @5xl:space-y-7 @5xl:p-7">
+              <SummaryLine label="Total order" value={order.totalAmount} />
+              <SummaryLine label="Refunded" value="ZMW 0" />
+              <SummaryLine label="Paid by customer" value={order.totalAmount} />
+              <SummaryLine label="Vendor reserve" value={order.deliveryFee} />
+              <SummaryLine label="Balance" value={order.subtotal} />
+            </div>
+          </ShellCard>
+        </div>
+
+        <div className="space-y-7 pt-8 @container @5xl:col-span-4 @5xl:space-y-10 @5xl:pt-0 @6xl:col-span-3">
+          <ShellCard title="Order Status" description="Template-style progress ladder aligned to Ntumai state names.">
+            <div className="ms-2 w-full space-y-7 border-s-2 border-gray-100 py-5 @5xl:py-8">
+              {orderStatusSteps.map((label, index) => {
+                const step = index + 1;
+                const active = currentStep >= step;
+                return (
+                  <div
+                    key={label}
+                    className={`relative ps-6 text-sm font-medium before:absolute before:-start-[9px] before:top-px before:h-5 before:w-5 before:-translate-x-px before:rounded-full before:content-[''] after:absolute after:-start-px after:top-5 after:h-10 after:w-0.5 after:content-[''] last:after:hidden ${
+                      active ? "before:bg-primary after:bg-primary" : "before:bg-gray-100 after:bg-gray-100"
+                    }`}
+                  >
+                    {active ? (
+                      <span className="absolute -start-1.5 top-1 text-white">
+                        <PiCheckBold className="h-auto w-3" />
+                      </span>
+                    ) : null}
+                    {label}
+                  </div>
+                );
+              })}
+            </div>
+          </ShellCard>
+
+          <ShellCard title="Customer Details" description="Billing and contact context.">
+            <div className="space-y-4">
+              <InfoRow label="Customer" value={order.customer} />
+              <InfoRow label="Phone" value={order.customerPhone} />
+              <InfoRow label="Vendor" value={order.vendor} />
+              <InfoRow label="Tracking" value={order.trackingId} />
+            </div>
+          </ShellCard>
+
+          <ShellCard title="Billing Address" description="Checkout billing reference.">
+            <Text className="text-sm leading-7 text-gray-600">{order.deliveryAddress}</Text>
+          </ShellCard>
+
+          <ShellCard title="Shipping Address" description="Final-drop address used by the tasker and support teams.">
+            <Text className="text-sm leading-7 text-gray-600">{order.deliveryAddress}</Text>
+          </ShellCard>
+        </div>
       </div>
     </div>
   );
 }
 
-function InfoTile({
+function SummaryLine({
   label,
   value,
-  icon,
+  strong = false,
 }: {
   label: string;
   value: string;
-  icon?: React.ReactNode;
+  strong?: boolean;
 }) {
   return (
-    <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <div className="flex items-center gap-2">
-        {icon}
-        <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
-      </div>
-      <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
-        {value}
-      </Title>
+    <div className={`flex justify-between ${strong ? "border-t border-gray-200 pt-5 text-base font-semibold" : "font-medium"}`}>
+      <span>{label}</span>
+      <span>{value}</span>
     </div>
   );
 }
 
-function OrderStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
-  };
-  return <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>{status.replace("_", " ")}</span>;
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+      <Text className="text-sm text-gray-500">{label}</Text>
+      <Text className="text-sm font-semibold text-right text-gray-900">{value}</Text>
+    </div>
+  );
 }
