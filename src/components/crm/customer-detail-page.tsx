@@ -1,35 +1,76 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Avatar, Badge, Button, Text, Title } from "rizzui";
+import { Avatar, Badge, Button, Table, Text, Title } from "rizzui";
 import {
   PiArrowLeftBold,
   PiCreditCardBold,
   PiDeviceMobileCameraBold,
+  PiEnvelopeSimpleBold,
   PiMapPinBold,
   PiNotePencilBold,
-  PiPhoneCallBold,
+  PiPhoneBold,
   PiShoppingBagBold,
-  PiUserCircleBold,
+  PiStarFill,
+  PiTruckBold,
   PiWalletBold,
+  PiWarningCircleBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { getCustomerProfile } from "@/components/crm/customer-data";
 import { routes } from "@/config/routes";
 
+const coverPhotos = [
+  "1648583076906-60338fa01f07",
+  "1655962342982-57cae2d061cf",
+];
+
 export default function CustomerDetailPage({ id }: { id: string }) {
   const customer = getCustomerProfile(id);
   if (!customer) notFound();
 
+  const coverId = coverPhotos[Math.abs(customer.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % coverPhotos.length];
+
+  const personalInfoRows = [
+    { label: "Country", value: "Zambia" },
+    { label: "Address", value: customer.address },
+    { label: "Phone", value: customer.phone },
+    { label: "Company", value: customer.segment },
+    { label: "Source", value: "Mobile App" },
+    { label: "Grade", value: customer.status === "at_risk" ? "C" : customer.status === "review" ? "B" : "A" },
+  ];
+
+  const recentShipments = [
+    { origin: customer.city, destination: "Kabulonga", date: customer.lastOrder, weight: "6 lbs / 2.7 kgs" },
+    { origin: customer.city, destination: "Roma", date: "28 Apr 2026, 18:14", weight: "4 lbs / 1.8 kgs" },
+    { origin: customer.city, destination: "Ibex Hill", date: "27 Apr 2026, 13:02", weight: "8 lbs / 3.6 kgs" },
+  ];
+
+  const recentPayments = [
+    { date: customer.lastOrder, method: customer.paymentMethod, paidBy: "Customer", amount: customer.walletBalance === "ZMW 0" ? "ZMW 118" : "ZMW 86" },
+    { date: "28 Apr 2026, 18:14", method: "Wallet + Card", paidBy: "Customer", amount: "ZMW 64" },
+    { date: "27 Apr 2026, 13:02", method: "Cash on delivery", paidBy: "Recipient", amount: "ZMW 92" },
+  ];
+
+  const stats = [
+    { icon: PiCreditCardBold, label: "Transactions", value: customer.lifetimeSpend },
+    { icon: PiWalletBold, label: "Wallet", value: customer.walletBalance },
+    { icon: PiTruckBold, label: "Shipments", value: customer.totalOrders },
+    { icon: PiShoppingBagBold, label: "Completed", value: customer.completedOrders },
+    { icon: PiWarningCircleBold, label: "Cancelled", value: customer.cancelledOrders },
+    { icon: PiDeviceMobileCameraBold, label: "App Version", value: customer.appVersion.replace("Customer App ", "") },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         breadcrumb={["Home", "CRM", "Customers", customer.id]}
         eyebrow="Customer CRM"
-        title="Customer profile"
-        description="Detailed profile view for mobile-app behavior, order history posture, wallet context, and support handling."
+        title="Customer Profile"
+        description="Template-aligned customer profile workspace adapted to Ntumai mobile app customers."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.crm.customers}>
@@ -46,321 +87,167 @@ export default function CustomerDetailPage({ id }: { id: string }) {
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="space-y-6">
-          <ShellCard className="overflow-hidden">
-            <div className="rounded-[26px] bg-[linear-gradient(180deg,#0f2e54_0%,#113862_38%,#ffffff_38%,#ffffff_100%)] px-6 py-6">
-              <div className="flex flex-col items-center text-center">
-                <Avatar
-                  name={customer.name}
-                  size="xl"
-                  rounded="full"
-                  className="border-4 border-white shadow-lg"
-                />
-                <Title as="h2" className="mt-4 text-xl font-semibold text-white">
-                  {customer.name}
-                </Title>
-                <Text className="mt-1 text-sm text-slate-200">{customer.segment}</Text>
-                <div className="mt-3">
-                  <CustomerStatus status={customer.status} />
-                </div>
-              </div>
+      <div className="@container">
+        <figure className="relative -mx-6 flex h-[150px] items-end justify-end overflow-hidden rounded-[28px] bg-gray-50 bg-gradient-to-r from-[#F8E1AF] to-[#F6CFCF] @5xl:h-[200px] 3xl:-mx-8 3xl:h-[250px] 4xl:-mx-10 4xl:h-[300px]">
+          <Image
+            alt="Customer cover"
+            src={`https://images.unsplash.com/photo-${coverId}?auto=format&fit=crop&w=1920&q=80`}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        </figure>
 
-              <div className="mt-8 space-y-3 rounded-[24px] bg-white p-4 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.45)]">
-                <SidebarRow icon={<PiPhoneCallBold className="h-4 w-4" />} label="Phone" value={customer.phone} />
-                <SidebarRow icon={<PiMapPinBold className="h-4 w-4" />} label="City" value={customer.city} />
-                <SidebarRow icon={<PiWalletBold className="h-4 w-4" />} label="Wallet" value={customer.walletBalance} />
-                <SidebarRow icon={<PiCreditCardBold className="h-4 w-4" />} label="Default pay" value={customer.paymentMethod} />
-              </div>
-            </div>
-          </ShellCard>
+        <section className="mt-8">
+          <div className="grid items-end gap-4 @xl:grid-cols-[80px_1fr] @2xl:grid-cols-[128px_1fr] md:gap-6">
+            <figure className="relative -mt-8 h-20 w-20 rounded-full border-4 border-white shadow-lg @2xl:-mt-12 @2xl:h-32 @2xl:w-32">
+              <span className="absolute bottom-1.5 right-1.5 z-10 h-3 w-3 rounded-full border-2 border-white bg-[#11A849] @2xl:bottom-2.5 @2xl:right-2.5 @3xl:h-4 @3xl:w-4" />
+              <Avatar
+                name={customer.name}
+                rounded="full"
+                className="h-full w-full rounded-full"
+              />
+            </figure>
 
-          <ShellCard title="Customer insights" description="Fast CRM and recovery snapshot.">
-            <div className="space-y-3">
-              <InsightCard title="CRM owner" detail={customer.owner} />
-              <InsightCard title="Last seen" detail={customer.lastOrder} />
-              <InsightCard title="Joined" detail={customer.joinedAt} />
-              <InsightCard title="App version" detail={customer.appVersion} />
-            </div>
-          </ShellCard>
-        </div>
-
-        <div className="space-y-6">
-          <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_12px_36px_-24px_rgba(15,23,42,0.3)]">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Title as="h2" className="text-[30px] font-semibold tracking-tight text-gray-900">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+              <article>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Title as="h3" className="text-lg xl:text-xl">
                     {customer.name}
                   </Title>
-                  <Badge
-                    variant="flat"
-                    className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary"
-                  >
-                    {customer.id}
+                  <Badge className="gap-1.5 rounded-2xl">
+                    4.5/5
+                    <PiStarFill className="h-4 w-4 fill-[#FFEB3C]" />
                   </Badge>
+                  <CustomerStatus status={customer.status} />
                 </div>
-                <Text className="mt-3 max-w-3xl text-sm leading-6 text-gray-500">
-                  {customer.notes}
+                <Text className="mt-1">
+                  <a href={`mailto:${customer.email}`}>{customer.email}</a>
                 </Text>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {customer.tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="flat"
-                      className="rounded-2xl bg-secondary/20 px-3 py-1 text-secondary-foreground"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-[22px] border border-gray-200 bg-gray-50 px-4 py-3">
-                <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-                  Mobile app account
-                </Text>
-                <Text className="mt-2 font-semibold text-gray-900">{customer.email}</Text>
-                <Text className="mt-1 text-xs text-gray-500">Updated {customer.updatedAt}</Text>
-              </div>
-            </div>
+              </article>
 
-            <div className="mt-6 flex flex-wrap gap-2 border-b border-gray-100 pb-4">
-              {["Overview", "Orders", "Wallet", "Activity"].map((tab, index) => (
-                <div
-                  key={tab}
-                  className={`rounded-2xl px-4 py-2 text-sm font-semibold ${
-                    index === 0 ? "bg-primary text-white" : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {tab}
+              <article className="flex flex-wrap items-center gap-3 md:justify-end">
+                <Button variant="outline" className="flex items-center gap-1 rounded-2xl">
+                  <PiPhoneBold size={18} />
+                  Call
+                </Button>
+                <Button className="flex items-center gap-1 rounded-2xl bg-primary text-white hover:bg-primary/90">
+                  <PiEnvelopeSimpleBold size={18} />
+                  Message
+                </Button>
+              </article>
+            </div>
+          </div>
+
+          <div className="custom-scrollbar overflow-x-auto scroll-smooth">
+            <div className="mt-8 grid min-w-[1280px] grid-cols-6 gap-5 rounded-[26px] border border-gray-200 bg-white p-6 shadow-[0_12px_30px_-22px_rgba(15,23,42,0.24)] md:mt-12">
+              {stats.map((stat) => (
+                <div key={stat.label} className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <stat.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <Text fontWeight="medium" className="block font-lexend text-base text-gray-900">
+                      {stat.value}
+                    </Text>
+                    <Text>{stat.label}</Text>
+                  </div>
                 </div>
               ))}
             </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
-              <MetricCard icon={<PiShoppingBagBold className="h-5 w-5" />} label="Total orders" value={customer.totalOrders} />
-              <MetricCard icon={<PiUserCircleBold className="h-5 w-5" />} label="Completed" value={customer.completedOrders} />
-              <MetricCard icon={<PiWalletBold className="h-5 w-5" />} label="Wallet balance" value={customer.walletBalance} />
-              <MetricCard icon={<PiCreditCardBold className="h-5 w-5" />} label="Lifetime spend" value={customer.lifetimeSpend} />
-            </div>
           </div>
+        </section>
 
-          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <ShellCard title="Profile overview" description="Identity, account, and address information.">
-              <div className="grid gap-4 md:grid-cols-2">
-                <InfoTile label="Customer ID" value={customer.id} />
-                <InfoTile label="Segment" value={customer.segment} />
-                <InfoTile label="Email" value={customer.email} />
-                <InfoTile label="Phone" value={customer.phone} />
-                <InfoTile label="City" value={customer.city} />
-                <InfoTile label="Joined at" value={customer.joinedAt} />
-                <InfoTile label="Last order" value={customer.lastOrder} />
-                <InfoTile label="App version" value={customer.appVersion} />
-              </div>
-              <div className="mt-4 rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
-                <div className="flex items-center gap-2">
-                  <PiMapPinBold className="h-4 w-4 text-primary" />
-                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                    Primary address
-                  </Text>
-                </div>
-                <Text className="mt-2 text-sm font-semibold text-gray-900">{customer.address}</Text>
-              </div>
-            </ShellCard>
-
-            <ShellCard title="Commerce summary" description="Order, wallet, and payment posture.">
-              <div className="space-y-3">
-                <SummaryRow label="Completed orders" value={customer.completedOrders} />
-                <SummaryRow label="Cancelled orders" value={customer.cancelledOrders} />
-                <SummaryRow label="Wallet balance" value={customer.walletBalance} />
-                <SummaryRow label="Default payment" value={customer.paymentMethod} />
-                <SummaryRow label="Last order" value={customer.lastOrder} />
-              </div>
-            </ShellCard>
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-            <ShellCard title="Activity timeline" description="Recent mobile app and CRM milestones.">
-              <div className="space-y-4">
-                {customer.timeline.map((item, index) => (
-                  <TimelineRow
-                    key={`${item.label}-${item.time}`}
-                    label={item.label}
-                    detail={item.detail}
-                    time={item.time}
-                    isLast={index === customer.timeline.length - 1}
-                  />
+        <ShellCard
+          title="Personal Information"
+          className="mt-14 pb-0 lg:pb-0"
+          bodyClassName="px-0 py-0"
+        >
+          <div className="custom-scrollbar overflow-x-auto">
+            <Table variant="modern" className="min-w-[900px]">
+              <Table.Header>
+                <Table.Row>
+                  <Table.Head className="bg-gray-100">Field</Table.Head>
+                  <Table.Head className="bg-gray-100">Value</Table.Head>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {personalInfoRows.map((row) => (
+                  <Table.Row key={row.label}>
+                    <Table.Cell>
+                      <Text className="font-medium text-gray-900">{row.label}</Text>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Text>{row.value}</Text>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
-              </div>
-            </ShellCard>
-
-            <ShellCard title="Support and admin context" description="Shared view for CRM, support, and finance teams.">
-              <div className="space-y-4">
-                <ContextRow
-                  icon={<PiPhoneCallBold className="h-4 w-4" />}
-                  title="Primary contact"
-                  detail={customer.phone}
-                />
-                <ContextRow
-                  icon={<PiWalletBold className="h-4 w-4" />}
-                  title="Wallet state"
-                  detail={customer.walletBalance}
-                />
-                <ContextRow
-                  icon={<PiCreditCardBold className="h-4 w-4" />}
-                  title="Payment method"
-                  detail={customer.paymentMethod}
-                />
-                <ContextRow
-                  icon={<PiDeviceMobileCameraBold className="h-4 w-4" />}
-                  title="App build"
-                  detail={customer.appVersion}
-                />
-                <NoteCard
-                  title="CRM handoff"
-                  detail={`${customer.owner} owns the next recovery or proactive retention action on this account.`}
-                />
-              </div>
-            </ShellCard>
+              </Table.Body>
+            </Table>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+        </ShellCard>
 
-function SidebarRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-[18px] border border-gray-100 bg-gray-50/80 px-4 py-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-gray-700 shadow-sm">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
-        <Text className="truncate text-sm font-semibold text-gray-900">{value}</Text>
-      </div>
-    </div>
-  );
-}
-
-function InsightCard({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{title}</Text>
-      <Text className="mt-2 text-sm font-semibold text-gray-900">{detail}</Text>
-    </div>
-  );
-}
-
-function MetricCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-gray-100 bg-gray-50/70 p-4">
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        {icon}
-      </div>
-      <Text className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-        {label}
-      </Text>
-      <Title as="h4" className="mt-1 text-lg font-semibold text-gray-900">
-        {value}
-      </Title>
-    </div>
-  );
-}
-
-function InfoTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
-      <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
-        {value}
-      </Title>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-[20px] border border-gray-100 bg-gray-50/70 px-4 py-3">
-      <Text className="text-sm text-gray-500">{label}</Text>
-      <Text className="text-right text-sm font-semibold text-gray-900">{value}</Text>
-    </div>
-  );
-}
-
-function TimelineRow({
-  label,
-  detail,
-  time,
-  isLast,
-}: {
-  label: string;
-  detail: string;
-  time: string;
-  isLast: boolean;
-}) {
-  return (
-    <div className="flex gap-4">
-      <div className="flex w-6 flex-col items-center">
-        <span className="mt-1 h-3.5 w-3.5 rounded-full border-2 border-primary bg-primary" />
-        {!isLast ? <span className="mt-2 w-px flex-1 bg-gray-200" /> : null}
-      </div>
-      <div className="flex-1 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <Text className="font-semibold text-gray-900">{label}</Text>
-            <Text className="mt-1 text-sm leading-6 text-gray-500">{detail}</Text>
+        <ShellCard
+          title="Recent Shipment"
+          className="mb-3 mt-14 pb-0 lg:pb-0"
+          bodyClassName="px-0 py-0"
+        >
+          <div className="custom-scrollbar overflow-x-auto">
+            <Table variant="modern" className="min-w-[900px]">
+              <Table.Header>
+                <Table.Row>
+                  <Table.Head className="bg-gray-100">Origin</Table.Head>
+                  <Table.Head className="bg-gray-100">Destination</Table.Head>
+                  <Table.Head className="bg-gray-100">Date</Table.Head>
+                  <Table.Head className="bg-gray-100">Weight</Table.Head>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {recentShipments.map((row, index) => (
+                  <Table.Row key={`${row.origin}-${row.destination}-${index}`}>
+                    <Table.Cell>{row.origin}</Table.Cell>
+                    <Table.Cell>{row.destination}</Table.Cell>
+                    <Table.Cell>{row.date}</Table.Cell>
+                    <Table.Cell>{row.weight}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
           </div>
-          <Text className="text-xs text-gray-500">{time}</Text>
-        </div>
-      </div>
-    </div>
-  );
-}
+        </ShellCard>
 
-function ContextRow({
-  icon,
-  title,
-  detail,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  detail: string;
-}) {
-  return (
-    <div className="flex gap-3 rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-gray-700 shadow-sm">
-        {icon}
+        <ShellCard
+          title="Recent Payments"
+          className="mb-3 mt-14 pb-0 lg:pb-0"
+          bodyClassName="px-0 py-0"
+        >
+          <div className="custom-scrollbar overflow-x-auto">
+            <Table variant="modern" className="min-w-[900px]">
+              <Table.Header>
+                <Table.Row>
+                  <Table.Head className="bg-gray-100">Payment Date</Table.Head>
+                  <Table.Head className="bg-gray-100">Payment Method</Table.Head>
+                  <Table.Head className="bg-gray-100">Paid By</Table.Head>
+                  <Table.Head className="bg-gray-100">Payment Amount</Table.Head>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {recentPayments.map((row, index) => (
+                  <Table.Row key={`${row.date}-${index}`}>
+                    <Table.Cell>{row.date}</Table.Cell>
+                    <Table.Cell>{row.method}</Table.Cell>
+                    <Table.Cell>{row.paidBy}</Table.Cell>
+                    <Table.Cell>
+                      <Text className="font-medium text-gray-900">{row.amount}</Text>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
+        </ShellCard>
       </div>
-      <div>
-        <Text className="text-sm font-semibold text-gray-900">{title}</Text>
-        <Text className="mt-1 text-sm text-gray-500">{detail}</Text>
-      </div>
-    </div>
-  );
-}
-
-function NoteCard({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <Text className="font-semibold text-gray-900">{title}</Text>
-      <Text className="mt-1 text-sm leading-6 text-gray-500">{detail}</Text>
     </div>
   );
 }
