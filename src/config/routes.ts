@@ -83,6 +83,10 @@ export const routes = {
     tickets: "/support/tickets",
     escalations: "/support/escalations",
     disputes: "/support/disputes",
+    templates: "/support/templates",
+    createTemplate: "/support/templates/create",
+    templateDetails: (id: string) => `/support/templates/${id}`,
+    editTemplate: (id: string) => `/support/templates/${id}/edit`,
   },
   risk: {
     overview: "/risk",
@@ -118,6 +122,7 @@ export const routes = {
   content: "/content",
   support: "/support",
   settings: "/settings",
+  emailTemplates: "/email-templates",
   profile: "/profile",
   signIn: "/signin",
 };

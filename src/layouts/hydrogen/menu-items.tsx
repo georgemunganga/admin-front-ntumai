@@ -124,6 +124,7 @@ export const menuItems: MenuItem[] = [
       { name: "Tickets", href: routes.supportDesk.tickets },
       { name: "Escalations", href: routes.supportDesk.escalations },
       { name: "Disputes", href: routes.supportDesk.disputes },
+      { name: "Templates", href: routes.supportDesk.templates },
     ],
   },
   {
