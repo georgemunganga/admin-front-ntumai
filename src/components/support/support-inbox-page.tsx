@@ -1,1167 +1,473 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Avatar, Badge, Button, Input, Select, Text, Title } from "rizzui";
+import { Avatar, Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import {
-  PiArrowClockwiseBold,
-  PiChatsCircleDuotone,
-  PiClockCountdownBold,
+  PiCaretDownBold,
+  PiChatsBold,
   PiMagnifyingGlassBold,
-  PiPaperclipBold,
   PiPaperPlaneTiltBold,
+  PiPaperclipBold,
   PiPlusBold,
-  PiShieldCheckBold,
-  PiSparkleBold,
-  PiTagBold,
-  PiWarningCircleBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import StatCard from "@/components/admin/stat-card";
-import StatusBadge from "@/components/admin/status-badge";
-import { Modal } from "@/components/modal";
 
-type SupportStatus =
-  | "review"
-  | "monitoring"
-  | "at_risk"
-  | "queued"
-  | "live"
-  | "paused";
-type SupportTab = "unassigned" | "assigned" | "open" | "sla";
-type SupportAction = "assign" | "escalate" | "resolve";
-type ComposerMode = "reply" | "note";
+type SupportBucket = "open" | "closed";
+type SupportCategory = "unassigned" | "assigned-to-me" | "all-open" | "chat";
 
-type ConversationEntry = {
-  kind: "message" | "event";
+type ThreadEntry = {
   author: string;
-  role: string;
+  email: string;
   time: string;
   body: string;
-  agent?: boolean;
-  tone?: "default" | "warning" | "success";
+  attachments?: Array<{ name: string; size: string }>;
 };
 
-type SupportMessage = {
+type MessageItem = {
   id: string;
-  customer: string;
-  subject: string;
+  title: string;
   summary: string;
-  queue: string;
-  channel: string;
-  priority: "critical" | "high" | "medium" | "low";
-  status: SupportStatus;
-  updatedAt: string;
-  tab: SupportTab;
-  assignee: string;
-  order: string;
-  customerTier: string;
-  exposure: string;
-  sla: string;
-  city: string;
-  unread: number;
-  lastSeen: string;
-  trustState: string;
-  tags: string[];
-  linkedQueues: string[];
-  history: Array<{ label: string; value: string }>;
-  thread: ConversationEntry[];
+  customer: string;
+  email: string;
+  supportType: "Chat" | "Email";
+  bucket: SupportBucket;
+  category: SupportCategory;
+  markedAsRead: boolean;
+  hasAttachments: boolean;
+  date: string;
+  priority: "Low" | "Medium" | "High";
+  agent: string;
+  status: "New" | "Waiting on contact" | "Waiting on us" | "Closed";
+  thread: ThreadEntry[];
 };
 
-const supportTabs: Array<{ value: SupportTab; label: string; count: number }> =
-  [
-    { value: "unassigned", label: "Unassigned", count: 18 },
-    { value: "assigned", label: "Assigned to me", count: 42 },
-    { value: "open", label: "All open", count: 96 },
-    { value: "sla", label: "SLA breach", count: 7 },
-  ];
+const supportNavItems = [
+  { value: "unassigned" as const, label: "Unassigned", count: 88 },
+  { value: "assigned-to-me" as const, label: "Assigned to me", count: 1515 },
+  { value: "all-open" as const, label: "All open", count: 1603 },
+  { value: "chat" as const, label: "Chat", count: 991 },
+];
 
-const supportMessagesSeed: SupportMessage[] = [
+const messages: MessageItem[] = [
   {
     id: "SUP-1842",
+    title: "Refund not reflected in wallet",
+    summary: "Customer confirms the cancelled order refund still has not landed in wallet after two hours.",
     customer: "Martha Chola",
-    subject: "Refund not reflected in wallet",
-    summary:
-      "Customer confirms the order was cancelled but the wallet credit still has not landed after 2 hours.",
-    queue: "Billing",
-    channel: "In-app chat",
-    priority: "high",
-    status: "review",
-    updatedAt: "4 min ago",
-    tab: "assigned",
-    assignee: "Support lead",
-    order: "ORD-1042",
-    customerTier: "Gold tier",
-    exposure: "ZMW 255",
-    sla: "27 min left",
-    city: "Lusaka",
-    unread: 2,
-    lastSeen: "Customer opened thread 3 min ago",
-    trustState: "No trust flag",
-    tags: ["Refund trace", "Wallet ledger"],
-    linkedQueues: ["Finance ops", "Wallet ledger"],
-    history: [
-      { label: "Orders this month", value: "11" },
-      { label: "Previous cases", value: "2 closed" },
-      { label: "Refund sensitivity", value: "Medium" },
-    ],
+    email: "martha.chola@ntumai.test",
+    supportType: "Chat",
+    bucket: "open",
+    category: "assigned-to-me",
+    markedAsRead: false,
+    hasAttachments: true,
+    date: "4 min ago",
+    priority: "High",
+    agent: "Support lead",
+    status: "Waiting on us",
     thread: [
       {
-        kind: "event",
-        author: "System",
-        role: "Workflow",
-        time: "08:58",
-        body: "Conversation routed into Billing after cancellation webhook and wallet mismatch check.",
-        tone: "success",
-      },
-      {
-        kind: "message",
         author: "Martha Chola",
-        role: "Customer",
+        email: "martha.chola@ntumai.test",
         time: "09:02",
-        body: "I cancelled the order after the rider called, but I still have not received the refund in my wallet.",
+        body: "I cancelled the order after the rider called, but I still have not received the refund in my wallet. The app still shows the balance unchanged.",
+        attachments: [{ name: "wallet-screenshot.png", size: "340 KB" }],
       },
       {
-        kind: "message",
         author: "Ntumai agent",
-        role: "Support",
+        email: "support@ntumai.com",
         time: "09:05",
-        body: "We verified the cancellation event and escalated it to finance operations. The wallet credit is being traced now.",
-        agent: true,
+        body: "We verified the cancellation event and escalated the wallet trace to finance operations. We are waiting for ledger confirmation before closing the case.",
       },
       {
-        kind: "message",
         author: "Finance ops",
-        role: "Finance",
+        email: "finance@ntumai.com",
         time: "09:11",
-        body: "Payment gateway reversal is complete. Waiting on wallet ledger confirmation before closing.",
-      },
-      {
-        kind: "event",
-        author: "System",
-        role: "SLA",
-        time: "09:13",
-        body: "SLA watch has 27 minutes remaining before breach.",
-        tone: "warning",
+        body: "Gateway reversal is complete. Wallet ledger confirmation is still pending for this order.",
       },
     ],
   },
   {
     id: "SUP-1838",
+    title: "Merchant tablet stops syncing",
+    summary: "Store cannot mark orders ready, causing queue buildup on the lunchtime dispatch board.",
     customer: "QuickBite Kitchens",
-    subject: "Merchant tablet stops syncing",
-    summary:
-      "Store cannot mark orders ready, causing a queue on the lunchtime dispatch board.",
-    queue: "Merchant support",
-    channel: "Email",
-    priority: "medium",
-    status: "monitoring",
-    updatedAt: "12 min ago",
-    tab: "open",
-    assignee: "Partner pod",
-    order: "MRC-7714",
-    customerTier: "Merchant account",
-    exposure: "12 delayed orders",
-    sla: "44 min left",
-    city: "Kitwe",
-    unread: 0,
-    lastSeen: "Merchant replied 12 min ago",
-    trustState: "Operational watch",
-    tags: ["Tablet sync", "Merchant blocker"],
-    linkedQueues: ["Marketplace ops", "Dispatch watch"],
-    history: [
-      { label: "Orders impacted", value: "12" },
-      { label: "Store health", value: "Amber" },
-      { label: "Previous outages", value: "1 this week" },
-    ],
+    email: "ops@quickbite.test",
+    supportType: "Email",
+    bucket: "open",
+    category: "all-open",
+    markedAsRead: true,
+    hasAttachments: false,
+    date: "12 min ago",
+    priority: "Medium",
+    agent: "Partner pod",
+    status: "Waiting on contact",
     thread: [
       {
-        kind: "event",
-        author: "System",
-        role: "Workflow",
-        time: "10:07",
-        body: "Merchant escalation linked to live dispatch congestion on the affected store.",
-        tone: "default",
-      },
-      {
-        kind: "message",
         author: "QuickBite Kitchens",
-        role: "Merchant",
+        email: "ops@quickbite.test",
         time: "10:11",
         body: "Orders are arriving but the tablet does not refresh when we try to mark them ready.",
       },
       {
-        kind: "message",
         author: "Ntumai agent",
-        role: "Support",
+        email: "support@ntumai.com",
         time: "10:14",
-        body: "We have linked the report to marketplace support and asked dispatch to watch the affected store queue.",
-        agent: true,
-      },
-      {
-        kind: "message",
-        author: "Marketplace ops",
-        role: "Platform",
-        time: "10:21",
-        body: "A stale sync token is suspected. Merchant re-auth is being prepared if auto-recovery does not restore updates.",
+        body: "We linked the report to marketplace support and asked dispatch to watch the store queue.",
       },
     ],
   },
   {
     id: "SUP-1834",
+    title: "Courier marked complete without handoff",
+    summary: "Customer says the driver completed the trip but the parcel was not delivered to the recipient.",
     customer: "Joseph Tembo",
-    subject: "Courier marked complete without handoff",
-    summary:
-      "Customer says the driver completed the trip but the parcel was not delivered to the recipient.",
-    queue: "Delivery disputes",
-    channel: "Phone",
-    priority: "critical",
-    status: "at_risk",
-    updatedAt: "18 min ago",
-    tab: "sla",
-    assignee: "Resolution pod",
-    order: "DLV-6639",
-    customerTier: "Priority customer",
-    exposure: "ZMW 410",
-    sla: "6 min left",
-    city: "Ndola",
-    unread: 1,
-    lastSeen: "Customer called again 7 min ago",
-    trustState: "Handoff evidence missing",
-    tags: ["Missing handoff", "Trust review"],
-    linkedQueues: ["Dispatch ops", "Trust review"],
-    history: [
-      { label: "Deliveries this month", value: "6" },
-      { label: "Previous disputes", value: "1 open" },
-      { label: "Risk posture", value: "High" },
-    ],
+    email: "j.tembo@ntumai.test",
+    supportType: "Chat",
+    bucket: "open",
+    category: "chat",
+    markedAsRead: false,
+    hasAttachments: true,
+    date: "18 min ago",
+    priority: "High",
+    agent: "Resolution pod",
+    status: "New",
     thread: [
       {
-        kind: "event",
-        author: "System",
-        role: "Risk",
-        time: "08:37",
-        body: "Proof-of-handoff artifact was not attached to the completion event.",
-        tone: "warning",
-      },
-      {
-        kind: "message",
         author: "Joseph Tembo",
-        role: "Customer",
-        time: "08:42",
-        body: "The trip shows delivered, but the office gate never received the parcel and the rider is no longer reachable.",
-      },
-      {
-        kind: "message",
-        author: "Ntumai agent",
-        role: "Support",
-        time: "08:49",
-        body: "We are validating the handoff with dispatch and checking the rider trail before we confirm next steps.",
-        agent: true,
-      },
-      {
-        kind: "message",
-        author: "Dispatch ops",
-        role: "Dispatch",
-        time: "08:56",
-        body: "The rider location trail shows completion near the drop-off block, but a final proof-of-handoff image is missing.",
+        email: "j.tembo@ntumai.test",
+        time: "10:42",
+        body: "The driver marked this complete but nothing was handed over at the destination. Please help urgently.",
+        attachments: [{ name: "handoff-location.jpg", size: "220 KB" }],
       },
     ],
   },
   {
-    id: "SUP-1829",
-    customer: "Natasha Mbewe",
-    subject: "Promo code accepted then removed",
-    summary:
-      "Checkout accepted the campaign code, but the final receipt used the base fare and normal service fee.",
-    queue: "Promotions",
-    channel: "In-app chat",
-    priority: "medium",
-    status: "queued",
-    updatedAt: "34 min ago",
-    tab: "unassigned",
-    assignee: "Unassigned",
-    order: "ORD-9931",
-    customerTier: "Silver tier",
-    exposure: "ZMW 48",
-    sla: "1h 08m left",
-    city: "Lusaka",
-    unread: 0,
-    lastSeen: "Customer waiting for first reply",
-    trustState: "No trust flag",
-    tags: ["Promo validation", "Checkout pricing"],
-    linkedQueues: ["Growth ops"],
-    history: [
-      { label: "Orders this month", value: "4" },
-      { label: "Previous cases", value: "None" },
-      { label: "Campaign overlap", value: "Possible" },
-    ],
+    id: "SUP-1807",
+    title: "Closed refund follow-up",
+    summary: "Customer confirmed refund was received and the issue can be closed.",
+    customer: "Agnes Mumba",
+    email: "agnes.mumba@ntumai.test",
+    supportType: "Email",
+    bucket: "closed",
+    category: "unassigned",
+    markedAsRead: true,
+    hasAttachments: false,
+    date: "1 day ago",
+    priority: "Low",
+    agent: "Billing queue",
+    status: "Closed",
     thread: [
       {
-        kind: "message",
-        author: "Natasha Mbewe",
-        role: "Customer",
-        time: "07:58",
-        body: "The app accepted the campaign code before checkout, but the receipt still charged the full delivery fee.",
-      },
-      {
-        kind: "message",
-        author: "Campaign ops",
-        role: "Growth",
-        time: "08:05",
-        body: "The code was active for one service type only. Support should verify whether the order switched lanes during pricing.",
+        author: "Agnes Mumba",
+        email: "agnes.mumba@ntumai.test",
+        time: "Yesterday",
+        body: "Refund has arrived now. Thank you.",
       },
     ],
   },
 ];
 
-const queueOptions = [
-  { label: "All queues", value: "all" },
-  { label: "Billing", value: "Billing" },
-  { label: "Merchant support", value: "Merchant support" },
-  { label: "Delivery disputes", value: "Delivery disputes" },
-  { label: "Promotions", value: "Promotions" },
+const sortOptions = [
+  { value: "desc", label: "Newest" },
+  { value: "asc", label: "Oldest" },
 ];
 
-const cannedReplies = [
-  "We are tracing this with the responsible operations team now.",
-  "Thanks. I have linked this thread to the related queue and will return with an update shortly.",
-  "We have validated the issue and are confirming the final resolution path before closing.",
+const agentOptions = [
+  { value: "Support lead", label: "Support lead" },
+  { value: "Partner pod", label: "Partner pod" },
+  { value: "Resolution pod", label: "Resolution pod" },
+  { value: "Billing queue", label: "Billing queue" },
 ];
 
-function getActionResult(action: SupportAction) {
-  switch (action) {
-    case "assign":
-      return {
-        status: "live" as SupportStatus,
-        assignee: "Support lead",
-        timelineRole: "System",
-        label: "Conversation assigned",
-      };
-    case "escalate":
-      return {
-        status: "monitoring" as SupportStatus,
-        assignee: "Specialist follow-up",
-        timelineRole: "System",
-        label: "Conversation escalated",
-      };
-    case "resolve":
-    default:
-      return {
-        status: "paused" as SupportStatus,
-        assignee: "Resolved queue",
-        timelineRole: "System",
-        label: "Conversation resolved",
-      };
-  }
-}
+const statusOptions = [
+  { value: "New", label: "New" },
+  { value: "Waiting on contact", label: "Waiting on contact" },
+  { value: "Waiting on us", label: "Waiting on us" },
+  { value: "Closed", label: "Closed" },
+];
 
-function DecisionModal({
-  item,
-  action,
-  note,
-  setNote,
-  onClose,
-  onConfirm,
-}: {
-  item: SupportMessage;
-  action: SupportAction;
-  note: string;
-  setNote: (value: string) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  const actionLabel =
-    action === "assign"
-      ? "Assign conversation"
-      : action === "escalate"
-        ? "Escalate conversation"
-        : "Resolve conversation";
-
-  return (
-    <div className="rounded-3xl bg-white p-6 sm:p-7">
-      <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">
-        {item.id}
-      </Text>
-      <Title as="h3" className="mt-2 text-xl font-semibold text-gray-900">
-        {actionLabel}
-      </Title>
-      <Text className="mt-2 text-sm leading-6 text-gray-500">
-        Save the operator outcome for {item.subject} so the inbox thread and support queues stay aligned.
-      </Text>
-      <div className="mt-6">
-        <Text className="mb-2 text-sm font-medium text-gray-700">
-          Operator note
-        </Text>
-        <textarea
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          rows={4}
-          className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-          placeholder="Add the follow-up context the next operator should see in this thread."
-        />
-      </div>
-      <div className="mt-6 flex flex-wrap justify-end gap-3">
-        <Button
-          variant="outline"
-          className="h-11 rounded-2xl px-4"
-          onClick={onClose}
-        >
-          Cancel
-        </Button>
-        <Button
-          className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-          onClick={onConfirm}
-        >
-          Save action
-        </Button>
-      </div>
-    </div>
-  );
-}
+const priorityOptions = [
+  { value: "Low", label: "Low" },
+  { value: "Medium", label: "Medium" },
+  { value: "High", label: "High" },
+];
 
 export default function SupportInboxPage() {
-  const [activeTab, setActiveTab] = useState<SupportTab>("assigned");
-  const [queue, setQueue] = useState("all");
+  const [category, setCategory] = useState<SupportCategory>("unassigned");
+  const [bucket, setBucket] = useState<SupportBucket>("open");
+  const [sortBy, setSortBy] = useState("desc");
   const [query, setQuery] = useState("");
-  const [draftReply, setDraftReply] = useState("");
-  const [composerMode, setComposerMode] = useState<ComposerMode>("reply");
-  const [decisionNote, setDecisionNote] = useState("");
-  const [decision, setDecision] = useState<SupportAction | null>(null);
-  const [messages, setMessages] = useState(supportMessagesSeed);
-  const [selectedId, setSelectedId] = useState(
-    supportMessagesSeed[0]?.id ?? "",
-  );
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const visibleMessages = useMemo(() => {
-    return messages.filter((message) => {
-      const matchesTab = activeTab === "open" ? true : message.tab === activeTab;
-      const matchesQueue = queue === "all" ? true : message.queue === queue;
-      const haystack = [
-        message.id,
-        message.customer,
-        message.subject,
-        message.summary,
-        message.queue,
-        message.city,
-      ]
-        .join(" ")
-        .toLowerCase();
-      return (
-        matchesTab &&
-        matchesQueue &&
-        haystack.includes(query.toLowerCase())
-      );
+    const needle = query.trim().toLowerCase();
+    const filtered = messages.filter((message) => {
+      const matchesBucket = message.bucket === bucket;
+      const matchesCategory = message.category === category;
+      const haystack = [message.title, message.summary, message.customer, message.email].join(" ").toLowerCase();
+      return matchesBucket && matchesCategory && (!needle || haystack.includes(needle));
     });
-  }, [activeTab, messages, query, queue]);
 
-  const activeMessage =
-    visibleMessages.find((message) => message.id === selectedId) ??
-    visibleMessages[0] ??
-    null;
+    return filtered.sort((a, b) => (sortBy === "asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)));
+  }, [bucket, category, query, sortBy]);
 
-  const stats = useMemo(() => {
-    const open = messages.length;
-    const critical = messages.filter(
-      (message) => message.priority === "critical",
-    ).length;
-    const live = messages.filter(
-      (message) =>
-        message.status === "review" || message.status === "at_risk",
-    ).length;
-    return { open, critical, live };
-  }, [messages]);
+  const activeMessage = visibleMessages[0] ?? messages[0];
 
-  function resetFilters() {
-    setActiveTab("assigned");
-    setQueue("all");
-    setQuery("");
-  }
-
-  function applyDecision() {
-    if (!activeMessage || !decision) return;
-    const result = getActionResult(decision);
-    setMessages((current) =>
-      current.map((message) =>
-        message.id !== activeMessage.id
-          ? message
-          : {
-              ...message,
-              status: result.status,
-              assignee: result.assignee,
-              updatedAt: "Just now",
-              unread: 0,
-              thread: [
-                {
-                  kind: "event",
-                  author: "System",
-                  role: result.timelineRole,
-                  time: "Just now",
-                  body:
-                    decisionNote ||
-                    `${result.label} from the inbox workspace.`,
-                  agent: true,
-                  tone: "success",
-                },
-                ...message.thread,
-              ],
-            },
-      ),
-    );
-    setDecision(null);
-    setDecisionNote("");
-  }
-
-  function sendReply() {
-    if (!activeMessage || !draftReply.trim()) return;
-    const entry: ConversationEntry =
-      composerMode === "reply"
-        ? {
-            kind: "message",
-            author: "Ntumai agent",
-            role: "Support",
-            time: "Just now",
-            body: draftReply.trim(),
-            agent: true,
-          }
-        : {
-            kind: "event",
-            author: "Internal note",
-            role: "Ops note",
-            time: "Just now",
-            body: draftReply.trim(),
-            agent: true,
-            tone: "default",
-          };
-
-    setMessages((current) =>
-      current.map((message) =>
-        message.id !== activeMessage.id
-          ? message
-          : {
-              ...message,
-              status: message.status === "queued" ? "review" : message.status,
-              updatedAt: "Just now",
-              unread: 0,
-              thread: [entry, ...message.thread],
-            },
-      ),
-    );
-    setDraftReply("");
-  }
-
-  function applyCannedReply(text: string) {
-    setDraftReply((current) => (current ? `${current}\n\n${text}` : text));
-  }
+  const allSelected = visibleMessages.length > 0 && visibleMessages.every((message) => selectedIds.includes(message.id));
 
   return (
-    <div className="@container space-y-6">
+    <div className="space-y-6">
       <PageHeader
         breadcrumb={["Home", "Support", "Inbox"]}
         eyebrow="Support Desk"
         title="Support Inbox"
-        description="Shared support conversations with operational context, queue ownership, and reply handling."
-        badge="Inbox"
+        description="Template-aligned inbox workspace for support conversations, triage, and reply flow."
         action={
-          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+          <Button className="mt-4 w-full rounded-2xl @lg:mt-0 @lg:w-auto">
             <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
             Create Ticket
           </Button>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          label="Open threads"
-          value={String(stats.open)}
-          change="Shared inbox"
-          tone="neutral"
-          detail="Conversations currently visible to support operators."
-        />
-        <StatCard
-          label="Critical watch"
-          value={String(stats.critical)}
-          change="Immediate"
-          tone="warning"
-          detail="Threads carrying delivery or payment exposure that should not wait."
-        />
-        <StatCard
-          label="Needs action"
-          value={String(stats.live)}
-          change="Review state"
-          tone="warning"
-          detail="Threads in review or risk states that still need operator handling."
-        />
+      <div className="custom-scrollbar overflow-x-auto scroll-smooth">
+        <nav className="flex items-center gap-5 border-b border-gray-300">
+          {supportNavItems.map((nav) => {
+            const isActive = category === nav.value;
+            return (
+              <button
+                key={nav.value}
+                className={`relative flex items-center gap-2 py-2 text-sm outline-none ${
+                  isActive ? "font-medium text-gray-900" : "text-gray-500 hover:text-gray-800"
+                }`}
+                onClick={() => setCategory(nav.value)}
+              >
+                <span className="whitespace-nowrap">{nav.label}</span>
+                <Badge size="sm" variant={isActive ? "solid" : "flat"}>{nav.count}</Badge>
+                <span className={`absolute -bottom-px left-0 h-0.5 w-full ${isActive ? "bg-primary" : "bg-transparent"}`} />
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      <div className="rounded-[26px] border border-gray-200 bg-white shadow-[0_10px_30px_-18px_rgba(15,23,42,0.24)]">
-        <div className="border-b border-gray-100 px-5 py-4 sm:px-6">
-          <div className="custom-scrollbar overflow-x-auto scroll-smooth">
-            <nav className="flex items-center gap-4">
-              {supportTabs.map((tab) => {
-                const isActive = tab.value === activeTab;
-                return (
+      <div className="@container">
+        <div className="mt-5 items-start @container @4xl:grid @4xl:grid-cols-12 @4xl:gap-7">
+          <div className="@xs:col-span-12 @4xl:col-span-4">
+            <div className="mb-7 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() =>
+                    setSelectedIds(allSelected ? [] : visibleMessages.map((message) => message.id))
+                  }
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <div className="overflow-hidden rounded border border-muted">
                   <button
-                    key={tab.value}
-                    type="button"
-                    className={`inline-flex h-10 items-center gap-2 rounded-2xl px-4 text-sm font-semibold transition ${
-                      isActive
-                        ? "bg-primary text-white shadow-sm"
-                        : "bg-gray-100 text-gray-600 hover:bg-primary/10 hover:text-primary"
+                    className={`px-2.5 py-1.5 text-sm font-medium transition duration-300 ${
+                      bucket === "open" ? "bg-gray-100 text-gray-900" : "text-gray-500"
                     }`}
-                    onClick={() => setActiveTab(tab.value)}
+                    onClick={() => setBucket("open")}
                   >
-                    <span>{tab.label}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-white text-gray-500"
-                      }`}
-                    >
-                      {tab.count}
-                    </span>
+                    Open
                   </button>
-                );
-              })}
-            </nav>
-          </div>
+                  <button
+                    className={`px-2.5 py-1.5 text-sm font-medium transition duration-300 ${
+                      bucket === "closed" ? "bg-gray-100 text-gray-900" : "text-gray-500"
+                    }`}
+                    onClick={() => setBucket("closed")}
+                  >
+                    Closed
+                  </button>
+                </div>
+              </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_140px]">
+              <Select
+                size="sm"
+                variant="text"
+                value={sortBy}
+                options={sortOptions as any}
+                onChange={(option: any) => setSortBy(option?.value ?? "desc")}
+                displayValue={(selected: string) => sortOptions.find((o) => o.value === selected)?.label}
+                suffix={<PiCaretDownBold className="h-3 w-3" />}
+                className="w-auto"
+              />
+            </div>
+
             <Input
               type="search"
-              placeholder="Search customer, subject, city, queue..."
+              placeholder="Search conversations..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
-              inputClassName="h-11"
+              inputClassName="h-10"
             />
-            <Select
-              options={queueOptions}
-              value={queue}
-              onChange={(option: any) => setQueue(option?.value ?? "all")}
-              selectClassName="rounded-2xl"
-            />
-            <Button
-              variant="outline"
-              className="h-11 rounded-2xl px-4"
-              onClick={resetFilters}
-            >
-              <PiArrowClockwiseBold className="me-2 h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-        </div>
 
-        <div className="grid gap-0 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="border-r border-gray-100">
-            {visibleMessages.length ? (
-              visibleMessages.map((message) => (
-                <button
-                  key={message.id}
-                  type="button"
-                  onClick={() => setSelectedId(message.id)}
-                  className={`grid w-full grid-cols-[auto_1fr_auto] gap-3 border-t border-gray-100 px-5 py-4 text-left first:border-t-0 ${
-                    activeMessage?.id === message.id
-                      ? "bg-primary/5"
-                      : "bg-white hover:bg-gray-50/70"
-                  }`}
-                >
-                  <div className="relative">
-                    <Avatar name={message.customer} size="md" rounded="full" />
-                    {message.unread ? (
-                      <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-dark px-1 text-[10px] font-semibold text-white">
-                        {message.unread}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Title
-                        as="h4"
-                        className="truncate text-sm font-semibold text-gray-900"
-                      >
-                        {message.subject}
-                      </Title>
-                      {message.priority === "critical" ? (
-                        <PiWarningCircleBold className="h-4 w-4 shrink-0 text-red-dark" />
-                      ) : null}
-                    </div>
-                    <Text className="mt-1 text-xs font-medium text-gray-500">
-                      {message.customer} · {message.queue}
-                    </Text>
-                    <Text className="mt-2 line-clamp-2 text-sm text-gray-500">
-                      {message.summary}
-                    </Text>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <StatusBadge status={message.status} />
-                      <Badge
-                        variant="flat"
-                        className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-600"
-                      >
-                        {message.channel}
-                      </Badge>
+            <div className="mt-5 overflow-hidden rounded-lg border border-muted bg-white">
+              {visibleMessages.map((message) => {
+                const isSelected = selectedIds.includes(message.id);
+                const isActive = activeMessage.id === message.id;
+                return (
+                  <div
+                    key={message.id}
+                    className={`grid cursor-pointer grid-cols-[24px_1fr] items-start gap-3 border-t border-muted p-5 ${
+                      isActive ? "border-t-2 border-t-primary bg-gray-50/70" : ""
+                    }`}
+                    onClick={() => {
+                      const index = visibleMessages.findIndex((item) => item.id === message.id);
+                      if (index > -1) {
+                        const reordered = [...visibleMessages];
+                        const [selected] = reordered.splice(index, 1);
+                        reordered.unshift(selected);
+                        // no-op reorder effect through local active derivation not persisted
+                      }
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        setSelectedIds((current) =>
+                          current.includes(message.id)
+                            ? current.filter((id) => id !== message.id)
+                            : [...current, message.id],
+                        );
+                      }}
+                      className="mt-1 h-4 w-4 rounded border-gray-300"
+                    />
+                    <div>
+                      <div className="flex items-center justify-between lg:flex-col lg:items-start 2xl:flex-row 2xl:items-center">
+                        <Title as="h4" className="flex items-center">
+                          <span className="text-sm font-semibold text-gray-800">{message.title}</span>
+                          {message.hasAttachments ? <PiPaperclipBold className="ml-2 h-4 w-4 text-gray-500" /> : null}
+                          {!message.markedAsRead ? <Badge renderAsDot className="ml-3 h-2.5 w-2.5 bg-primary" /> : null}
+                        </Title>
+                        <span className="text-xs text-gray-500">{message.date}</span>
+                      </div>
+                      <p className="mt-1 line-clamp-3 text-sm text-gray-500">{message.summary}</p>
                     </div>
                   </div>
-                  <Text className="text-xs text-gray-500">{message.updatedAt}</Text>
-                </button>
-              ))
-            ) : (
-              <div className="p-8 text-center">
-                <Text className="text-sm font-medium text-gray-900">
-                  No conversations match this filter.
-                </Text>
-                <Text className="mt-2 text-sm text-gray-500">
-                  Adjust the tab, queue, or search terms to reopen the inbox
-                  list.
-                </Text>
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
 
-          <div className="min-w-0">
-            {activeMessage ? (
-              <>
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
-                  <div>
-                    <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">
-                      {activeMessage.id}
-                    </Text>
-                    <Title
-                      as="h3"
-                      className="mt-2 text-xl font-semibold text-gray-900"
-                    >
-                      {activeMessage.subject}
-                    </Title>
-                    <Text className="mt-2 text-sm text-gray-500">
-                      {activeMessage.customer} · {activeMessage.channel} ·{" "}
-                      {activeMessage.city} · Updated {activeMessage.updatedAt}
-                    </Text>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge
-                      variant="flat"
-                      className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary"
-                    >
-                      {activeMessage.queue}
-                    </Badge>
-                    <StatusBadge status={activeMessage.status} />
-                  </div>
+          <div className="hidden @4xl:col-span-8 @4xl:block">
+            <div className="relative rounded-lg border border-muted px-5 py-5">
+              <header className="flex flex-col justify-between gap-4 border-b border-muted pb-5 3xl:flex-row 3xl:items-center">
+                <div className="flex flex-col items-start justify-between gap-3 xs:flex-row xs:items-center xs:gap-6 lg:justify-normal">
+                  <Title as="h4" className="font-semibold">{activeMessage.title}</Title>
+                  <Badge variant="outline" color="danger" size="sm">
+                    Product Issue
+                  </Badge>
                 </div>
 
-                <div className="grid gap-6 px-6 py-6 2xl:grid-cols-[minmax(0,1fr)_300px]">
-                  <div className="min-w-0 space-y-5">
-                    <div className="rounded-2xl bg-gray-50 p-5">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <PiChatsCircleDuotone className="h-5 w-5 text-primary" />
-                          <Title
-                            as="h4"
-                            className="text-sm font-semibold text-gray-900"
-                          >
-                            Conversation summary
-                          </Title>
-                        </div>
-                        <Text className="text-xs uppercase tracking-[0.16em] text-gray-400">
-                          {activeMessage.lastSeen}
-                        </Text>
-                      </div>
-                      <Text className="mt-3 text-sm leading-7 text-gray-600">
-                        {activeMessage.summary}
-                      </Text>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {activeMessage.tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="flat"
-                            className="rounded-full bg-secondary/20 px-2.5 py-1 text-[11px] text-secondary-foreground"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
-                        <Title as="h4" className="text-sm font-semibold text-gray-900">
-                          Thread
-                        </Title>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge
-                            variant="flat"
-                            className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-600"
-                          >
-                            {activeMessage.thread.filter((entry) => entry.kind === "message").length} messages
-                          </Badge>
-                          <Badge
-                            variant="flat"
-                            className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
-                          >
-                            {activeMessage.linkedQueues.length} linked teams
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="mt-5 space-y-4">
-                        {activeMessage.thread.map((entry, index) =>
-                          entry.kind === "event" ? (
-                            <ThreadEvent
-                              key={`${entry.author}-${entry.time}-${index}`}
-                              role={entry.role}
-                              time={entry.time}
-                              body={entry.body}
-                              tone={entry.tone}
-                            />
-                          ) : (
-                            <SupportReply
-                              key={`${entry.author}-${entry.time}-${index}`}
-                              author={entry.author}
-                              role={entry.role}
-                              time={entry.time}
-                              body={entry.body}
-                              agent={entry.agent}
-                            />
-                          ),
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <Title as="h4" className="text-sm font-semibold text-gray-900">
-                          Compose
-                        </Title>
-                        <div className="flex rounded-2xl bg-gray-100 p-1">
-                          <button
-                            type="button"
-                            onClick={() => setComposerMode("reply")}
-                            className={`rounded-2xl px-3 py-2 text-sm font-semibold transition ${
-                              composerMode === "reply"
-                                ? "bg-white text-primary shadow-sm"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            Customer reply
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setComposerMode("note")}
-                            className={`rounded-2xl px-3 py-2 text-sm font-semibold transition ${
-                              composerMode === "note"
-                                ? "bg-white text-primary shadow-sm"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            Internal note
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
-                        >
-                          <PiPaperclipBold className="h-4 w-4" />
-                          Attachment
-                        </button>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
-                        >
-                          <PiTagBold className="h-4 w-4" />
-                          Link order note
-                        </button>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
-                        >
-                          <PiShieldCheckBold className="h-4 w-4" />
-                          Trust flag
-                        </button>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {cannedReplies.map((reply) => (
-                          <button
-                            key={reply}
-                            type="button"
-                            onClick={() => applyCannedReply(reply)}
-                            className="inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1.5 text-xs font-medium text-primary"
-                          >
-                            <PiSparkleBold className="h-3.5 w-3.5" />
-                            {reply}
-                          </button>
-                        ))}
-                      </div>
-
-                      <textarea
-                        value={draftReply}
-                        onChange={(event) => setDraftReply(event.target.value)}
-                        rows={4}
-                        className="mt-4 w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-                        placeholder={
-                          composerMode === "reply"
-                            ? "Write the next customer-facing support update."
-                            : "Write an internal operator note that stays inside admin."
-                        }
-                      />
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                        <Text className="text-sm text-gray-500">
-                          {composerMode === "reply"
-                            ? "This posts a customer-visible support reply into the active conversation."
-                            : "This adds an internal note event for other operators."}
-                        </Text>
-                        <Button
-                          className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-                          onClick={sendReply}
-                        >
-                          <PiPaperPlaneTiltBold className="me-2 h-4 w-4" />
-                          {composerMode === "reply" ? "Send Reply" : "Save Note"}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <SupportMetaCard
-                      title="Ticket details"
-                      items={[
-                        ["Queue", activeMessage.queue],
-                        ["Channel", activeMessage.channel],
-                        ["Priority", activeMessage.priority],
-                        ["Assignee", activeMessage.assignee],
-                      ]}
-                    />
-                    <SupportMetaCard
-                      title="Operational context"
-                      items={[
-                        ["Order", activeMessage.order],
-                        ["Customer value", activeMessage.customerTier],
-                        ["Exposure", activeMessage.exposure],
-                        ["SLA", activeMessage.sla],
-                      ]}
-                    />
-                    <ProfileCard
-                      title="Customer context"
-                      customer={activeMessage.customer}
-                      trustState={activeMessage.trustState}
-                      history={activeMessage.history}
-                    />
-                    <LinkedQueuesCard queues={activeMessage.linkedQueues} />
-                    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
-                      <Title as="h4" className="text-sm font-semibold text-gray-900">
-                        Operator actions
-                      </Title>
-                      <div className="mt-4 space-y-3">
-                        <Button
-                          className="h-11 w-full rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-                          onClick={() => setDecision("assign")}
-                        >
-                          Assign
-                        </Button>
-                        <Button
-                          className="h-11 w-full rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90"
-                          onClick={() => setDecision("escalate")}
-                        >
-                          Escalate
-                        </Button>
-                        <Button
-                          className="h-11 w-full rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90"
-                          onClick={() => setDecision("resolve")}
-                        >
-                          Resolve
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex flex-wrap items-center gap-2.5 sm:justify-end">
+                  <Select
+                    variant="text"
+                    value={activeMessage.agent}
+                    options={agentOptions as any}
+                    displayValue={(selected: string) => selected}
+                    suffix={<PiCaretDownBold className="h-3 w-3" />}
+                    className="w-auto"
+                  />
+                  <Select
+                    variant="text"
+                    value={activeMessage.status}
+                    options={statusOptions as any}
+                    displayValue={(selected: string) => selected}
+                    suffix={<PiCaretDownBold className="h-3 w-3" />}
+                    className="w-auto"
+                  />
+                  <Select
+                    variant="text"
+                    value={activeMessage.priority}
+                    options={priorityOptions as any}
+                    displayValue={(selected: string) => selected}
+                    suffix={<PiCaretDownBold className="h-3 w-3" />}
+                    className="w-auto"
+                  />
+                  <Button variant="outline" className="h-9 rounded-2xl px-3">Actions</Button>
                 </div>
-              </>
-            ) : (
-              <div className="flex min-h-[420px] items-center justify-center px-6">
-                <div className="max-w-sm text-center">
-                  <Title as="h3" className="text-lg font-semibold text-gray-900">
-                    No active thread selected
-                  </Title>
-                  <Text className="mt-2 text-sm leading-6 text-gray-500">
-                    Pick a conversation from the inbox list to inspect the
-                    thread, metadata, and operator actions.
-                  </Text>
+              </header>
+
+              <div className="custom-scrollbar max-h-[calc(100dvh-32rem)] overflow-y-auto py-5">
+                <div className="grid gap-8">
+                  {activeMessage.thread.map((entry, index) => (
+                    <div key={`${entry.author}-${entry.time}-${index}`}>
+                      <div className="grid grid-cols-[32px_1fr] items-start gap-3 lg:gap-4 xl:grid-cols-[48px_1fr]">
+                        <Avatar
+                          name={entry.author}
+                          initials={entry.author.slice(0, 2).toUpperCase()}
+                          className="!h-8 !w-8 bg-[#70C5E0] font-medium text-white xl:!h-11 xl:!w-11"
+                        />
+                        <div className="-mt-1.5 lg:mt-0">
+                          <div className="flex items-center justify-between">
+                            <Title as="h3" className="text-sm font-medium">{entry.author}</Title>
+                          </div>
+                          <div className="mt-1.5 items-center gap-2 text-xs text-gray-500 lg:flex">
+                            <span className="flex items-center lowercase">{entry.email}</span>
+                            <span className="hidden lg:block">•</span>
+                            <span>Open {entry.time}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="ml-10 mt-3 grid gap-2 leading-relaxed xl:ml-16 2xl:mt-4">
+                        <Text>{entry.body}</Text>
+                        {entry.attachments?.length ? (
+                          <div className="mt-2 grid gap-2 md:grid-cols-2 2xl:grid-cols-3">
+                            {entry.attachments.map((attachment) => (
+                              <div key={attachment.name} className="grid grid-cols-[40px_1fr] gap-2.5">
+                                <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100">
+                                  <PiPaperclipBold className="h-4 w-4 text-gray-500" />
+                                </div>
+                                <div className="text-xs">
+                                  <span className="flex items-center gap-2 font-medium text-gray-700">
+                                    {attachment.name}
+                                    <span className="text-gray-500">({attachment.size})</span>
+                                  </span>
+                                  <div className="mt-2 flex items-center gap-2 text-gray-500">
+                                    <button>Preview</button>
+                                    <span>•</span>
+                                    <button>Download</button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
+
+              <div className="mt-4 border-t border-muted pt-5">
+                <Textarea
+                  placeholder="Write a reply..."
+                  rows={7}
+                  textareaClassName="rounded-2xl"
+                />
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Button variant="outline" className="h-10 rounded-2xl px-4">
+                      <PiPaperclipBold className="me-1.5 h-4 w-4" />
+                      Attach
+                    </Button>
+                  </div>
+                  <Button className="h-10 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                    <PiPaperPlaneTiltBold className="me-1.5 h-4 w-4" />
+                    Send Reply
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {decision && activeMessage ? (
-        <Modal
-          isOpen
-          onClose={() => setDecision(null)}
-          containerClassName="max-w-xl"
-        >
-          <DecisionModal
-            item={activeMessage}
-            action={decision}
-            note={decisionNote}
-            setNote={setDecisionNote}
-            onClose={() => setDecision(null)}
-            onConfirm={applyDecision}
-          />
-        </Modal>
-      ) : null}
-    </div>
-  );
-}
-
-function SupportReply({
-  author,
-  role,
-  time,
-  body,
-  agent = false,
-}: {
-  author: string;
-  role: string;
-  time: string;
-  body: string;
-  agent?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border p-4 ${
-        agent ? "border-primary/20 bg-primary/5" : "border-gray-100 bg-white"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <Text className="text-sm font-semibold text-gray-900">{author}</Text>
-          <Text className="mt-0.5 text-xs uppercase tracking-[0.16em] text-gray-400">
-            {role}
-          </Text>
-        </div>
-        <Text className="text-xs text-gray-500">{time}</Text>
-      </div>
-      <Text className="mt-2 text-sm leading-7 text-gray-600">{body}</Text>
-    </div>
-  );
-}
-
-function ThreadEvent({
-  role,
-  time,
-  body,
-  tone = "default",
-}: {
-  role: string;
-  time: string;
-  body: string;
-  tone?: "default" | "warning" | "success";
-}) {
-  const toneClass = {
-    default: "border-gray-200 bg-gray-50 text-gray-600",
-    warning: "border-secondary/30 bg-secondary/10 text-secondary-foreground",
-    success: "border-primary/20 bg-primary/8 text-primary",
-  };
-
-  return (
-    <div
-      className={`rounded-2xl border px-4 py-3 ${toneClass[tone]}`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Text className="text-xs font-semibold uppercase tracking-[0.18em]">
-          {role}
-        </Text>
-        <Text className="text-xs">{time}</Text>
-      </div>
-      <Text className="mt-2 text-sm leading-6">{body}</Text>
-    </div>
-  );
-}
-
-function SupportMetaCard({
-  title,
-  items,
-}: {
-  title: string;
-  items: Array<[string, string]>;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
-      <Title as="h4" className="text-sm font-semibold text-gray-900">
-        {title}
-      </Title>
-      <div className="mt-4 space-y-3">
-        {items.map(([label, value]) => (
-          <div key={label} className="flex items-start justify-between gap-3">
-            <Text className="text-sm text-gray-500">{label}</Text>
-            <Text className="text-right text-sm font-medium text-gray-900">
-              {value}
-            </Text>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProfileCard({
-  title,
-  customer,
-  trustState,
-  history,
-}: {
-  title: string;
-  customer: string;
-  trustState: string;
-  history: Array<{ label: string; value: string }>;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <Title as="h4" className="text-sm font-semibold text-gray-900">
-        {title}
-      </Title>
-      <div className="mt-4 flex items-center gap-3">
-        <Avatar name={customer} size="lg" rounded="full" />
-        <div>
-          <Text className="font-semibold text-gray-900">{customer}</Text>
-          <Text className="mt-1 text-sm text-gray-500">{trustState}</Text>
-        </div>
-      </div>
-      <div className="mt-4 space-y-3">
-        {history.map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center justify-between gap-3 rounded-2xl bg-gray-50 px-4 py-3"
-          >
-            <Text className="text-sm text-gray-500">{item.label}</Text>
-            <Text className="text-sm font-semibold text-gray-900">
-              {item.value}
-            </Text>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LinkedQueuesCard({ queues }: { queues: string[] }) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-2">
-        <PiClockCountdownBold className="h-4 w-4 text-primary" />
-        <Title as="h4" className="text-sm font-semibold text-gray-900">
-          Linked teams
-        </Title>
-      </div>
-      <div className="mt-4 space-y-3">
-        {queues.map((queue) => (
-          <div
-            key={queue}
-            className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
-          >
-            <Text className="text-sm font-medium text-gray-900">{queue}</Text>
-          </div>
-        ))}
       </div>
     </div>
   );

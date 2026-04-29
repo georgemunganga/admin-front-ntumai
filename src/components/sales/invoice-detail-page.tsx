@@ -1,127 +1,134 @@
 "use client";
 
-import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import { notFound } from "next/navigation";
-import { Badge, Button, Text, Title } from "rizzui";
-import { PiArrowLeftBold, PiNotePencilBold } from "react-icons/pi";
-import PageHeader from "@/components/admin/page-header";
-import ShellCard from "@/components/admin/shell-card";
+import { Badge, Table, Text, Title } from "rizzui";
 import { getSalesInvoice } from "@/components/sales/invoice-data";
-import { routes } from "@/config/routes";
 
 export default function InvoiceDetailPage({ id }: { id: string }) {
   const invoice = getSalesInvoice(id);
   if (!invoice) notFound();
 
+  const subtotal = parseMoney(invoice.amount) + 320;
+  const shipping = 140;
+  const discount = 180;
+  const taxPercent = 15;
+  const lineItems = invoice.items.map((item, index) => ({
+    id: String(index + 1),
+    title: item.label,
+    description: `${invoice.customer} settlement component for ${invoice.cycle.toLowerCase()}.`,
+    quantity: 1,
+    unitPrice: item.amount,
+    total: item.amount,
+  }));
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        breadcrumb={["Home", "Sales", "Invoices", invoice.id]}
-        eyebrow="Sales Kit"
-        title={invoice.id}
-        description={invoice.notes}
-        action={
-          <div className="flex flex-wrap gap-3">
-            <Link href={routes.sales.invoices}>
-              <Button variant="outline" className="h-11 rounded-2xl px-4">
-                <PiArrowLeftBold className="me-1.5 h-4 w-4" />
-                Back
-              </Button>
-            </Link>
-            <Link href={routes.sales.editInvoice(invoice.id)}>
-              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
-                <PiNotePencilBold className="me-1.5 h-4 w-4" />
-                Edit Invoice
-              </Button>
-            </Link>
+      <div className="w-full rounded-xl border border-muted p-5 text-sm sm:p-6 lg:p-8 2xl:p-10">
+        <div className="mb-12 flex flex-col-reverse items-start justify-between md:mb-16 md:flex-row">
+          <div className="mt-4 rounded-2xl bg-primary px-4 py-2 text-white md:mt-0">
+            <Title as="h4" className="text-base font-semibold text-white">Ntumai Finance</Title>
           </div>
-        }
-      />
+          <div className="mb-4 md:mb-0">
+            <Badge
+              variant="flat"
+              className={`mb-3 rounded-2xl px-3 py-1.5 md:mb-2 ${invoice.status === "Paid" ? "bg-emerald-50 text-emerald-700" : invoice.status === "Pending" ? "bg-primary/10 text-primary" : invoice.status === "Overdue" ? "bg-red-50 text-red-700" : "bg-gray-100 text-gray-700"}`}
+            >
+              {invoice.status}
+            </Badge>
+            <Title as="h6">{invoice.id}</Title>
+            <Text className="mt-0.5 text-gray-500">Invoice Number</Text>
+          </div>
+        </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-        <ShellCard title="Settlement summary" description="Billing and payout details.">
-          <div className="grid gap-4 md:grid-cols-2">
-            <InfoTile label="Merchant" value={invoice.customer} />
-            <InfoTile label="Due date" value={invoice.dueDate} />
-            <InfoTile label="Payout method" value={invoice.payoutMethod} />
-            <InfoTile label="Destination" value={invoice.destination} />
-            <InfoTile label="Settlement cycle" value={invoice.cycle} />
-            <InfoTile label="Amount" value={invoice.amount} />
-          </div>
-        </ShellCard>
-        <ShellCard title="Status" description="Current settlement state.">
-          <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Invoice state</Text>
-            <div className="mt-3 flex items-center gap-3">
-              <InvoiceStatus status={invoice.status} />
-              <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-                {invoice.amount}
-              </Badge>
-            </div>
-            <div className="mt-4 space-y-2 text-sm text-gray-500">
-              <div className="flex items-center justify-between gap-3">
-                <span>Created</span>
-                <span className="font-medium text-gray-900">{invoice.createdAt}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span>Destination</span>
-                <span className="font-medium text-gray-900">{invoice.destination}</span>
-              </div>
+        <div className="mb-12 grid gap-4 xs:grid-cols-2 sm:grid-cols-3 sm:grid-rows-1">
+          <div>
+            <Title as="h6" className="mb-3.5 font-semibold">From</Title>
+            <Text className="mb-1.5 text-sm font-semibold uppercase">Ntumai, Inc</Text>
+            <Text className="mb-1.5">Finance Operations</Text>
+            <Text className="mb-1.5">
+              Lusaka Operations Hub <br /> Zambia
+            </Text>
+            <Text className="mb-4">+260 211 555 0107</Text>
+            <div>
+              <Text className="mb-2 text-sm font-semibold">Creation Date</Text>
+              <Text>{invoice.createdAt}</Text>
             </div>
           </div>
-        </ShellCard>
-      </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ShellCard title="Line items" description="Settlement breakdown.">
-          <div className="space-y-3">
-            {invoice.items.map((item) => (
-              <div key={item.label} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <Text className="font-semibold text-gray-900">{item.label}</Text>
-                  <Text className="font-semibold text-gray-900">{item.amount}</Text>
-                </div>
-              </div>
-            ))}
+          <div className="mt-4 xs:mt-0">
+            <Title as="h6" className="mb-3.5 font-semibold">Bill To</Title>
+            <Text className="mb-1.5 text-sm font-semibold uppercase">{invoice.customer}</Text>
+            <Text className="mb-1.5">{invoice.destination}</Text>
+            <Text className="mb-1.5">{invoice.payoutMethod}</Text>
+            <Text className="mb-4">{invoice.cycle}</Text>
+            <div>
+              <Text className="mb-2 text-sm font-semibold">Due Date</Text>
+              <Text>{invoice.dueDate}</Text>
+            </div>
           </div>
-        </ShellCard>
-        <ShellCard title="Timeline" description="Latest invoice events.">
-          <div className="space-y-3">
-            {invoice.timeline.map((item) => (
-              <div key={`${item.label}-${item.time}`} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Text className="font-semibold text-gray-900">{item.label}</Text>
-                    <Text className="mt-1 text-sm text-gray-500">{item.detail}</Text>
-                  </div>
-                  <Text className="text-xs text-gray-500">{item.time}</Text>
-                </div>
-              </div>
-            ))}
+
+          <div className="mt-4 flex xs:mt-0 md:justify-end">
+            <QRCodeSVG value={`invoice:${invoice.id}:${invoice.amount}:${invoice.customer}`} className="h-28 w-28 lg:h-32 lg:w-32" />
           </div>
-        </ShellCard>
+        </div>
+
+        <div className="mb-11 overflow-x-auto">
+          <Table variant="modern" className="min-w-[760px]">
+            <Table.Header>
+              <Table.Row>
+                <Table.Head className="bg-gray-100">#</Table.Head>
+                <Table.Head className="bg-gray-100">Item</Table.Head>
+                <Table.Head className="bg-gray-100">Quantity</Table.Head>
+                <Table.Head className="bg-gray-100">Unit Price</Table.Head>
+                <Table.Head className="bg-gray-100">Total</Table.Head>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {lineItems.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>{item.id}</Table.Cell>
+                  <Table.Cell>
+                    <Title as="h6" className="mb-0.5 text-sm font-medium">{item.title}</Title>
+                    <Text className="max-w-[250px] overflow-hidden truncate text-sm text-gray-500">{item.description}</Text>
+                  </Table.Cell>
+                  <Table.Cell>{item.quantity}</Table.Cell>
+                  <Table.Cell><Text className="font-medium">{item.unitPrice}</Text></Table.Cell>
+                  <Table.Cell><Text className="font-medium">{item.total}</Text></Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
+
+        <div className="flex flex-col-reverse items-start justify-between border-t border-muted pb-4 pt-8 xs:flex-row">
+          <div className="mt-6 max-w-md pe-4 xs:mt-0">
+            <Title as="h6" className="mb-1 text-xs font-semibold uppercase xs:mb-2 xs:text-sm">Notes</Title>
+            <Text className="leading-[1.7]">{invoice.notes}</Text>
+          </div>
+          <div className="w-full max-w-sm">
+            <Text className="flex items-center justify-between border-b border-muted pb-3.5">
+              Subtotal: <Text as="span" className="font-semibold">ZMW {subtotal}</Text>
+            </Text>
+            <Text className="flex items-center justify-between border-b border-muted py-3.5">
+              Shipping: <Text as="span" className="font-semibold">ZMW {shipping}</Text>
+            </Text>
+            <Text className="flex items-center justify-between border-b border-muted py-3.5">
+              Discount: <Text as="span" className="font-semibold">ZMW {discount}</Text>
+            </Text>
+            <Text className="flex items-center justify-between border-b border-muted py-3.5">
+              Taxes: <Text as="span" className="font-semibold">{taxPercent}%</Text>
+            </Text>
+            <Text className="flex items-center justify-between pt-4 text-base font-semibold text-gray-900">
+              Total: <Text as="span">{invoice.amount}</Text>
+            </Text>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function InfoTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</Text>
-      <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
-        {value}
-      </Title>
-    </div>
-  );
-}
-
-function InvoiceStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    Paid: "bg-emerald-50 text-emerald-700",
-    Pending: "bg-primary/10 text-primary",
-    Overdue: "bg-red-50 text-red-700",
-    Draft: "bg-gray-100 text-gray-700",
-  };
-  return <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.Draft}`}>{status}</span>;
+function parseMoney(amount: string) {
+  return Number(amount.replace(/[^\d.]/g, "").replace(/,/g, "")) || 0;
 }
