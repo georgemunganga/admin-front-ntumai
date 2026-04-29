@@ -87,15 +87,15 @@ This means row actions, delete confirmations, detail drawers, and case modals sh
 
 | Ntumai Route | Target Furyroad Family | Source Status | Current State | Action |
 |---|---|---:|---|---|
-| `/marketplace` | `ecommerce dashboard` | `verified-route-family` | current page is custom-composed | keep temporary until exact source is recovered |
+| `/marketplace` | route entry only | `verified-current` | redirects to the main marketplace working route | keep |
 | `/marketplace/products` | `ecommerce/products` | `verified-current` + `verified-route-family` | works, but some row/detail/edit/create UI was recomposed | tighten toward exact e-commerce list/detail/edit/create family |
 | `/marketplace/products/create` | `ecommerce/products/create` | `verified-route-family` + `custom-drift` | current page is still too hand-composed | replace with stricter template-family create page, aligned to mobile vendor product workflow |
-| `/marketplace/products/[slug]` | `ecommerce/products/[slug]` | `verified-route-family` + `custom-drift` | usable, but still our composition | tighten later |
-| `/marketplace/products/[slug]/edit` | `ecommerce/products/[slug]/edit` | `verified-route-family` + `custom-drift` | usable, but still our composition | tighten later |
+| `/marketplace/products/[slug]` | `ecommerce/products/[slug]` | `verified-route-family` + `custom-drift` | aligned enough for now | keep |
+| `/marketplace/products/[slug]/edit` | `ecommerce/products/[slug]/edit` | `verified-route-family` + `custom-drift` | aligned enough for now | keep |
 | `/marketplace/vendors` | closest to `ecommerce/products` CRUD family | `verified-current` but adapted | currently adapted from product-family patterns | acceptable for now, tighten once vendor-specific source exists |
-| `/marketplace/vendors/create` | adapted e-commerce CRUD form | `custom-drift` | current page is hand-composed | refactor to reuse exact form sections where possible |
-| `/marketplace/vendors/[slug]` | adapted e-commerce detail | `custom-drift` | current page is hand-composed | refactor later |
-| `/marketplace/vendors/[slug]/edit` | adapted e-commerce edit | `custom-drift` | current page is hand-composed | refactor later |
+| `/marketplace/vendors/create` | adapted e-commerce CRUD form | `custom-drift` | aligned enough for now | keep |
+| `/marketplace/vendors/[slug]` | adapted e-commerce detail | `custom-drift` | aligned enough for now | keep |
+| `/marketplace/vendors/[slug]/edit` | adapted e-commerce edit | `custom-drift` | aligned enough for now | keep |
 | `/marketplace/categories` | `ecommerce/categories` | `verified-route-family` + `custom-drift` | current page is simpler list-first | keep until exact category page source is recovered |
 | `/marketplace/categories/create` | `ecommerce/categories/create` | `verified-route-family` + `custom-drift` | current page is hand-composed | refactor later |
 | `/marketplace/categories/[id]/edit` | `ecommerce/categories/[id]/edit` | `verified-route-family` + `custom-drift` | current page is hand-composed | refactor later |
@@ -123,12 +123,12 @@ This means row actions, delete confirmations, detail drawers, and case modals sh
 
 | Ntumai Route | Target Furyroad Family | Source Status | Current State | Action |
 |---|---|---:|---|---|
-| `/logistics` | `logistics dashboard` | `verified-route-family` + `custom-drift` | current page is custom-composed | keep temporary |
+| `/logistics` | route entry only | `verified-current` | redirects to the main logistics working route | keep |
 | `/logistics/shipments` | `logistics/shipments` | `verified-route-family` + `custom-drift` | current page is simpler list-first | acceptable for now |
 | `/logistics/shipments/create` | `logistics/shipments/create` | `verified-route-family` + `custom-drift` | current page exists but was reassembled | tighten later |
 | `/logistics/shipments/[id]` | `logistics/shipments/[id]` | `verified-route-family` + `custom-drift` | current page exists but was reassembled | tighten later |
 | `/logistics/shipments/[id]/edit` | `logistics/shipments/[id]/edit` | `verified-route-family` + `custom-drift` | current page exists but was reassembled | tighten later |
-| `/logistics/tracking` | `logistics/tracking/[id]` family | `verified-route-family` + `custom-drift` | current page is custom-composed | keep temporary |
+| `/logistics/tracking` | `logistics/tracking/[id]` family | `verified-route-family` + `custom-drift` | aligned enough for now | keep |
 | `/logistics/exceptions` | operations queue | `shared-primitive` | correct queue/case type | keep |
 | `/logistics/drivers` | no exact logistics entity family preserved | `custom-drift` | current page is simplified list-first | acceptable until a stricter template source exists |
 
@@ -180,12 +180,7 @@ That means `Marketplace > Products > Create/Edit` should not be generic catalog 
 1. If the page is `support queue/case`, `finance queue/case`, `dispatch queue/case`, or `application review`, reuse the shared drawer/modal primitives already present.
 2. If the page belongs to `products`, `categories`, `orders`, `invoices`, or `shipments`, first map it to the exact Furyroad CRUD family before editing.
 3. `verified-route-family` does not mean “invent a similar page.” It means “recover or tighten toward that family.”
-4. Pages still using these custom wrappers should be treated as temporary:
-   - [marketplace-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/marketplace/marketplace-entity-list-page.tsx:1)
-   - [sales-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/sales/sales-entity-list-page.tsx:1)
-   - [logistics-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/logistics/logistics-entity-list-page.tsx:1)
-   - [section-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/section-page.tsx:1)
-   - [module-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/module-page.tsx:1)
+4. The old generic scaffold layer has been removed. Remaining drift is now page-family specific, not wrapper-driven.
 
 ## Next Tightening Order
 
@@ -280,14 +275,7 @@ These are the pages that still have clear custom drift or incomplete template re
 
 #### Marketplace
 
-- `Marketplace > Products > Detail`
-- `Marketplace > Products > Edit`
-- `Marketplace > Vendors > Create`
-- `Marketplace > Vendors > Detail`
-- `Marketplace > Vendors > Edit`
-
-Reason:
-- still adapted from product-family patterns rather than copied from an exact local page source
+No urgent workflow gaps remain in the main marketplace CRUD family. Remaining differences are mostly about template literalness, not missing staff capability.
 
 #### Sales / Finance
 
@@ -311,7 +299,6 @@ Remaining drift is now page-specific, not wrapper-driven.
 
 If work resumes later, the best next targets are:
 
-1. `Marketplace > Products > Detail / Edit`
-2. `Marketplace > Vendors > Create / Detail / Edit`
-3. selective polish on `Platform > Settings / Admin Users / Activity Logs / App Version Control`
-4. selective polish on `Logistics > Zones / Service Types / Pricing`
+1. selective polish on `Platform > Settings / Admin Users / Activity Logs / App Version Control`
+2. selective polish on `Logistics > Zones / Service Types / Pricing`
+3. support app-kit recovery for `Snippets` and `Templates`
