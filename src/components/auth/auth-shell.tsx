@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import HydrogenLayout from "@/layouts/hydrogen/layout";
@@ -9,7 +10,17 @@ function FullscreenLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f3f0e8] px-6">
       <div className="w-full max-w-sm rounded-[28px] border border-gray-100 bg-white p-8 text-center shadow-sm shadow-gray-100/80">
-        <div className="mx-auto h-12 w-12 animate-pulse rounded-2xl bg-gray-900" />
+        <Image
+          src="/brand/ntumai-logo-dark.png"
+          alt="Ntumai Admin"
+          width={180}
+          height={52}
+          className="mx-auto h-12 w-auto"
+          priority
+        />
+        <div className="mt-5 flex justify-center">
+          <span className="inline-flex h-10 w-10 animate-spin rounded-full border-[3px] border-primary/20 border-t-primary" />
+        </div>
         <p className="mt-5 text-sm font-medium text-gray-600">
           Preparing your admin workspace…
         </p>

@@ -36,7 +36,6 @@ export const menuItems: MenuItem[] = [
     icon: <PiMapTrifoldDuotone />,
     badge: "LIVE",
     dropdownItems: [
-      { name: "Overview", href: routes.dispatch.overview },
       { name: "Live Map", href: routes.dispatch.liveMap },
       { name: "Bookings / Trips", href: routes.sales.orders },
       { name: "Scheduled Rides", href: routes.dispatch.scheduledRides },

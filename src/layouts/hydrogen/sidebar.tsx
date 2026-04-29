@@ -62,7 +62,7 @@ export default function Sidebar({ className }: { className?: string }) {
                             className={cn(
                               "group relative mx-2.5 flex cursor-pointer items-center justify-between rounded-2xl px-2.5 py-2.5 font-medium lg:my-1 2xl:mx-4 2xl:my-2",
                               isDropdownOpen
-                                ? "bg-white/14 text-white shadow-sm shadow-black/10"
+                                ? "bg-white text-primary shadow-sm shadow-black/10"
                                 : "text-white transition-colors duration-200 hover:bg-white/10 hover:text-white"
                             )}
                           >
@@ -72,7 +72,7 @@ export default function Sidebar({ className }: { className?: string }) {
                                   className={cn(
                                     "me-2 inline-flex h-5 w-5 items-center justify-center rounded-md [&>svg]:h-[20px] [&>svg]:w-[20px]",
                                     isDropdownOpen
-                                      ? "text-white"
+                                      ? "text-primary"
                                       : "text-white group-hover:text-white"
                                   )}
                                 >
@@ -86,7 +86,7 @@ export default function Sidebar({ className }: { className?: string }) {
                               strokeWidth={3}
                               className={cn(
                                 "h-3.5 w-3.5 -rotate-90 text-white transition-transform duration-200 rtl:rotate-90",
-                                isDropdownOpen && "text-white/90",
+                                isDropdownOpen && "text-primary",
                                 open && "rotate-0 rtl:rotate-0"
                               )}
                             />
@@ -104,9 +104,9 @@ export default function Sidebar({ className }: { className?: string }) {
                               key={dropdownItem?.name + index}
                               className={cn(
                                 "mx-3 mb-0.5 flex items-center justify-between rounded-2xl px-3 py-2.5 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-4",
-                              isChildActive
+                                isChildActive
                                   ? "bg-white/16 text-secondary"
-                                  : "text-white/78 transition-colors duration-200 hover:bg-white/10 hover:text-secondary"
+                                  : "text-white transition-colors duration-200 hover:bg-white/10 hover:text-white"
                               )}
                             >
                               <div className="flex items-center truncate">
