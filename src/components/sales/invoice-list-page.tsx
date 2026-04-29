@@ -10,21 +10,17 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Badge, Button, Input, Table, Text, Title } from "rizzui";
+import { Badge, Button, Input, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import { salesInvoices, type SalesInvoice } from "@/components/sales/invoice-data";
 
-const invoiceStats = [
-  { label: "Collected this week", value: "ZMW 126K", meta: "18 settlements cleared" },
-  { label: "Pending invoices", value: "31", meta: "7 due within 24 hours" },
-  { label: "Overdue balance", value: "ZMW 12.8K", meta: "3 accounts need follow-up" },
-  { label: "Average payout cycle", value: "2.6 days", meta: "Stable against target" },
-];
+const invoiceLanes = ["All", "Pending", "Paid", "Overdue", "Draft"] as const;
 
 export default function InvoiceListPage() {
   const [query, setQuery] = useState("");
+  const [lane, setLane] = useState<(typeof invoiceLanes)[number]>("All");
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
@@ -32,24 +28,48 @@ export default function InvoiceListPage() {
 
   const filteredRows = useMemo(() => {
     const term = query.toLowerCase();
-    return salesInvoices.filter((row) =>
-      [row.id, row.customer, row.status].join(" ").toLowerCase().includes(term)
-    );
-  }, [query]);
+    return salesInvoices.filter((row) => {
+      const matchesQuery = [row.id, row.customer, row.status, row.destination, row.cycle]
+        .join(" ")
+        .toLowerCase()
+        .includes(term);
+      const matchesLane = lane === "All" ? true : row.status === lane;
+      return matchesQuery && matchesLane;
+    });
+  }, [lane, query]);
 
   const columns = useMemo<ColumnDef<SalesInvoice>[]>(
     () => [
       {
         accessorKey: "id",
-        header: "Invoice ID",
+        header: "Invoice",
         cell: ({ row }) => (
-          <Link href={routes.sales.invoiceDetails(row.original.id)} className="font-semibold text-gray-900 hover:text-primary">
-            {row.original.id}
-          </Link>
+          <div className="space-y-1">
+            <Link href={routes.sales.invoiceDetails(row.original.id)} className="font-semibold text-gray-900 hover:text-primary">
+              {row.original.id}
+            </Link>
+            <Text className="text-xs text-gray-500">{row.original.createdAt}</Text>
+          </div>
         ),
       },
-      { accessorKey: "customer", header: "Customer" },
-      { accessorKey: "dueDate", header: "Due Date" },
+      {
+        accessorKey: "customer",
+        header: "Merchant",
+        cell: ({ row }) => (
+          <div className="space-y-1">
+            <Text className="font-medium text-gray-900">{row.original.customer}</Text>
+            <Text className="text-xs text-gray-500">{row.original.destination}</Text>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "cycle",
+        header: "Cycle",
+      },
+      {
+        accessorKey: "dueDate",
+        header: "Due",
+      },
       { accessorKey: "amount", header: "Amount" },
       {
         accessorKey: "status",
@@ -107,39 +127,44 @@ export default function InvoiceListPage() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-4">
-        {invoiceStats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
-          >
-            <Text className="text-sm text-gray-500">{stat.label}</Text>
-            <Title as="h3" className="mt-3 text-[28px] font-semibold tracking-tight">
-              {stat.value}
-            </Title>
-            <Text className="mt-2 text-sm text-gray-500">{stat.meta}</Text>
-          </div>
-        ))}
-      </div>
-
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {invoiceLanes.map((tab) => {
+            const active = lane === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setLane(tab)}
+                className={`rounded-2xl px-3 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-primary/5 text-gray-600 hover:bg-primary/10 hover:text-primary"
+                }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <Input
-            type="search"
-            placeholder="Search invoices..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
-            inputClassName="h-10"
-            className="w-full max-w-md"
-          />
-          <div className="flex items-center gap-3">
+          <div className="flex w-full max-w-3xl flex-wrap items-center gap-3">
+            <Input
+              type="search"
+              placeholder="Search invoices..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
+              inputClassName="h-10"
+              className="w-full max-w-md"
+            />
             <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
               Finance monitored
             </Badge>
-            <Text className="text-sm text-gray-500">
-              {filteredRows.length} invoices
-            </Text>
+          </div>
+          <div className="flex items-center gap-3">
+            <Text className="text-sm text-gray-500">{filteredRows.length} invoices</Text>
           </div>
         </div>
 

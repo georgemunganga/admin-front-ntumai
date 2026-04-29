@@ -293,10 +293,6 @@ Reason:
 
 #### Sales / Finance
 
-- `Sales > Invoices > Detail`
-  - acceptable, but still an adapted page
-- `Sales > Invoices > List`
-  - good enough, but not truly “stop forever” if a stricter invoice family pass is wanted
 - `Sales > Orders > List`
   - acceptable but still clearly adapted
 
@@ -328,9 +324,9 @@ Reason:
 
 If work resumes later, the best next targets are:
 
-1. `Marketplace > Products > Edit / Detail`
-2. `Marketplace > Vendors > Create / Detail / Edit`
-3. `Sales > Orders > List`
-4. `Sales > Invoices > Detail / List`
-5. `Logistics > Shipment Detail`
+1. `Sales > Orders > List`
+2. `Logistics > Shipment Detail`
+3. `Marketplace > Marketplace Overview`
+4. `Logistics > Logistics Overview`
+5. `Logistics > Tracking`
 6. overview pages still using `SectionPage` / `ModulePage`

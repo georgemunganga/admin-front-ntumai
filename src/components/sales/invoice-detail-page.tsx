@@ -39,15 +39,17 @@ export default function InvoiceDetailPage({ id }: { id: string }) {
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-        <ShellCard title="Invoice summary" description="Billing details.">
+        <ShellCard title="Settlement summary" description="Billing and payout details.">
           <div className="grid gap-4 md:grid-cols-2">
-            <InfoTile label="Customer" value={invoice.customer} />
+            <InfoTile label="Merchant" value={invoice.customer} />
             <InfoTile label="Due date" value={invoice.dueDate} />
-            <InfoTile label="Created" value={invoice.createdAt} />
+            <InfoTile label="Payout method" value={invoice.payoutMethod} />
+            <InfoTile label="Destination" value={invoice.destination} />
+            <InfoTile label="Settlement cycle" value={invoice.cycle} />
             <InfoTile label="Amount" value={invoice.amount} />
           </div>
         </ShellCard>
-        <ShellCard title="Status" description="Current billing state.">
+        <ShellCard title="Status" description="Current settlement state.">
           <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
             <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Invoice state</Text>
             <div className="mt-3 flex items-center gap-3">
@@ -55,6 +57,16 @@ export default function InvoiceDetailPage({ id }: { id: string }) {
               <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
                 {invoice.amount}
               </Badge>
+            </div>
+            <div className="mt-4 space-y-2 text-sm text-gray-500">
+              <div className="flex items-center justify-between gap-3">
+                <span>Created</span>
+                <span className="font-medium text-gray-900">{invoice.createdAt}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span>Destination</span>
+                <span className="font-medium text-gray-900">{invoice.destination}</span>
+              </div>
             </div>
           </div>
         </ShellCard>

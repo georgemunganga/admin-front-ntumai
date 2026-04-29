@@ -7,6 +7,9 @@ export type SalesInvoice = {
   amount: string;
   status: "Paid" | "Pending" | "Overdue" | "Draft";
   createdAt: string;
+  payoutMethod: string;
+  destination: string;
+  cycle: string;
   notes: string;
   items: Array<{ label: string; amount: string }>;
   timeline: Array<{ label: string; detail: string; time: string }>;
@@ -20,6 +23,9 @@ export const salesInvoices: SalesInvoice[] = [
     amount: "ZMW 8,450",
     status: "Paid",
     createdAt: "Apr 20, 2026",
+    payoutMethod: "Bank transfer",
+    destination: "Zanaco •• 4421",
+    cycle: "Weekly settlement",
     notes: "Merchant settlement invoice already cleared.",
     items: [
       { label: "Marketplace sales", amount: "ZMW 9,120" },
@@ -39,6 +45,9 @@ export const salesInvoices: SalesInvoice[] = [
     amount: "ZMW 5,120",
     status: "Pending",
     createdAt: "Apr 19, 2026",
+    payoutMethod: "Mobile money",
+    destination: "MTN MoMo •• 9084",
+    cycle: "Weekly settlement",
     notes: "Pending merchant settlement confirmation.",
     items: [
       { label: "Marketplace sales", amount: "ZMW 5,640" },
@@ -57,6 +66,9 @@ export const salesInvoices: SalesInvoice[] = [
     amount: "ZMW 2,380",
     status: "Overdue",
     createdAt: "Apr 17, 2026",
+    payoutMethod: "Bank transfer",
+    destination: "FNB •• 2170",
+    cycle: "Compliance hold",
     notes: "Compliance hold slowed payment clearance.",
     items: [
       { label: "Marketplace sales", amount: "ZMW 2,660" },
@@ -75,6 +87,9 @@ export const salesInvoices: SalesInvoice[] = [
     amount: "ZMW 6,975",
     status: "Draft",
     createdAt: "Apr 16, 2026",
+    payoutMethod: "Bank transfer",
+    destination: "Stanbic •• 8123",
+    cycle: "Bi-weekly settlement",
     notes: "Draft invoice awaiting final adjustment review.",
     items: [
       { label: "Marketplace sales", amount: "ZMW 7,220" },
