@@ -302,17 +302,13 @@ Reason:
 
 #### Global temporary scaffolds
 
-These remain the biggest architectural drift points:
+The main remaining architectural drift point is:
 
 - [section-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/section-page.tsx:1)
-- [module-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/admin/module-page.tsx:1)
-- [marketplace-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/marketplace/marketplace-entity-list-page.tsx:1)
-- [sales-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/sales/sales-entity-list-page.tsx:1)
-- [logistics-entity-list-page.tsx](/home/ntumai/web/admin.ntumai.com/src/components/logistics/logistics-entity-list-page.tsx:1)
 
 Reason:
-- even when individual pages improved, these abstractions still represent the “we wrote our own UI” layer
-- any page still depending on them should be treated as temporary
+- the fallback `ModulePage` layer and unused entity-list wrappers were removed
+- remaining pages still depending on `SectionPage` should still be treated as temporary
 
 ### Practical Resume Order
 
@@ -320,4 +316,4 @@ If work resumes later, the best next targets are:
 
 1. `Marketplace > Marketplace Overview`
 2. `Logistics > Logistics Overview`
-3. overview pages still using `SectionPage` / `ModulePage`
+3. overview pages still using `SectionPage`
