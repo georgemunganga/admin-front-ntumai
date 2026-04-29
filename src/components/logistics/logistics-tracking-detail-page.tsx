@@ -13,6 +13,7 @@ import {
   PiPhoneCallBold,
   PiRoadHorizonBold,
   PiShieldCheckBold,
+  PiTruckTrailerBold,
   PiUserCircleBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
@@ -29,6 +30,7 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
 
   const eta = shipment.items.find((item) => item.label === "ETA")?.value ?? shipment.updatedAt;
   const packageType = shipment.items.find((item) => item.label === "Package type")?.value ?? "Shipment";
+  const weight = shipment.items.find((item) => item.label === "Weight")?.value ?? "Not set";
   const progress = getTrackingProgress(shipment.status);
 
   return (
@@ -37,8 +39,7 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
         breadcrumb={["Home", "Logistics", "Tracking", shipment.trackingId]}
         eyebrow="Logistics Kit"
         title={`Tracking ${shipment.trackingId}`}
-        description="Customer-facing movement view translated into an operations-first tracking console."
-        badge="Tracking"
+        description="Tracking detail page aligned to the public Ntumai delivery flow and the internal dispatch workspace."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.logistics.tracking}>
@@ -48,176 +49,213 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
               </Button>
             </Link>
             <Link href={routes.logistics.shipmentDetails(shipment.id)}>
-              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary-dark">
-                Open Shipment
+              <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                Open shipment
               </Button>
             </Link>
           </div>
         }
       />
 
-      <ShellCard className="overflow-hidden border-0 bg-gradient-to-br from-[#f6efe2] via-white to-[#eef6f4] shadow-[0_18px_45px_-24px_rgba(15,23,42,0.35)]">
-        <div className="grid gap-6 lg:grid-cols-[1.45fr_0.9fr]">
-          <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <Text className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
-                  Ntumai public tracking
-                </Text>
-                <div className="mt-3 flex flex-wrap items-center gap-3">
-                  <Title as="h2" className="text-[28px] font-semibold tracking-tight text-gray-1000">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Title as="h2" className="text-2xl font-semibold text-gray-900">
                     {shipment.pickup} to {shipment.dropoff}
                   </Title>
                   <TrackingStatus status={shipment.status} />
                 </div>
-                <Text className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
-                  {shipment.notes} Tracking remains active for the customer while
-                  dispatch and support monitor the same movement from admin.
+                <Text className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
+                  {shipment.notes} This tracking link mirrors what the customer sees in the Ntumai app while dispatch and support use the same movement context from admin.
                 </Text>
               </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/80 px-4 py-3 shadow-sm shadow-gray-200/50 backdrop-blur">
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
                 <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
                   Tracking reference
                 </Text>
                 <div className="mt-2 flex items-center gap-2">
-                  <Text className="text-sm font-semibold text-gray-1000">
-                    {shipment.trackingId}
-                  </Text>
+                  <Text className="font-semibold text-gray-900">{shipment.trackingId}</Text>
                   <PiCopyBold className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <SummaryPill
+            <div className="mt-5 grid gap-4 md:grid-cols-4">
+              <SummaryCard
                 icon={<PiClockCountdownBold className="h-5 w-5" />}
-                label="Live ETA"
+                label="ETA"
                 value={eta}
-                tone="amber"
               />
-              <SummaryPill
-                icon={<PiRoadHorizonBold className="h-5 w-5" />}
-                label="Lane owner"
-                value={shipment.owner}
-                tone="blue"
-              />
-              <SummaryPill
+              <SummaryCard
                 icon={<PiPackageBold className="h-5 w-5" />}
                 label="Package type"
                 value={packageType}
-                tone="green"
+              />
+              <SummaryCard
+                icon={<PiTruckTrailerBold className="h-5 w-5" />}
+                label="Assigned tasker"
+                value={shipment.tasker}
+              />
+              <SummaryCard
+                icon={<PiRoadHorizonBold className="h-5 w-5" />}
+                label="Ops owner"
+                value={shipment.owner}
               />
             </div>
+          </div>
 
-            <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm shadow-gray-200/60">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <Text className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-                    Route progress
-                  </Text>
-                  <Title as="h3" className="mt-2 text-lg font-semibold text-gray-1000">
-                    {progress.label}
-                  </Title>
+          <ShellCard title="Tracking details" description="Route progress and shipment movement.">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div>
+                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                        Current progress
+                      </Text>
+                      <Title as="h3" className="mt-2 text-lg font-semibold text-gray-900">
+                        {progress.label}
+                      </Title>
+                    </div>
+                    <Badge
+                      variant="flat"
+                      className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary"
+                    >
+                      Updated {shipment.updatedAt}
+                    </Badge>
+                  </div>
+                  <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${progress.percent}%` }}
+                    />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
+                    <span>Booked</span>
+                    <span>Picked up</span>
+                    <span>Delivered</span>
+                  </div>
                 </div>
-                <Badge
-                  variant="flat"
-                  className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary"
-                >
-                  {shipment.updatedAt}
-                </Badge>
-              </div>
 
-              <div className="mt-5">
-                <div className="h-3 overflow-hidden rounded-full bg-[#e8ece8]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary via-[#e3b54c] to-secondary"
-                    style={{ width: `${progress.percent}%` }}
+                <div className="mt-5 space-y-4">
+                  <RoutePoint
+                    icon={<PiMapPinAreaBold className="h-5 w-5" />}
+                    label="Pickup address"
+                    value={shipment.pickup}
+                    meta={shipment.customer}
+                  />
+                  <RoutePoint
+                    icon={<PiRoadHorizonBold className="h-5 w-5" />}
+                    label="Current lane"
+                    value={shipment.lane}
+                    meta={`${shipment.tasker} · ${eta}`}
+                  />
+                  <RoutePoint
+                    icon={<PiMapPinLineBold className="h-5 w-5" />}
+                    label="Drop-off address"
+                    value={shipment.dropoff}
+                    meta={shipment.recipient}
                   />
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs font-medium uppercase tracking-[0.16em] text-gray-500">
-                  <span>Booked</span>
-                  <span>Picked up</span>
-                  <span>Drop-off</span>
-                </div>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <RouteStop
-                  icon={<PiMapPinAreaBold className="h-5 w-5" />}
-                  label="Pickup"
-                  value={shipment.pickup}
-                  meta={shipment.customer}
+              <div className="space-y-4">
+                <InfoPanel
+                  title="Parcel"
+                  rows={[
+                    { label: "Type", value: packageType },
+                    { label: "Weight", value: weight },
+                    { label: "Value", value: shipment.value },
+                    { label: "Visibility", value: "Customer tracking enabled" },
+                  ]}
                 />
-                <RouteStop
-                  icon={<PiRoadHorizonBold className="h-5 w-5" />}
-                  label="Current lane"
-                  value={shipment.lane}
-                  meta={shipment.tasker}
-                />
-                <RouteStop
-                  icon={<PiMapPinLineBold className="h-5 w-5" />}
-                  label="Drop-off"
-                  value={shipment.dropoff}
-                  meta={shipment.recipient}
+                <InfoPanel
+                  title="Admin context"
+                  rows={[
+                    { label: "Shipment ID", value: shipment.id },
+                    { label: "Last update", value: shipment.updatedAt },
+                    { label: "Owner", value: shipment.owner },
+                    { label: "Support view", value: "Shared with inbox teams" },
+                  ]}
                 />
               </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <OperatorCard shipment={shipment} />
-            <ParcelFactsCard shipment={shipment} />
-          </div>
-        </div>
-      </ShellCard>
-
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <ShellCard
-          title="Tracking event stream"
-          description="Operational milestones mirrored from the public tracking flow."
-        >
-          <div className="space-y-5">
-            {shipment.timeline.map((item, index) => (
-              <TimelineRow
-                key={`${item.label}-${item.time}`}
-                item={item}
-                isLast={index === shipment.timeline.length - 1}
-                isCurrent={index === shipment.timeline.length - 1}
-              />
-            ))}
-          </div>
-        </ShellCard>
-
-        <div className="space-y-6">
-          <ShellCard
-            title="Delivery context"
-            description="Who is involved and how the shipment is exposed."
-          >
-            <div className="space-y-3">
-              <ContextRow label="Customer" value={shipment.customer} />
-              <ContextRow label="Phone" value={shipment.customerPhone} />
-              <ContextRow label="Tasker" value={shipment.tasker} />
-              <ContextRow label="Recipient" value={shipment.recipient} />
-              <ContextRow label="Visibility" value="Public link enabled" />
             </div>
           </ShellCard>
 
-          <ShellCard
-            title="Admin notes"
-            description="Suggested alignment between dispatch, support, and customer view."
-          >
+          <ShellCard title="Tracking history" description="Latest delivery milestones from the Ntumai shipment timeline.">
+            <div className="space-y-5">
+              {shipment.timeline.map((item, index) => (
+                <TimelineRow
+                  key={`${item.label}-${item.time}`}
+                  item={item}
+                  isLast={index === shipment.timeline.length - 1}
+                  isCurrent={index === shipment.timeline.length - 1}
+                />
+              ))}
+            </div>
+          </ShellCard>
+        </div>
+
+        <div className="space-y-6">
+          <ShellCard title="Customer & rider" description="Primary contacts tied to this delivery.">
+            <div className="space-y-4">
+              <SidebarPerson
+                icon={<PiUserCircleBold className="h-5 w-5" />}
+                label="Customer"
+                title={shipment.customer}
+                subtitle={shipment.customerPhone}
+              />
+              <SidebarPerson
+                icon={<PiTruckTrailerBold className="h-5 w-5" />}
+                label="Tasker"
+                title={shipment.tasker}
+                subtitle={shipment.owner}
+              />
+              <SidebarPerson
+                icon={<PiPackageBold className="h-5 w-5" />}
+                label="Recipient"
+                title={shipment.recipient}
+                subtitle={shipment.dropoff}
+              />
+            </div>
+          </ShellCard>
+
+          <ShellCard title="Quick actions" description="Operational shortcuts for this tracked order.">
             <div className="space-y-3">
-              <InsightNote
-                title="Customer-facing expectation"
-                detail={`Customer currently sees ${eta.toLowerCase()} as the expected arrival window.`}
+              <ActionRow
+                icon={<PiPhoneCallBold className="h-4 w-4" />}
+                label="Call customer"
+                value={shipment.customerPhone}
               />
-              <InsightNote
-                title="Operations handoff"
-                detail={`${shipment.owner} owns intervention if ETA drifts further or a route exception is raised.`}
+              <ActionRow
+                icon={<PiShieldCheckBold className="h-4 w-4" />}
+                label="Escalation owner"
+                value={shipment.owner}
               />
-              <InsightNote
-                title="Support posture"
-                detail="Use this page as the single reference when support needs the same movement context as dispatch."
+              <ActionRow
+                icon={<PiCopyBold className="h-4 w-4" />}
+                label="Tracking share"
+                value="Public link enabled"
+              />
+            </div>
+          </ShellCard>
+
+          <ShellCard title="Admin notes" description="How the movement should be read inside Ntumai admin.">
+            <div className="space-y-3">
+              <NoteCard
+                title="Customer view"
+                detail={`The mobile app currently shows ${eta.toLowerCase()} as the active arrival estimate.`}
+              />
+              <NoteCard
+                title="Dispatch ownership"
+                detail={`${shipment.owner} should intervene first if the route slips or tasker movement pauses.`}
+              />
+              <NoteCard
+                title="Support alignment"
+                detail="Use this same tracking detail as the source of truth when handling order status questions."
               />
             </div>
           </ShellCard>
@@ -227,39 +265,31 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
   );
 }
 
-function SummaryPill({
+function SummaryCard({
   icon,
   label,
   value,
-  tone,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-  tone: "amber" | "blue" | "green";
 }) {
-  const toneClass = {
-    amber: "bg-[#fff4db] text-[#8b5e00]",
-    blue: "bg-[#e9f3ff] text-[#1257a6]",
-    green: "bg-[#ebf7f0] text-[#136a4b]",
-  };
-
   return (
-    <div className="rounded-[24px] border border-white/80 bg-white/85 p-4 shadow-sm shadow-gray-200/40">
-      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${toneClass[tone]}`}>
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         {icon}
       </div>
-      <Text className="mt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+      <Text className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
         {label}
       </Text>
-      <Title as="h3" className="mt-1 text-base font-semibold text-gray-1000">
+      <Title as="h3" className="mt-1 text-base font-semibold text-gray-900">
         {value}
       </Title>
     </div>
   );
 }
 
-function RouteStop({
+function RoutePoint({
   icon,
   label,
   value,
@@ -271,105 +301,44 @@ function RouteStop({
   meta: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-gray-100 bg-[#fbfbf8] p-4">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          {icon}
-        </div>
-        <div>
-          <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-            {label}
-          </Text>
-          <Title as="h4" className="mt-1 text-sm font-semibold text-gray-1000">
-            {value}
-          </Title>
-          <Text className="mt-1 text-sm text-gray-500">{meta}</Text>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function OperatorCard({ shipment }: { shipment: LogisticsShipment }) {
-  return (
-    <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-gray-200/60">
-      <div className="flex items-start gap-3">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-[20px] bg-primary text-white">
-          <PiUserCircleBold className="h-6 w-6" />
-        </div>
-        <div>
-          <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-            Assigned tasker
-          </Text>
-          <Title as="h3" className="mt-1 text-lg font-semibold text-gray-1000">
-            {shipment.tasker}
-          </Title>
-          <Text className="mt-1 text-sm text-gray-500">
-            Dispatch-visible rider context for this tracked movement.
-          </Text>
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-3">
-        <OperatorStat
-          icon={<PiPhoneCallBold className="h-4 w-4" />}
-          label="Customer line"
-          value={shipment.customerPhone}
-        />
-        <OperatorStat
-          icon={<PiShieldCheckBold className="h-4 w-4" />}
-          label="Route owner"
-          value={shipment.owner}
-        />
-        <OperatorStat
-          icon={<PiCopyBold className="h-4 w-4" />}
-          label="Shipment ID"
-          value={shipment.id}
-        />
-      </div>
-    </div>
-  );
-}
-
-function OperatorStat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-[20px] border border-gray-100 bg-[#fbfbf8] px-4 py-3">
-      <div className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gray-100 text-gray-700">
+    <div className="flex gap-4 rounded-2xl border border-gray-100 bg-white p-4">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         {icon}
       </div>
       <div>
         <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
           {label}
         </Text>
-        <Text className="mt-1 font-semibold text-gray-1000">{value}</Text>
+        <Title as="h4" className="mt-1 text-sm font-semibold text-gray-900">
+          {value}
+        </Title>
+        <Text className="mt-1 text-sm text-gray-500">{meta}</Text>
       </div>
     </div>
   );
 }
 
-function ParcelFactsCard({ shipment }: { shipment: LogisticsShipment }) {
+function InfoPanel({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<{ label: string; value: string }>;
+}) {
   return (
-    <div className="rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-sm shadow-gray-200/60">
-      <Text className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-        Parcel facts
-      </Text>
+    <div className="rounded-2xl border border-gray-100 bg-white p-4">
+      <Title as="h4" className="text-sm font-semibold text-gray-900">
+        {title}
+      </Title>
       <div className="mt-4 space-y-3">
-        {shipment.items.map((item) => (
+        {rows.map((row) => (
           <div
-            key={item.label}
-            className="flex items-center justify-between gap-3 rounded-[20px] border border-gray-100 bg-[#fbfbf8] px-4 py-3"
+            key={row.label}
+            className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
           >
-            <Text className="text-sm text-gray-500">{item.label}</Text>
-            <Text className="text-sm font-semibold text-gray-1000">
-              {item.value}
+            <Text className="text-sm text-gray-500">{row.label}</Text>
+            <Text className="text-right text-sm font-semibold text-gray-900">
+              {row.value}
             </Text>
           </div>
         ))}
@@ -392,17 +361,15 @@ function TimelineRow({
       <div className="flex w-6 flex-col items-center">
         <span
           className={`mt-1 h-3.5 w-3.5 rounded-full border-2 ${
-            isCurrent
-              ? "border-primary bg-primary"
-              : "border-gray-300 bg-white"
+            isCurrent ? "border-primary bg-primary" : "border-gray-300 bg-white"
           }`}
         />
         {!isLast ? <span className="mt-2 w-px flex-1 bg-gray-200" /> : null}
       </div>
-      <div className="flex-1 rounded-[22px] border border-gray-100 bg-[#fbfbf8] p-4">
+      <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <Title as="h4" className="text-sm font-semibold text-gray-1000">
+            <Title as="h4" className="text-sm font-semibold text-gray-900">
               {item.label}
             </Title>
             <Text className="mt-1 text-sm leading-6 text-gray-500">
@@ -421,21 +388,65 @@ function TimelineRow({
   );
 }
 
-function ContextRow({ label, value }: { label: string; value: string }) {
+function SidebarPerson({
+  icon,
+  label,
+  title,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  title: string;
+  subtitle: string;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[20px] border border-gray-100 bg-gray-50/70 px-4 py-3">
-      <Text className="text-sm text-gray-500">{label}</Text>
-      <Text className="text-right text-sm font-semibold text-gray-1000">
-        {value}
-      </Text>
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          {icon}
+        </div>
+        <div>
+          <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+            {label}
+          </Text>
+          <Title as="h4" className="mt-1 text-sm font-semibold text-gray-900">
+            {title}
+          </Title>
+          <Text className="mt-1 text-sm text-gray-500">{subtitle}</Text>
+        </div>
+      </div>
     </div>
   );
 }
 
-function InsightNote({ title, detail }: { title: string; detail: string }) {
+function ActionRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
-      <Title as="h4" className="text-sm font-semibold text-gray-1000">
+    <div className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
+      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-gray-700 shadow-sm">
+        {icon}
+      </div>
+      <div>
+        <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+          {label}
+        </Text>
+        <Text className="mt-1 text-sm font-semibold text-gray-900">{value}</Text>
+      </div>
+    </div>
+  );
+}
+
+function NoteCard({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+      <Title as="h4" className="text-sm font-semibold text-gray-900">
         {title}
       </Title>
       <Text className="mt-1 text-sm leading-6 text-gray-500">{detail}</Text>
