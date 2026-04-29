@@ -2,22 +2,17 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Badge, Button, Text, Title } from "rizzui";
+import { Badge, Button, Input, Text, Title } from "rizzui";
 import {
   PiArrowLeftBold,
-  PiClockCountdownBold,
-  PiCopyBold,
-  PiMapPinAreaBold,
-  PiMapPinLineBold,
-  PiPackageBold,
-  PiPhoneCallBold,
-  PiRoadHorizonBold,
-  PiShieldCheckBold,
+  PiCheckCircle,
+  PiCopySimple,
+  PiMoped,
+  PiPackageFill,
+  PiTriangle,
   PiTruckTrailerBold,
-  PiUserCircleBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import ShellCard from "@/components/admin/shell-card";
 import {
   type LogisticsShipment,
   getLogisticsShipment,
@@ -28,18 +23,22 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
   const shipment = getLogisticsShipment(id);
   if (!shipment) notFound();
 
-  const eta = shipment.items.find((item) => item.label === "ETA")?.value ?? shipment.updatedAt;
-  const packageType = shipment.items.find((item) => item.label === "Package type")?.value ?? "Shipment";
+  const packageType =
+    shipment.items.find((item) => item.label === "Package type")?.value ?? "Shipment";
   const weight = shipment.items.find((item) => item.label === "Weight")?.value ?? "Not set";
-  const progress = getTrackingProgress(shipment.status);
+  const eta = shipment.items.find((item) => item.label === "ETA")?.value ?? shipment.updatedAt;
+  const update = getLatestUpdate(shipment);
+  const shipmentInfo = getShipmentInfo(shipment, packageType, weight, eta);
+  const overviewTimeline = buildOverviewTimeline(shipment);
+  const historyTimeline = buildHistoryTimeline(shipment);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
-        breadcrumb={["Home", "Logistics", "Tracking", shipment.trackingId]}
+        breadcrumb={["Home", "Logistics", "Tracking", id]}
         eyebrow="Logistics Kit"
-        title={`Tracking ${shipment.trackingId}`}
-        description="Tracking detail page aligned to the public Ntumai delivery flow and the internal dispatch workspace."
+        title="Tracking"
+        description="Tracking detail page ported closer to the archived logistics template, then relabeled for Ntumai shipment, tasker, and customer tracking flows."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.logistics.tracking}>
@@ -50,445 +49,273 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
             </Link>
             <Link href={routes.logistics.shipmentDetails(shipment.id)}>
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
-                Open shipment
+                Open Shipment
               </Button>
             </Link>
           </div>
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Title as="h2" className="text-2xl font-semibold text-gray-900">
-                    {shipment.pickup} to {shipment.dropoff}
-                  </Title>
-                  <TrackingStatus status={shipment.status} />
-                </div>
-                <Text className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
-                  {shipment.notes} This tracking link mirrors what the customer sees in the Ntumai app while dispatch and support use the same movement context from admin.
-                </Text>
-              </div>
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-                  Tracking reference
-                </Text>
-                <div className="mt-2 flex items-center gap-2">
-                  <Text className="font-semibold text-gray-900">{shipment.trackingId}</Text>
-                  <PiCopyBold className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 xl:gap-20">
+        <div>
+          <Text className="mb-2 text-gray-700">Tracking Number:</Text>
+          <Title as="h2" className="mb-3 text-2xl font-bold text-gray-700 3xl:text-3xl">
+            {shipment.trackingId}
+          </Title>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-4">
-              <SummaryCard
-                icon={<PiClockCountdownBold className="h-5 w-5" />}
-                label="ETA"
-                value={eta}
-              />
-              <SummaryCard
-                icon={<PiPackageBold className="h-5 w-5" />}
-                label="Package type"
-                value={packageType}
-              />
-              <SummaryCard
-                icon={<PiTruckTrailerBold className="h-5 w-5" />}
-                label="Assigned tasker"
-                value={shipment.tasker}
-              />
-              <SummaryCard
-                icon={<PiRoadHorizonBold className="h-5 w-5" />}
-                label="Ops owner"
-                value={shipment.owner}
-              />
-            </div>
+          <div className="mb-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+            <Button variant="text" className="inline-flex h-auto w-auto items-center gap-1 px-0 py-0 font-normal">
+              <PiCopySimple className="h-5 w-5" />
+              <Text as="span" className="text-gray-700">
+                Copy
+              </Text>
+            </Button>
+            <Text className="inline-flex items-center gap-1">
+              <PiMoped className="h-5 w-5" />
+              <Text as="span" className="text-gray-700">
+                Add to delivery information
+              </Text>
+            </Text>
           </div>
 
-          <ShellCard title="Tracking details" description="Route progress and shipment movement.">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
-              <div>
-                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-                        Current progress
-                      </Text>
-                      <Title as="h3" className="mt-2 text-lg font-semibold text-gray-900">
-                        {progress.label}
-                      </Title>
-                    </div>
-                    <Badge
-                      variant="flat"
-                      className="rounded-2xl bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary"
-                    >
-                      Updated {shipment.updatedAt}
-                    </Badge>
-                  </div>
-                  <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${progress.percent}%` }}
-                    />
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
-                    <span>Booked</span>
-                    <span>Picked up</span>
-                    <span>Delivered</span>
-                  </div>
-                </div>
+          <div className="max-w-[505px] rounded-lg border border-l-4 border-primary bg-primary/5 p-7">
+            <Title as="h3" className="mb-3 text-xl font-semibold text-gray-900">
+              Latest Update
+            </Title>
+            <Text className="mb-2 text-gray-500 md:text-base md:leading-relaxed">
+              {update.text}{" "}
+              <Text as="span" className="font-semibold text-gray-700">
+                {update.highlight}
+              </Text>
+            </Text>
+          </div>
 
-                <div className="mt-5 space-y-4">
-                  <RoutePoint
-                    icon={<PiMapPinAreaBold className="h-5 w-5" />}
-                    label="Pickup address"
-                    value={shipment.pickup}
-                    meta={shipment.customer}
-                  />
-                  <RoutePoint
-                    icon={<PiRoadHorizonBold className="h-5 w-5" />}
-                    label="Current lane"
-                    value={shipment.lane}
-                    meta={`${shipment.tasker} · ${eta}`}
-                  />
-                  <RoutePoint
-                    icon={<PiMapPinLineBold className="h-5 w-5" />}
-                    label="Drop-off address"
-                    value={shipment.dropoff}
-                    meta={shipment.recipient}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <InfoPanel
-                  title="Parcel"
-                  rows={[
-                    { label: "Type", value: packageType },
-                    { label: "Weight", value: weight },
-                    { label: "Value", value: shipment.value },
-                    { label: "Visibility", value: "Customer tracking enabled" },
-                  ]}
-                />
-                <InfoPanel
-                  title="Admin context"
-                  rows={[
-                    { label: "Shipment ID", value: shipment.id },
-                    { label: "Last update", value: shipment.updatedAt },
-                    { label: "Owner", value: shipment.owner },
-                    { label: "Support view", value: "Shared with inbox teams" },
-                  ]}
-                />
-              </div>
+          <div className="mt-10">
+            <Text className="mb-3">
+              Want updates on this shipment? Enter your email address and Ntumai will send the next movement change.
+            </Text>
+            <div className="flex w-full max-w-3xl items-start gap-4">
+              <Input
+                rounded="lg"
+                placeholder="smith@example.com"
+                inputClassName="w-full text-base"
+                size="lg"
+                className="flex-grow"
+              />
+              <Button type="button" className="w-full max-w-[118px] flex-shrink-0 rounded-lg" size="lg">
+                Submit
+              </Button>
             </div>
-          </ShellCard>
+          </div>
+        </div>
 
-          <ShellCard title="Tracking history" description="Latest delivery milestones from the Ntumai shipment timeline.">
-            <div className="space-y-5">
-              {shipment.timeline.map((item, index) => (
-                <TimelineRow
-                  key={`${item.label}-${item.time}`}
-                  item={item}
-                  isLast={index === shipment.timeline.length - 1}
-                  isCurrent={index === shipment.timeline.length - 1}
-                />
+        <div className="@container">
+          <TimelineList data={overviewTimeline} showTravelHistory />
+        </div>
+      </div>
+
+      <TrackingSection title="Shipping Information">
+        {shipmentInfo.map((group) => (
+          <div
+            className="my-10 flex gap-4 last:mb-3"
+            key={group.title}
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              {group.icon}
+            </span>
+            <div className="flex flex-col gap-y-3">
+              <Title as="h3" className="text-base font-semibold">
+                {group.title}
+              </Title>
+              {group.data.map((info) => (
+                <div className="flex flex-col sm:flex-row sm:items-center" key={info.name}>
+                  <Title
+                    as="h4"
+                    className="text-sm font-normal capitalize text-gray-700 sm:min-w-[244px] md:min-w-[424px]"
+                  >
+                    {info.name}:
+                  </Title>
+                  <Text className="gap-3 text-sm text-gray-500">{info.value}</Text>
+                </div>
               ))}
             </div>
-          </ShellCard>
-        </div>
-
-        <div className="space-y-6">
-          <ShellCard title="Customer & rider" description="Primary contacts tied to this delivery.">
-            <div className="space-y-4">
-              <SidebarPerson
-                icon={<PiUserCircleBold className="h-5 w-5" />}
-                label="Customer"
-                title={shipment.customer}
-                subtitle={shipment.customerPhone}
-              />
-              <SidebarPerson
-                icon={<PiTruckTrailerBold className="h-5 w-5" />}
-                label="Tasker"
-                title={shipment.tasker}
-                subtitle={shipment.owner}
-              />
-              <SidebarPerson
-                icon={<PiPackageBold className="h-5 w-5" />}
-                label="Recipient"
-                title={shipment.recipient}
-                subtitle={shipment.dropoff}
-              />
-            </div>
-          </ShellCard>
-
-          <ShellCard title="Quick actions" description="Operational shortcuts for this tracked order.">
-            <div className="space-y-3">
-              <ActionRow
-                icon={<PiPhoneCallBold className="h-4 w-4" />}
-                label="Call customer"
-                value={shipment.customerPhone}
-              />
-              <ActionRow
-                icon={<PiShieldCheckBold className="h-4 w-4" />}
-                label="Escalation owner"
-                value={shipment.owner}
-              />
-              <ActionRow
-                icon={<PiCopyBold className="h-4 w-4" />}
-                label="Tracking share"
-                value="Public link enabled"
-              />
-            </div>
-          </ShellCard>
-
-          <ShellCard title="Admin notes" description="How the movement should be read inside Ntumai admin.">
-            <div className="space-y-3">
-              <NoteCard
-                title="Customer view"
-                detail={`The mobile app currently shows ${eta.toLowerCase()} as the active arrival estimate.`}
-              />
-              <NoteCard
-                title="Dispatch ownership"
-                detail={`${shipment.owner} should intervene first if the route slips or tasker movement pauses.`}
-              />
-              <NoteCard
-                title="Support alignment"
-                detail="Use this same tracking detail as the source of truth when handling order status questions."
-              />
-            </div>
-          </ShellCard>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-      <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        {icon}
-      </div>
-      <Text className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-        {label}
-      </Text>
-      <Title as="h3" className="mt-1 text-base font-semibold text-gray-900">
-        {value}
-      </Title>
-    </div>
-  );
-}
-
-function RoutePoint({
-  icon,
-  label,
-  value,
-  meta,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  meta: string;
-}) {
-  return (
-    <div className="flex gap-4 rounded-2xl border border-gray-100 bg-white p-4">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        {icon}
-      </div>
-      <div>
-        <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-          {label}
-        </Text>
-        <Title as="h4" className="mt-1 text-sm font-semibold text-gray-900">
-          {value}
-        </Title>
-        <Text className="mt-1 text-sm text-gray-500">{meta}</Text>
-      </div>
-    </div>
-  );
-}
-
-function InfoPanel({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: Array<{ label: string; value: string }>;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4">
-      <Title as="h4" className="text-sm font-semibold text-gray-900">
-        {title}
-      </Title>
-      <div className="mt-4 space-y-3">
-        {rows.map((row) => (
-          <div
-            key={row.label}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
-          >
-            <Text className="text-sm text-gray-500">{row.label}</Text>
-            <Text className="text-right text-sm font-semibold text-gray-900">
-              {row.value}
-            </Text>
           </div>
         ))}
-      </div>
+      </TrackingSection>
+
+      <TrackingSection title="Tracking History">
+        <div id="tracking-history">
+          <TimelineList data={historyTimeline} />
+        </div>
+      </TrackingSection>
     </div>
   );
 }
 
-function TimelineRow({
-  item,
-  isLast,
-  isCurrent,
+function TrackingSection({
+  title,
+  children,
 }: {
-  item: LogisticsShipment["timeline"][number];
-  isLast: boolean;
-  isCurrent: boolean;
+  title: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-4">
-      <div className="flex w-6 flex-col items-center">
-        <span
-          className={`mt-1 h-3.5 w-3.5 rounded-full border-2 ${
-            isCurrent ? "border-primary bg-primary" : "border-gray-300 bg-white"
-          }`}
-        />
-        {!isLast ? <span className="mt-2 w-px flex-1 bg-gray-200" /> : null}
+    <section className="mx-0 rounded-[28px] border border-gray-200 bg-white py-5 shadow-[0_10px_30px_-18px_rgba(15,23,42,0.24)] md:py-7 lg:mx-2">
+      <div className="flex items-center justify-between px-5 text-left font-semibold text-gray-700 sm:px-7 lg:px-8">
+        <span className="font-lexend text-xl">{title}</span>
       </div>
-      <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <Title as="h4" className="text-sm font-semibold text-gray-900">
-              {item.label}
-            </Title>
-            <Text className="mt-1 text-sm leading-6 text-gray-500">
-              {item.detail}
+      <div className="px-5 sm:px-7 lg:px-8">{children}</div>
+    </section>
+  );
+}
+
+function TimelineList({
+  data,
+  showTravelHistory = false,
+}: {
+  data: Array<{
+    title: string;
+    text: string;
+    highlightedText: string;
+    date: string;
+    time: string;
+    icon?: React.ReactNode;
+    status?: string;
+  }>;
+  showTravelHistory?: boolean;
+}) {
+  return (
+    <div className="relative @container">
+      {data.map((timeline, index) => (
+        <div className="flex items-center" key={`${timeline.title}-${timeline.date}-${timeline.time}`}>
+          <div className="hidden w-[147px] flex-shrink-0 @lg:block">
+            <Text as="span" className="pe-5 text-gray-500 @2xl:pe-10">
+              {timeline.date}
             </Text>
           </div>
-          <Badge
-            variant="flat"
-            className="rounded-2xl bg-gray-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-600"
+          <div
+            className={`relative flex-grow border-s border-gray-200 py-5 ps-10 before:absolute before:-left-[3px] before:-top-[3px] before:h-1.5 before:w-1.5 before:rounded-full before:bg-gray-200 before:content-[''] ${
+              index !== 0 ? "before:hidden" : ""
+            } ${index === data.length - 1 ? "before:-bottom-[3px] before:top-auto before:block" : ""}`}
           >
-            {item.time}
-          </Badge>
+            <span className="absolute -left-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white">
+              {timeline.icon ? timeline.icon : <PiTriangle className="h-5 w-5" />}
+            </span>
+            <Title
+              as="h3"
+              className={`mb-3 flex items-center text-base font-semibold ${
+                timeline.status === "success" ? "text-emerald-600" : "text-gray-900"
+              }`}
+            >
+              {timeline.title}
+            </Title>
+            <div className="relative -ms-10">
+              <div className="ps-10">
+                <Text className="text-sm font-normal leading-loose text-gray-500">
+                  {timeline.text}
+                  {timeline.highlightedText ? (
+                    <Text as="span" className="block font-medium text-gray-700">
+                      {timeline.highlightedText}
+                    </Text>
+                  ) : null}{" "}
+                  {`${timeline.date} ${timeline.time}`}
+                </Text>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  );
-}
+      ))}
 
-function SidebarPerson({
-  icon,
-  label,
-  title,
-  subtitle,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          {icon}
+      {showTravelHistory ? (
+        <div className="flex items-center">
+          <div className="hidden w-[147px] flex-shrink-0 @lg:block" />
+          <a
+            href="#tracking-history"
+            className="ms-10 mt-10 flex flex-grow cursor-pointer items-center gap-3 text-sm font-medium text-gray-900"
+          >
+            View Travel History
+          </a>
         </div>
-        <div>
-          <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-            {label}
-          </Text>
-          <Title as="h4" className="mt-1 text-sm font-semibold text-gray-900">
-            {title}
-          </Title>
-          <Text className="mt-1 text-sm text-gray-500">{subtitle}</Text>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 }
 
-function ActionRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-gray-700 shadow-sm">
-        {icon}
-      </div>
-      <div>
-        <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-          {label}
-        </Text>
-        <Text className="mt-1 text-sm font-semibold text-gray-900">{value}</Text>
-      </div>
-    </div>
-  );
-}
-
-function NoteCard({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-      <Title as="h4" className="text-sm font-semibold text-gray-900">
-        {title}
-      </Title>
-      <Text className="mt-1 text-sm leading-6 text-gray-500">{detail}</Text>
-    </div>
-  );
-}
-
-function TrackingStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
+function getLatestUpdate(shipment: LogisticsShipment) {
+  const latest = shipment.timeline[shipment.timeline.length - 1];
+  return {
+    text: `${latest?.detail ?? shipment.notes} `,
+    highlight: shipment.dropoff,
   };
-
-  return (
-    <span
-      className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${
-        tones[status] ?? tones.queued
-      }`}
-    >
-      {status.replace("_", " ")}
-    </span>
-  );
 }
 
-function getTrackingProgress(status: LogisticsShipment["status"]) {
-  switch (status) {
-    case "live":
-      return { label: "Parcel is actively moving toward drop-off", percent: 74 };
-    case "stable":
-      return { label: "Movement is healthy and on schedule", percent: 86 };
-    case "review":
-      return { label: "Tracking is visible but requires intervention review", percent: 42 };
-    case "monitoring":
-      return { label: "Shipment is moving under heightened watch", percent: 61 };
-    case "at_risk":
-      return { label: "Route health has degraded and needs immediate attention", percent: 33 };
-    case "queued":
-    default:
-      return { label: "Shipment is booked and waiting for active movement", percent: 18 };
-  }
+function buildOverviewTimeline(shipment: LogisticsShipment) {
+  return [...shipment.timeline]
+    .slice()
+    .reverse()
+    .map((item, index) => ({
+      title: item.label,
+      text: item.detail,
+      highlightedText: index === 0 ? shipment.dropoff : "",
+      date: "Today",
+      time: item.time,
+      icon: index === 0 ? <PiCheckCircle className="h-6 w-6 text-emerald-600" /> : undefined,
+      status: index === 0 ? "success" : "",
+    }));
+}
+
+function buildHistoryTimeline(shipment: LogisticsShipment) {
+  return shipment.timeline.map((item, index) => ({
+    title: item.label,
+    text: item.detail,
+    highlightedText: index === shipment.timeline.length - 1 ? shipment.dropoff : "",
+    date: index === 0 ? "Order day" : "Today",
+    time: item.time,
+    icon:
+      index === shipment.timeline.length - 1 ? (
+        <PiCheckCircle className="h-6 w-6 text-emerald-600" />
+      ) : undefined,
+    status: index === shipment.timeline.length - 1 ? "success" : "",
+  }));
+}
+
+function getShipmentInfo(
+  shipment: LogisticsShipment,
+  packageType: string,
+  weight: string,
+  eta: string,
+) {
+  return [
+    {
+      title: "Shipment Overview",
+      icon: <PiPackageFill className="h-6 w-6 text-primary" />,
+      data: [
+        { name: "Tracking Number", value: shipment.trackingId },
+        { name: "Delivered To", value: shipment.dropoff },
+        { name: "Shipping Date", value: shipment.updatedAt },
+        { name: "Standard Transit", value: `${eta} expected window` },
+        { name: "Actual Delivery", value: shipment.status === "stable" ? shipment.updatedAt : "Still in movement" },
+      ],
+    },
+    {
+      title: "Services",
+      icon: <PiTruckTrailerBold className="h-5 w-6 text-primary" />,
+      data: [
+        { name: "Service", value: shipment.lane },
+        { name: "Terms", value: shipment.owner },
+        { name: "Special Handling Section", value: packageType },
+      ],
+    },
+    {
+      title: "Package Details",
+      icon: <PiMoped className="h-5 w-5 text-primary" />,
+      data: [
+        { name: "Weight", value: weight },
+        { name: "Dimensions", value: "Sized for Ntumai same-day handling" },
+        { name: "Total Pieces", value: "1" },
+        { name: "Total Shipment Weight", value: weight },
+        { name: "Packaging", value: packageType },
+      ],
+    },
+  ];
 }
