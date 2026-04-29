@@ -293,9 +293,6 @@ Reason:
 
 #### Sales / Finance
 
-- `Sales > Orders > List`
-  - acceptable but still clearly adapted
-
 #### Logistics
 
 - `Logistics > Logistics Overview`
@@ -321,8 +318,6 @@ Reason:
 
 If work resumes later, the best next targets are:
 
-1. `Sales > Orders > List`
-2. `Marketplace > Marketplace Overview`
-3. `Logistics > Logistics Overview`
-4. `Sales > Orders > List` detail tightening only if a stricter source recovery is found
-5. overview pages still using `SectionPage` / `ModulePage`
+1. `Marketplace > Marketplace Overview`
+2. `Logistics > Logistics Overview`
+3. overview pages still using `SectionPage` / `ModulePage`

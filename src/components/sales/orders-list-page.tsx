@@ -10,31 +10,22 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Badge, Button, Input, Select, Table, Text } from "rizzui";
+import { Badge, Button, Input, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import { salesOrders, type SalesOrder } from "@/components/sales/order-data";
 
-const laneOptions = [
-  { label: "All lanes", value: "all" },
+const lanes = [
+  { label: "All", value: "all" },
   { label: "Active", value: "active" },
   { label: "Preparing", value: "preparing" },
   { label: "History", value: "history" },
 ] as const;
 
-const statusOptions = [
-  { label: "All statuses", value: "all" },
-  { label: "Live", value: "live" },
-  { label: "Review", value: "review" },
-  { label: "Monitoring", value: "monitoring" },
-  { label: "Queued", value: "queued" },
-] as const;
-
 export default function OrdersListPage() {
   const [query, setQuery] = useState("");
   const [lane, setLane] = useState("all");
-  const [status, setStatus] = useState("all");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 8 });
 
   const filteredRows = useMemo(() => {
@@ -57,19 +48,18 @@ export default function OrdersListPage() {
         .toLowerCase();
 
       const matchesQuery = haystack.includes(term);
-      const matchesStatus = status === "all" ? true : row.status === status;
       const matchesLane =
         lane === "all"
           ? true
           : lane === "active"
             ? row.status === "live"
             : lane === "preparing"
-              ? row.status === "review" || row.status === "monitoring"
+            ? row.status === "review" || row.status === "monitoring"
               : row.status === "queued" || row.status === "stable";
 
-      return matchesQuery && matchesStatus && matchesLane;
+      return matchesQuery && matchesLane;
     });
-  }, [lane, query, status]);
+  }, [lane, query]);
 
   const columns = useMemo<ColumnDef<SalesOrder>[]>(
     () => [
@@ -82,12 +72,21 @@ export default function OrdersListPage() {
               {row.original.orderNumber}
             </Link>
             <Text className="text-xs text-gray-500">
-              {row.original.customer} · {row.original.itemCount}
+              {row.original.customer} · {row.original.itemCount} · {row.original.updatedAt}
             </Text>
           </div>
         ),
       },
-      { accessorKey: "vendor", header: "Vendor" },
+      {
+        accessorKey: "vendor",
+        header: "Vendor",
+        cell: ({ row }) => (
+          <div>
+            <Text className="font-medium text-gray-900">{row.original.vendor}</Text>
+            <Text className="text-xs text-gray-500">{row.original.trackingId}</Text>
+          </div>
+        ),
+      },
       {
         accessorKey: "deliveryAddress",
         header: "Destination",
@@ -175,7 +174,22 @@ export default function OrdersListPage() {
       />
 
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_200px_200px_auto]">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {lanes.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setLane(tab.value)}
+              className={`rounded-2xl px-3 py-1.5 text-sm font-medium ${
+                lane === tab.value ? "bg-primary text-white" : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto_auto]">
           <Input
             type="search"
             placeholder="Search orders..."
@@ -184,59 +198,24 @@ export default function OrdersListPage() {
             prefix={<PiMagnifyingGlassBold className="h-4 w-4" />}
             inputClassName="h-10"
           />
-          <Select
-            options={laneOptions as any}
-            value={lane}
-            onChange={(option: any) => setLane(option?.value ?? "all")}
-            selectClassName="rounded-2xl"
-          />
-          <Select
-            options={statusOptions as any}
-            value={status}
-            onChange={(option: any) => setStatus(option?.value ?? "all")}
-            selectClassName="rounded-2xl"
-          />
+          <Badge variant="flat" className="h-10 rounded-2xl bg-primary/10 px-3 py-2 text-primary">
+            Order ops
+          </Badge>
           <Button
             variant="outline"
             className="h-10 rounded-2xl px-4"
             onClick={() => {
               setQuery("");
               setLane("all");
-              setStatus("all");
             }}
           >
             Reset
           </Button>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: "All", value: "all" },
-              { label: "Active", value: "active" },
-              { label: "Preparing", value: "preparing" },
-              { label: "History", value: "history" },
-            ].map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => setLane(tab.value)}
-                className={`rounded-2xl px-3 py-1.5 text-sm font-medium ${
-                  lane === tab.value ? "bg-primary text-white" : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-            Order ops
-          </Badge>
-        </div>
-
         <div className="mb-4 flex items-center justify-between gap-3">
           <Text className="text-sm text-gray-500">{filteredRows.length} orders</Text>
-          <Text className="text-xs text-gray-500">Customer checkout and vendor handoff view</Text>
+          <Text className="text-xs text-gray-500">Checkout, handoff, and tracking list</Text>
         </div>
 
         <div className="custom-scrollbar overflow-x-auto">
