@@ -48,10 +48,9 @@ export const menuItems: MenuItem[] = [
     icon: <PiTruckDuotone />,
     badge: "OPS",
     dropdownItems: [
-      { name: "Overview", href: routes.logistics.overview },
       { name: "Shipments", href: routes.logistics.shipments },
       { name: "Tracking", href: routes.logistics.tracking },
-      { name: "Taskers", href: routes.logistics.drivers },
+      { name: "Taskers", href: routes.logistics.taskers },
       { name: "Exceptions", href: routes.logistics.exceptions },
       { name: "Zones & Geofencing", href: routes.logistics.zones },
       { name: "Service Types", href: routes.logistics.serviceTypes },
@@ -64,7 +63,6 @@ export const menuItems: MenuItem[] = [
     icon: <PiArrowsSplitDuotone />,
     dropdownItems: [
       { name: "Overview", href: routes.fleet.overview },
-      { name: "Taskers", href: routes.fleet.drivers },
       { name: "Tasker Applications", href: routes.fleet.driverApplications },
       { name: "Tasker Documents", href: routes.fleet.driverDocuments },
       { name: "Tasker Incentives", href: routes.fleet.driverIncentives },

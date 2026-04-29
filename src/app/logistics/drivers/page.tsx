@@ -1,5 +1,6 @@
-import TaskersListPage from "@/components/logistics/taskers-list-page";
+import { redirect } from "next/navigation";
+import { routes } from "@/config/routes";
 
 export default function LogisticsDriversPage() {
-  return <TaskersListPage />;
+  redirect(routes.logistics.taskers);
 }

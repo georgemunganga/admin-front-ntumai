@@ -21,7 +21,6 @@ export const routes = {
   fleet: {
     overview: "/fleet",
     home: "/fleet",
-    drivers: "/fleet/drivers",
     driverApplications: "/fleet/driver-applications",
     driverDocuments: "/fleet/driver-documents",
     driverIncentives: "/fleet/driver-incentives",
@@ -54,7 +53,7 @@ export const routes = {
     editShipment: (id: string) => `/logistics/shipments/${id}/edit`,
     tracking: "/logistics/tracking",
     trackingDetails: (id: string) => `/logistics/tracking/${id}`,
-    drivers: "/logistics/drivers",
+    taskers: "/logistics/taskers",
     exceptions: "/logistics/exceptions",
     zones: "/logistics/zones-geofencing",
     serviceTypes: "/logistics/service-types",
