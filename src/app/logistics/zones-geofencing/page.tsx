@@ -376,95 +376,96 @@ export default function LogisticsZonesGeofencingPage() {
             </div>
           </div>
 
-          <ShellCard title="Global geofencing settings" description="System-wide simulation, conflict resolution, and audit history.">
-            <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-              <div className="space-y-4">
-                <div className="rounded-[22px] border border-gray-200 bg-gray-50/80 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-                        Simulation mode
-                      </Text>
-                      <Title as="h4" className="mt-2 text-lg font-semibold text-gray-900">
-                        Preview without touching live drivers
-                      </Title>
-                      <Text className="mt-2 text-sm leading-6 text-gray-500">
-                        Run overlap and pricing checks against staged polygons before publishing to taskers or dispatch.
-                      </Text>
-                    </div>
-                    <Switch checked={simulationMode} onChange={() => setSimulationMode((state) => !state)} />
-                  </div>
-                </div>
-
-                <ConfigCard
-                  title="Overlap detection"
-                  detail="Strict polygon intersection alerts are active for surge, coverage, and restricted zones."
-                  value="Strict"
-                />
-                <ConfigCard
-                  title="Conflict resolution"
-                  detail="Restricted zones override surge rules, and manual dispatch exceptions win over automated expansions."
-                  value="Priority stack"
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <Title as="h4" className="text-base font-semibold text-gray-900">
-                      Version history
-                    </Title>
-                    <Text className="mt-1 text-sm text-gray-500">
-                      Audit log of live and staged geometry changes.
-                    </Text>
-                  </div>
-                  <div className="flex gap-2">
-                    <Select
-                      options={dateOptions as any}
-                      value={dateFilter}
-                      onChange={(option: any) => setDateFilter(option?.value ?? "7_days")}
-                      selectClassName="rounded-2xl"
-                    />
-                    <Button variant="outline" className="h-10 rounded-2xl px-4">
-                      <PiDownloadSimpleBold className="me-1.5 h-4 w-4" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="custom-scrollbar overflow-x-auto">
-                  <Table variant="modern" className="min-w-[760px]">
-                    <Table.Header>
-                      {versionsTable.getHeaderGroups().map((headerGroup) => (
-                        <Table.Row key={headerGroup.id}>
-                          {headerGroup.headers.map((header) => (
-                            <Table.Head key={header.id} className="bg-gray-100">
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(header.column.columnDef.header, header.getContext())}
-                            </Table.Head>
-                          ))}
-                        </Table.Row>
-                      ))}
-                    </Table.Header>
-                    <Table.Body>
-                      {versionsTable.getRowModel().rows.map((row) => (
-                        <Table.Row key={row.id}>
-                          {row.getVisibleCells().map((cell) => (
-                            <Table.Cell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </Table.Cell>
-                          ))}
-                        </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table>
-                </div>
-              </div>
-            </div>
-          </ShellCard>
         </div>
       </div>
+
+      <ShellCard title="Global geofencing settings" description="System-wide simulation, conflict resolution, and audit history.">
+        <div className="space-y-6">
+          <div className="grid gap-4 xl:grid-cols-3">
+            <div className="rounded-[22px] border border-gray-200 bg-gray-50/80 p-4 xl:col-span-1">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    Simulation mode
+                  </Text>
+                  <Title as="h4" className="mt-2 text-lg font-semibold text-gray-900">
+                    Preview without touching live drivers
+                  </Title>
+                  <Text className="mt-2 text-sm leading-6 text-gray-500">
+                    Run overlap and pricing checks against staged polygons before publishing to taskers or dispatch.
+                  </Text>
+                </div>
+                <Switch checked={simulationMode} onChange={() => setSimulationMode((state) => !state)} />
+              </div>
+            </div>
+
+            <ConfigCard
+              title="Overlap detection"
+              detail="Strict polygon intersection alerts are active for surge, coverage, and restricted zones."
+              value="Strict"
+            />
+            <ConfigCard
+              title="Conflict resolution"
+              detail="Restricted zones override surge rules, and manual dispatch exceptions win over automated expansions."
+              value="Priority stack"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <Title as="h4" className="text-base font-semibold text-gray-900">
+                  Version history
+                </Title>
+                <Text className="mt-1 text-sm text-gray-500">
+                  Audit log of live and staged geometry changes.
+                </Text>
+              </div>
+              <div className="flex gap-2">
+                <Select
+                  options={dateOptions as any}
+                  value={dateFilter}
+                  onChange={(option: any) => setDateFilter(option?.value ?? "7_days")}
+                  selectClassName="rounded-2xl"
+                />
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  <PiDownloadSimpleBold className="me-1.5 h-4 w-4" />
+                  Download
+                </Button>
+              </div>
+            </div>
+
+            <div className="custom-scrollbar overflow-x-auto">
+              <Table variant="modern" className="min-w-[960px]">
+                <Table.Header>
+                  {versionsTable.getHeaderGroups().map((headerGroup) => (
+                    <Table.Row key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <Table.Head key={header.id} className="bg-gray-100">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </Table.Head>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Header>
+                <Table.Body>
+                  {versionsTable.getRowModel().rows.map((row) => (
+                    <Table.Row key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <Table.Cell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </div>
+          </div>
+        </div>
+      </ShellCard>
 
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} customSize={1180} rounded="xl">
         <ZoneCreateWizard
