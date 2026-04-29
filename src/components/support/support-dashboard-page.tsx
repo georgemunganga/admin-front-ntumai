@@ -51,7 +51,7 @@ export default function SupportDashboardPage() {
         breadcrumb={["Home", "Support"]}
         eyebrow="Support Desk"
         title="Support"
-        description="Dashboard rebuilt around the archived support workspace structure, then aligned to Ntumai support, finance, and dispatch issue flows."
+        description="Monitor support demand, recovery pressure, and active handoffs across customer, vendor, tasker, and finance lanes."
         action={
           <div className="flex flex-wrap gap-3">
             <a href={routes.supportDesk.inbox}>

@@ -29,7 +29,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
         breadcrumb={["Home", "Sales", "Orders", order.id]}
         eyebrow="Sales Kit"
         title={`Order ${order.orderNumber}`}
-        description="Rebuilt closer to the archived ecommerce order-view workspace, then aligned to Ntumai marketplace and delivery operations."
+        description="Review customer checkout context, vendor handoff, and dispatch progress for this Ntumai order."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.sales.orders}>

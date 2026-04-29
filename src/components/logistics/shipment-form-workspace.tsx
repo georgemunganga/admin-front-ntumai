@@ -171,7 +171,7 @@ export default function ShipmentFormWorkspace({
         <FormSection
           id="sender-info"
           title="Sender's Info"
-          description="Mirror the template sender block, but use the marketplace or mobile-app order owner as the sender context."
+          description="Use the marketplace order owner, customer, or internal desk that originated the shipment."
         >
           <Input label="Name" rounded="lg" defaultValue={customer} />
           <Input label="Address" rounded="lg" defaultValue={pickup} />
@@ -190,7 +190,7 @@ export default function ShipmentFormWorkspace({
         <FormSection
           id="recipient-info"
           title="Recipient's Info"
-          description="Use the same template recipient section for the final customer, store handoff point, or returns desk."
+          description="Capture the final customer, store handoff point, or returns destination receiving this shipment."
         >
           <Input label="Name" rounded="lg" defaultValue={recipient} />
           <Input label="Address" rounded="lg" defaultValue={dropoff} />
@@ -209,7 +209,7 @@ export default function ShipmentFormWorkspace({
         <FormSection
           id="payment-method"
           title="Payment Method Info"
-          description="Keep the template payment layout, then map it to mobile money, wallet, card, and cash collection flows."
+          description="Settle the shipment against mobile money, wallet, card, or cash collection rules."
         >
           <SelectField label="Paid By" options={paidByOptions} value="customer" />
           <SelectField label="Payment Method" options={paymentMethodOptions} value="mobile_money" />
@@ -234,7 +234,7 @@ export default function ShipmentFormWorkspace({
         <FormSection
           id="package-information"
           title="Package Information"
-          description="Preserve the template package section and tune it for grocery, parcel, return, and marketplace orders."
+          description="Describe the parcel, grocery bundle, return, or marketplace order being moved through this lane."
         >
           <Input label="Amount" rounded="lg" defaultValue={value.replace("ZMW ", "")} />
           <div className="col-span-full grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -339,7 +339,7 @@ function UploadTile({ label = "Shipping attachment" }: { label?: string }) {
         <div className="flex-1">
           <Text className="font-semibold text-gray-900">{label}</Text>
           <Text className="mt-1 text-sm leading-6 text-gray-500">
-            Keep the template upload zone behavior visually, then use it for delivery proof, package note, or shipment paperwork.
+            Upload delivery proof, package notes, or shipment paperwork that operations and support may need later.
           </Text>
           <div className="mt-4 flex flex-wrap gap-3">
             <Button variant="outline" className="rounded-2xl px-4">

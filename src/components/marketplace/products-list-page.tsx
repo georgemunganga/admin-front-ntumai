@@ -125,7 +125,7 @@ export default function ProductsListPage() {
         breadcrumb={["Home", "Marketplace", "Products"]}
         eyebrow="Marketplace Kit"
         title="Products"
-        description="Reworked toward the archived ecommerce products workspace, then aligned to Ntumai marketplace catalog operations."
+        description="Track catalog readiness, storefront visibility, and vendor merchandising across all marketplace items."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">

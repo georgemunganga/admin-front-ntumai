@@ -21,7 +21,7 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
         breadcrumb={["Home", "Marketplace", "Products", product.id]}
         eyebrow="Marketplace Kit"
         title={product.name}
-        description="Customer-facing product details aligned to the archived ecommerce product page, with Ntumai vendor and fulfillment context."
+        description="Review storefront presentation, vendor context, and fulfillment details for this marketplace item."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.marketplace.products}>

@@ -710,7 +710,7 @@ function ScheduledRideWizard({ onClose }: { onClose: () => void }) {
             </div>
             <WizardSideNote
               title="Ready to create"
-              detail="This final step mirrors the simple template confirmation stage before the booking is saved into the scheduled dispatch board."
+              detail="This final step confirms the booking details before the scheduled ride is saved into the Ntumai planning board."
             />
           </div>
         ) : null}

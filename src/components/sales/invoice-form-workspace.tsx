@@ -54,7 +54,7 @@ export default function InvoiceFormWorkspace({
         breadcrumb={["Home", "Sales", "Invoices", ...(mode === "edit" && invoice ? [invoice.id, "Edit"] : ["Create"])]}
         eyebrow="Sales Kit"
         title={mode === "edit" ? `Edit ${id}` : "Create Invoice"}
-        description="Use the archived invoice workspace structure first, then align it to Ntumai merchant settlements, payout destinations, and finance review."
+        description="Prepare settlement invoices with payout destination, merchant totals, and finance review context."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={backHref}>

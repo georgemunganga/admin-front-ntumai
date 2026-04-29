@@ -114,7 +114,7 @@ export default function InvoiceListPage() {
         breadcrumb={["Home", "Sales", "Invoices"]}
         eyebrow="Sales Kit"
         title="Invoice List"
-        description="Reworked closer to the archived invoice table workspace, then aligned to Ntumai merchant settlements and finance follow-up."
+        description="Manage merchant settlement invoices, payout follow-up, and finance review from one list."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">

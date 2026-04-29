@@ -102,7 +102,7 @@ export default function ProductFormWorkspace({
         breadcrumb={["Home", "Marketplace", "Products", ...(mode === "edit" && product ? [product.id, "Edit"] : ["Create"])]}
         eyebrow="Marketplace Kit"
         title={title}
-        description="Use the archived ecommerce product form structure, then align the fields to Ntumai marketplace, vendor, and catalog-review workflows."
+        description="Manage product identity, pricing, inventory, catalog placement, and storefront readiness."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={backHref}>
@@ -142,7 +142,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="summary"
           title="Summary"
-          description="Mirror the template summary section first, then map it to vendor identity, customer-facing copy, and storefront state."
+          description="Set vendor identity, storefront copy, and readiness state for this catalog item."
         >
           <Input label="Product name" rounded="lg" defaultValue={name} />
           <SelectField label="Vendor store" options={vendorOptions} value={vendor} />
@@ -161,7 +161,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="media"
           title="Images & Gallery"
-          description="Keep the gallery/media section visible as its own block so the product workspace behaves like the template rather than a basic CRUD form."
+          description="Upload the cover image, detail shots, and packaging visuals used on the storefront."
         >
           <UploadTile />
           <div className="col-span-full grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -182,7 +182,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="pricing-inventory"
           title="Pricing & Inventory"
-          description="Use the template pricing/inventory section and fill it with vendor stock, fee, and sale readiness controls."
+          description="Set stock, price, fees, and sale readiness for this catalog item."
         >
           <Input label="Price" rounded="lg" defaultValue={price} prefix="ZMW" />
           <Input label="Stock level" rounded="lg" defaultValue={stockLevel} />
@@ -195,7 +195,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="product-identifiers"
           title="Product Identifiers & Custom Fields"
-          description="Follow the template identifier section so operators can manage SKU, vendor references, and Ntumai-specific catalog fields in one place."
+          description="Manage SKU, vendor references, and internal catalog identifiers in one place."
         >
           <Input label="SKU" rounded="lg" defaultValue={sku} />
           <Input label="Vendor reference" rounded="lg" defaultValue={`${sku}-NTM`} />
@@ -225,7 +225,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="seo"
           title="SEO"
-          description="Preserve the template SEO block so the catalog entry has a clear search title, handle, and metadata path."
+          description="Control search title, handle, and metadata used by the storefront and discovery flows."
         >
           <Input label="Storefront title" rounded="lg" defaultValue={name} />
           <Input label="URL handle" rounded="lg" defaultValue={product?.slug ?? "organic-tomato-basket"} />
@@ -240,7 +240,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="variant-options"
           title="Variant Options"
-          description="Use the variant section even when a product is simple, so the form keeps template parity across all marketplace item types."
+          description="Manage size, pack, or option variants when the product needs multiple sellable versions."
         >
           <Input label="Variant group" rounded="lg" defaultValue={category === "Quick meals" ? "Portion size" : "Pack size"} />
           <Input label="Option 1" rounded="lg" defaultValue={category === "Quick meals" ? "Regular" : "Standard"} />
@@ -251,7 +251,7 @@ export default function ProductFormWorkspace({
         <FormSection
           id="tags-category"
           title="Tags & Category"
-          description="Finish with the template taxonomy block so the product stays filterable, reviewable, and easy to place in the mobile app storefront."
+          description="Place the product in the right categories so it stays searchable, reviewable, and easy to merchandise."
         >
           <SelectField label="Main category" options={categoryOptions} value={category} />
           <SelectField label="Subcategory" options={subcategoryOptions} value={subcategory} />
@@ -320,7 +320,7 @@ function UploadTile() {
         <div className="flex-1">
           <Text className="font-semibold text-gray-900">Upload media set</Text>
           <Text className="mt-1 text-sm leading-6 text-gray-500">
-            Use product cover, detail shots, and packaging frames so the storefront view reads like the archived template gallery block.
+            Use product cover, detail shots, and packaging frames that make the mobile storefront easier to browse and trust.
           </Text>
           <div className="mt-4 flex flex-wrap gap-3">
             <Button variant="outline" className="rounded-2xl px-4">

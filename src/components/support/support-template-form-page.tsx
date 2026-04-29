@@ -49,7 +49,7 @@ export default function SupportTemplateFormPage({
         breadcrumb={mode === "create" ? ["Home", "Support", "Templates", "Create"] : ["Home", "Support", "Templates", template!.id, "Edit"]}
         eyebrow="Support Desk"
         title={title}
-        description="Form tightened toward the archived support template workflow, then aligned to Ntumai communication lanes and delivery operations."
+        description="Draft or update reusable support messages for customers, vendors, taskers, and internal teams."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={mode === "edit" ? routes.supportDesk.templateDetails(template!.id) : routes.supportDesk.templates}>

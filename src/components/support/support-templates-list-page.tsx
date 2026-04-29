@@ -41,7 +41,7 @@ export default function SupportTemplatesListPage() {
         breadcrumb={["Home", "Support", "Templates"]}
         eyebrow="Support Desk"
         title="Support Templates"
-        description="Closer to the archived support snippets workspace, then adapted to Ntumai customer, tasker, vendor, and ops communication flows."
+        description="Manage reusable customer, vendor, tasker, and internal operations messages from one workspace."
         action={
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">

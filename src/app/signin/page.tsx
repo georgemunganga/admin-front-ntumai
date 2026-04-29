@@ -42,7 +42,7 @@ export default function SignInPage() {
       }
       description="Return to the exact page you were working on and continue inside the Ntumai admin workspace."
       bannerTitle="The simplest way to manage your admin workspace."
-      bannerDescription="Use one admin surface for operations, support, dispatch, and merchant activity while keeping the original template layout intact."
+      bannerDescription="Use one admin surface for operations, support, dispatch, finance, and merchant activity across Ntumai."
       pageImage={
         <div className="mx-auto max-w-[560px]">
           <div className="rounded-[32px] border border-white/60 bg-white/80 p-8 text-left shadow-sm shadow-gray-200/50">

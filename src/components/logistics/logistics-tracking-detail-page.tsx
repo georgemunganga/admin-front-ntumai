@@ -41,7 +41,7 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
         breadcrumb={["Home", "Logistics", "Tracking", id]}
         eyebrow="Logistics Kit"
         title="Tracking"
-        description="Tracking detail page ported closer to the archived logistics template, then relabeled for Ntumai shipment, tasker, and customer tracking flows."
+        description="Track shipment progress, tasker movement, and customer-facing delivery updates from one operations view."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.logistics.tracking}>

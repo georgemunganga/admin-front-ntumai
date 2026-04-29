@@ -19,7 +19,7 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
         breadcrumb={["Home", "Support", "Templates", template.id]}
         eyebrow="Support Desk"
         title={template.name}
-        description="Template detail view aligned more closely to the snippets/template workflow and Ntumai support communication usage."
+        description="Review the live copy, placeholders, and release state for this support communication asset."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.supportDesk.templates}>

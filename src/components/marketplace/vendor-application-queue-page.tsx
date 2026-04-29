@@ -111,7 +111,7 @@ const seed: VendorApplication[] = [
     ],
     notes: ["Strong candidate for same-day launch."],
     links: [
-      { label: "Vendor record", href: routes.marketplace.vendors },
+      { label: "Vendor record", href: routes.marketplace.vendorDetails("VND-2398") },
       { label: "Products", href: routes.marketplace.products },
     ],
   },

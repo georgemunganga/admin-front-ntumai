@@ -73,7 +73,7 @@ export default function OrderFormWorkspace({
         breadcrumb={["Home", "Sales", "Orders", ...(mode === "edit" && order ? [order.id, "Edit"] : ["Create"])]}
         eyebrow="Sales Kit"
         title={mode === "edit" ? `Edit ${orderNumber}` : "Create Order"}
-        description="Use the archived ecommerce checkout layout, then align the billing, shipping, and order-summary content to Ntumai marketplace and delivery operations."
+        description="Capture billing, shipping, and order context for marketplace fulfillment and delivery operations."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={backHref}>
