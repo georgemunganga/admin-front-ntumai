@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -13,6 +14,7 @@ import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { crudPages, CrudRecord } from "@/components/crud/crud-data";
+import { routes } from "@/config/routes";
 
 const rows = crudPages.customers.rows;
 
@@ -60,7 +62,12 @@ export default function CrmCustomersPage() {
         header: "Customer",
         cell: ({ row }) => (
           <div>
-            <Text className="font-semibold text-gray-900">{row.original.primary}</Text>
+            <Link
+              href={routes.crm.customerDetails(row.original.id)}
+              className="font-semibold text-gray-900 hover:text-primary"
+            >
+              {row.original.primary}
+            </Link>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
           </div>
         ),

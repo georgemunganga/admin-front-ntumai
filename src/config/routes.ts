@@ -80,6 +80,7 @@ export const routes = {
     overview: "/crm",
     home: "/crm",
     customers: "/crm/customers",
+    customerDetails: (id: string) => `/crm/customers/${id}`,
     riders: "/crm/riders",
     corporateAccounts: "/crm/corporate-accounts",
     wallets: "/crm/wallets",
