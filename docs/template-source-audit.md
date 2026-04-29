@@ -298,8 +298,6 @@ Reason:
 
 #### Logistics
 
-- `Logistics > Shipment Detail`
-  - acceptable, but still adapted rather than truly recovered
 - `Logistics > Logistics Overview`
 - `Logistics > Tracking`
 
@@ -325,8 +323,8 @@ Reason:
 If work resumes later, the best next targets are:
 
 1. `Sales > Orders > List`
-2. `Logistics > Shipment Detail`
-3. `Marketplace > Marketplace Overview`
-4. `Logistics > Logistics Overview`
-5. `Logistics > Tracking`
+2. `Marketplace > Marketplace Overview`
+3. `Logistics > Logistics Overview`
+4. `Logistics > Tracking`
+5. `Sales > Orders > List` detail tightening only if a stricter source recovery is found
 6. overview pages still using `SectionPage` / `ModulePage`

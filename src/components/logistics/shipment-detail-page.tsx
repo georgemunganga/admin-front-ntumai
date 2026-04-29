@@ -39,10 +39,13 @@ export default function ShipmentDetailPage({ id }: { id: string }) {
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-        <ShellCard title="Shipment summary" description="Operational shipment details.">
+        <ShellCard title="Shipment summary" description="Tracking, tasker, and route detail.">
           <div className="grid gap-4 md:grid-cols-2">
             <InfoTile label="Customer" value={shipment.customer} />
+            <InfoTile label="Customer phone" value={shipment.customerPhone} />
             <InfoTile label="Tasker" value={shipment.tasker} />
+            <InfoTile label="Recipient / office" value={shipment.recipient} />
+            <InfoTile label="Tracking ID" value={shipment.trackingId} />
             <InfoTile label="Pickup" value={shipment.pickup} />
             <InfoTile label="Dropoff" value={shipment.dropoff} />
             <InfoTile label="Lane" value={shipment.lane} />
@@ -50,7 +53,7 @@ export default function ShipmentDetailPage({ id }: { id: string }) {
           </div>
         </ShellCard>
 
-        <ShellCard title="Status" description="Current shipment state.">
+        <ShellCard title="Status" description="Current shipment and watch state.">
           <div className="space-y-4">
             <div className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
               <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Shipment state</Text>
@@ -60,13 +63,23 @@ export default function ShipmentDetailPage({ id }: { id: string }) {
                   {shipment.updatedAt}
                 </Badge>
               </div>
+              <div className="mt-4 space-y-2 text-sm text-gray-500">
+                <div className="flex items-center justify-between gap-3">
+                  <span>Owner</span>
+                  <span className="font-medium text-gray-900">{shipment.owner}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>Tracking visibility</span>
+                  <span className="font-medium text-gray-900">Public tracking enabled</span>
+                </div>
+              </div>
             </div>
           </div>
         </ShellCard>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ShellCard title="Shipment markers" description="Current operational markers.">
+        <ShellCard title="Shipment markers" description="Parcel and delivery context.">
           <div className="space-y-3">
             {shipment.items.map((item) => (
               <div key={item.label} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
