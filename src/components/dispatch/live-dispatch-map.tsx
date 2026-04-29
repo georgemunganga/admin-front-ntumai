@@ -23,6 +23,10 @@ type MapEntity = {
   lng: number;
 };
 
+const GOOGLE_MAPS_API_KEY =
+  process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+  "AIzaSyDw59gPssVHEg1TcHoC9at1KDF98yVnQe4";
+
 const dispatchEntities: MapEntity[] = [
   {
     id: "tsk_roma_1",
@@ -180,9 +184,7 @@ export default function LiveDispatchMap() {
     dispatchEntities.find((entity) => entity.id === selectedId) ?? dispatchEntities[0];
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    if (!apiKey) {
+    if (!GOOGLE_MAPS_API_KEY) {
       setMapStatus("missing-key");
       return;
     }
@@ -190,7 +192,7 @@ export default function LiveDispatchMap() {
     let mounted = true;
 
     const loader = new Loader({
-      apiKey,
+      apiKey: GOOGLE_MAPS_API_KEY,
       version: "weekly",
     });
 
