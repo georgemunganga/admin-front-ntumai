@@ -111,7 +111,7 @@ const seed: VendorApplication[] = [
     ],
     notes: ["Strong candidate for same-day launch."],
     links: [
-      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Vendor record", href: routes.marketplace.vendors },
       { label: "Products", href: routes.marketplace.products },
     ],
   },
@@ -143,6 +143,7 @@ const seed: VendorApplication[] = [
     ],
     notes: ["Do not move this to standard launch flow until restricted-goods checks are closed."],
     links: [
+      { label: "Vendor record", href: routes.marketplace.vendorDetails("VND-2394") },
       { label: "Safety compliance", href: routes.risk.compliance },
       { label: "Support escalations", href: routes.supportDesk.escalations },
     ],
@@ -175,6 +176,7 @@ const seed: VendorApplication[] = [
     ],
     notes: ["This should stay in catalog lane, not reopen compliance work."],
     links: [
+      { label: "Vendor record", href: routes.marketplace.vendorDetails("VND-2401") },
       { label: "Categories", href: routes.marketplace.categories },
       { label: "Products", href: routes.marketplace.products },
     ],
@@ -207,6 +209,7 @@ const seed: VendorApplication[] = [
     ],
     notes: ["Good launch candidate after ops settings are filled."],
     links: [
+      { label: "Vendor record", href: routes.marketplace.vendorDetails("VND-2388") },
       { label: "Payouts", href: routes.sales.payouts },
       { label: "Zones", href: routes.logistics.zones },
     ],
@@ -240,7 +243,7 @@ const seed: VendorApplication[] = [
     notes: ["Keep this in follow-up lane until corrected legal entity data arrives."],
     links: [
       { label: "Payouts", href: routes.sales.payouts },
-      { label: "Support inbox", href: routes.supportDesk.inbox },
+      { label: "Vendor list", href: routes.marketplace.vendors },
     ],
   },
 ];
@@ -586,7 +589,7 @@ export default function VendorApplicationQueuePage() {
         breadcrumb={["Home", "Marketplace", "Vendor Applications"]}
         eyebrow="Marketplace Ops"
         title="Vendor application queue"
-        description="Pending vendor applications."
+        description="Launch, compliance, catalog, and payout setup reviews for incoming merchant partners."
         badge="Queue"
       />
 
@@ -638,7 +641,7 @@ export default function VendorApplicationQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Merchant onboarding queue" description="Review and onboard.">
+      <ShellCard title="Merchant onboarding queue" description="Triage launch readiness, compliance blockers, and provisioning gaps.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

@@ -328,9 +328,9 @@ export default function DispatchScheduledRidesPage() {
         <StatCard
           label="Need supply lock"
           value={String(unlockedCount)}
-          change="Driver assignment"
+          change="Tasker assignment"
           tone="warning"
-          detail="Scheduled rides that still need a reserved driver or a confirmed fallback supply plan."
+          detail="Scheduled rides that still need a reserved tasker or a confirmed fallback supply plan."
         />
         <StatCard
           label="Airport-linked"

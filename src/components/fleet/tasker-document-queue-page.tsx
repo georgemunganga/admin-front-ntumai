@@ -106,7 +106,7 @@ const casesSeed: TaskerDocumentCase[] = [
       "If approved, create a renewal reminder 7 days before expiry.",
     ],
     links: [
-      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Application queue", href: routes.fleet.driverApplications },
       { label: "Taskers", href: routes.logistics.taskers },
     ],
   },
@@ -136,7 +136,7 @@ const casesSeed: TaskerDocumentCase[] = [
     ],
     notes: ["Likely resubmission case, not a rejection case."],
     links: [
-      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Application queue", href: routes.fleet.driverApplications },
       { label: "Support inbox", href: routes.supportDesk.inbox },
     ],
   },
@@ -166,7 +166,7 @@ const casesSeed: TaskerDocumentCase[] = [
     ],
     notes: ["If approved, application can stay in final approval lane."],
     links: [
-      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Application queue", href: routes.fleet.driverApplications },
       { label: "Taskers", href: routes.logistics.taskers },
     ],
   },
@@ -226,7 +226,7 @@ const casesSeed: TaskerDocumentCase[] = [
     ],
     notes: ["Low-friction approval if the issue-date strip is readable enough on zoom."],
     links: [
-      { label: "Tasker applications", href: routes.fleet.driverApplications },
+      { label: "Application queue", href: routes.fleet.driverApplications },
       { label: "Taskers", href: routes.logistics.taskers },
     ],
   },
@@ -566,7 +566,7 @@ export default function TaskerDocumentQueuePage() {
         breadcrumb={["Home", "Fleet", "Tasker Documents"]}
         eyebrow="Compliance Ops"
         title="Tasker document queue"
-        description="Pending document reviews."
+        description="Identity, permit, inspection, and expiry-sensitive compliance reviews for active and onboarding taskers."
         badge="Queue"
       />
 
@@ -618,7 +618,7 @@ export default function TaskerDocumentQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Document review queue" description="Review and resolve.">
+      <ShellCard title="Document review queue" description="Clear usable documents, request re-uploads, or hold risky compliance cases.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

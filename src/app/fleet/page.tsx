@@ -8,7 +8,7 @@ import { Badge, Text, Title } from "rizzui";
 
 const supplyMix = [
   { label: "Motorbike taskers", value: "286", share: "61%", note: "Primary same-day and food delivery pool." },
-  { label: "Drivers", value: "104", share: "22%", note: "Car-based supply for protected and longer trips." },
+  { label: "Car taskers", value: "104", share: "22%", note: "Car-based supply for protected and longer trips." },
   { label: "Truck operators", value: "28", share: "6%", note: "Heavy and commercial fulfillment capacity." },
   { label: "Walking taskers", value: "49", share: "11%", note: "Short-hop and dense CBD errands." },
 ];
@@ -52,7 +52,7 @@ export default function FleetPage() {
           detail="All active and onboarding supply types combined."
         />
         <StatCard
-          label="Total drivers"
+          label="Total car taskers"
           value="104"
           change="+7 online now"
           tone="positive"

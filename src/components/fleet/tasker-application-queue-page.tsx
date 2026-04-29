@@ -122,7 +122,7 @@ const applicationsSeed: TaskerApplication[] = [
     ],
     links: [
       { label: "Taskers", href: routes.logistics.taskers },
-      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Tasker documents", href: routes.fleet.driverDocuments },
     ],
   },
   {
@@ -152,7 +152,7 @@ const applicationsSeed: TaskerApplication[] = [
     ],
     notes: ["Candidate should be nudged before end of day to avoid churn."],
     links: [
-      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Tasker documents", href: routes.fleet.driverDocuments },
       { label: "Support inbox", href: routes.supportDesk.inbox },
     ],
   },
@@ -183,7 +183,7 @@ const applicationsSeed: TaskerApplication[] = [
     ],
     notes: ["High-value mode applicant. Do not reject until insurance follow-up is complete."],
     links: [
-      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Tasker documents", href: routes.fleet.driverDocuments },
       { label: "Safety compliance", href: routes.risk.compliance },
     ],
   },
@@ -244,7 +244,7 @@ const applicationsSeed: TaskerApplication[] = [
     ],
     notes: ["Good candidate, but still very early in pipeline."],
     links: [
-      { label: "Driver documents", href: routes.fleet.driverDocuments },
+      { label: "Tasker documents", href: routes.fleet.driverDocuments },
       { label: "Taskers", href: routes.logistics.taskers },
     ],
   },
@@ -624,7 +624,7 @@ export default function TaskerApplicationQueuePage() {
         breadcrumb={["Home", "Fleet", "Tasker Applications"]}
         eyebrow="Fleet Ops"
         title="Tasker application queue"
-        description="Pending tasker applications."
+        description="Activation, resubmission, and risk review across the incoming Ntumai tasker pipeline."
         badge="Queue"
       />
 
@@ -676,7 +676,7 @@ export default function TaskerApplicationQueuePage() {
         </nav>
       </div>
 
-      <ShellCard title="Review queue" description="Review and decide.">
+      <ShellCard title="Review queue" description="Move candidates forward, return them for changes, or hold risky applications.">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input

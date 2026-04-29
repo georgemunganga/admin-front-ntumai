@@ -9,7 +9,7 @@ import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 
 const insights = [
-  { label: "Logged actions today", value: "1,284", detail: "Tracked admin events across the ERP." },
+  { label: "Logged actions today", value: "1,284", detail: "Tracked admin actions across Ntumai operations." },
   { label: "Sensitive actions", value: "39", detail: "Permission edits, payouts, and restrictions." },
   { label: "Audit exceptions", value: "4", detail: "Activity trails needing follow-up." },
 ];
@@ -82,7 +82,7 @@ export default function PlatformAdminActivityLogsPage() {
         breadcrumb={["Home", "Platform", "Admin Activity Logs"]}
         eyebrow="Platform"
         title="Admin activity logs"
-        description="Sensitive changes and audit activity."
+        description="Sensitive changes, approval trails, and governance exceptions across the admin workspace."
         badge="Audit"
       />
 
@@ -99,7 +99,7 @@ export default function PlatformAdminActivityLogsPage() {
           </div>
         </ShellCard>
 
-        <ShellCard title="Action queue">
+        <ShellCard title="Action queue" description="Audit items that still need linked operational follow-up.">
           <div className="space-y-3">
             {queue.map((item) => (
               <div key={item.title} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
