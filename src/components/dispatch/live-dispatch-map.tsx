@@ -2,11 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-import { Badge, Button, Text, Title } from "rizzui";
+import { Badge, Button, Select, Text, Title } from "rizzui";
 import {
   PiArrowClockwiseBold,
+  PiArrowsOutCardinalBold,
+  PiClockCounterClockwiseBold,
+  PiEyeBold,
+  PiFadersHorizontalBold,
   PiMapPinBold,
   PiNavigationArrowBold,
+  PiPhoneCallBold,
+  PiStackPlusBold,
   PiStorefrontBold,
   PiWarningCircleBold,
 } from "react-icons/pi";
@@ -21,6 +27,8 @@ type MapEntity = {
   detail: string;
   lat: number;
   lng: number;
+  vehicleType?: "Walking" | "Bicycle" | "Motorbike" | "Car" | "Van";
+  zone: "CBD" | "Roma" | "Woodlands" | "Airport" | "Rhodes Park";
 };
 
 const GOOGLE_MAPS_API_KEY =
@@ -36,6 +44,8 @@ const dispatchEntities: MapEntity[] = [
     detail: "Heading to Kabulonga handoff",
     lat: -15.4165,
     lng: 28.3118,
+    vehicleType: "Bicycle",
+    zone: "Roma",
   },
   {
     id: "tsk_cbd_3",
@@ -45,6 +55,8 @@ const dispatchEntities: MapEntity[] = [
     detail: "Idle near Cairo Road",
     lat: -15.4136,
     lng: 28.2823,
+    vehicleType: "Bicycle",
+    zone: "CBD",
   },
   {
     id: "tsk_woodlands_8",
@@ -54,6 +66,8 @@ const dispatchEntities: MapEntity[] = [
     detail: "2 stops active in Woodlands",
     lat: -15.445,
     lng: 28.3346,
+    vehicleType: "Van",
+    zone: "Woodlands",
   },
   {
     id: "tsk_airport_2",
@@ -63,6 +77,8 @@ const dispatchEntities: MapEntity[] = [
     detail: "Holding airport queue",
     lat: -15.329,
     lng: 28.4532,
+    vehicleType: "Bicycle",
+    zone: "Airport",
   },
   {
     id: "ven_cbd_1",
@@ -72,6 +88,7 @@ const dispatchEntities: MapEntity[] = [
     detail: "26 catalog items live",
     lat: -15.4114,
     lng: 28.2862,
+    zone: "CBD",
   },
   {
     id: "ven_woodlands_4",
@@ -81,6 +98,7 @@ const dispatchEntities: MapEntity[] = [
     detail: "Prep queue rising",
     lat: -15.4382,
     lng: 28.3202,
+    zone: "Woodlands",
   },
   {
     id: "ven_roma_3",
@@ -90,6 +108,7 @@ const dispatchEntities: MapEntity[] = [
     detail: "Pharmacy handoff ready",
     lat: -15.4016,
     lng: 28.3143,
+    zone: "Roma",
   },
   {
     id: "alt_1",
@@ -99,6 +118,7 @@ const dispatchEntities: MapEntity[] = [
     detail: "Customer waiting near Levy Junction",
     lat: -15.4172,
     lng: 28.2889,
+    zone: "CBD",
   },
   {
     id: "alt_2",
@@ -108,6 +128,7 @@ const dispatchEntities: MapEntity[] = [
     detail: "Tasker and customer mismatch in Rhodes Park",
     lat: -15.4271,
     lng: 28.3004,
+    zone: "Rhodes Park",
   },
 ];
 
@@ -179,9 +200,24 @@ export default function LiveDispatchMap() {
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "missing-key" | "error">("loading");
   const [selectedId, setSelectedId] = useState<string>(dispatchEntities[0]?.id ?? "");
+  const [kindFilter, setKindFilter] = useState<"all" | MarkerTone>("all");
+  const [vehicleFilter, setVehicleFilter] = useState<string>("all");
+  const [zoneFilter, setZoneFilter] = useState<string>("all");
+
+  const filteredEntities = dispatchEntities.filter((entity) => {
+    const kindMatch = kindFilter === "all" || entity.kind === kindFilter;
+    const vehicleMatch =
+      vehicleFilter === "all" ||
+      (entity.kind === "tasker" && entity.vehicleType === vehicleFilter);
+    const zoneMatch = zoneFilter === "all" || entity.zone === zoneFilter;
+
+    return kindMatch && vehicleMatch && zoneMatch;
+  });
 
   const selectedEntity =
-    dispatchEntities.find((entity) => entity.id === selectedId) ?? dispatchEntities[0];
+    filteredEntities.find((entity) => entity.id === selectedId) ??
+    filteredEntities[0] ??
+    dispatchEntities[0];
 
   useEffect(() => {
     if (!GOOGLE_MAPS_API_KEY) {
@@ -220,7 +256,7 @@ export default function LiveDispatchMap() {
         mapInstanceRef.current = map;
         infoWindowRef.current = infoWindow;
 
-        markersRef.current = dispatchEntities.map((entity) => {
+        markersRef.current = filteredEntities.map((entity) => {
           const marker = new google.maps.Marker({
             map,
             position: { lat: entity.lat, lng: entity.lng },
@@ -243,6 +279,14 @@ export default function LiveDispatchMap() {
           return marker;
         });
 
+        if (filteredEntities.length > 0) {
+          const bounds = new google.maps.LatLngBounds();
+          filteredEntities.forEach((entity) =>
+            bounds.extend({ lat: entity.lat, lng: entity.lng }),
+          );
+          map.fitBounds(bounds, 72);
+        }
+
         setMapStatus("ready");
       })
       .catch(() => {
@@ -257,7 +301,7 @@ export default function LiveDispatchMap() {
       infoWindowRef.current = null;
       mapInstanceRef.current = null;
     };
-  }, []);
+  }, [filteredEntities]);
 
   function focusEntity(entity: MapEntity) {
     if (!mapInstanceRef.current) return;
@@ -281,7 +325,7 @@ export default function LiveDispatchMap() {
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-5 py-4">
         <div>
           <Title as="h3" className="text-base font-semibold text-gray-900">
             Live operations map
@@ -304,11 +348,86 @@ export default function LiveDispatchMap() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-end gap-3 border-b border-gray-100 bg-gray-50/70 px-5 py-4">
+        <div className="flex items-center gap-2 pe-2 text-sm font-medium text-gray-700">
+          <PiFadersHorizontalBold className="h-4 w-4 text-primary" />
+          Filters
+        </div>
+        <div className="min-w-[180px] flex-1 sm:max-w-[220px]">
+          <Select
+            placeholder="Marker type"
+            options={[
+              { label: "All markers", value: "all" },
+              { label: "Taskers", value: "tasker" },
+              { label: "Vendors", value: "vendor" },
+              { label: "Alerts", value: "alert" },
+            ]}
+            value={kindFilter}
+            onChange={(option: any) => setKindFilter(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
+          />
+        </div>
+        <div className="min-w-[180px] flex-1 sm:max-w-[220px]">
+          <Select
+            placeholder="Vehicle type"
+            options={[
+              { label: "All vehicles", value: "all" },
+              { label: "Walking", value: "Walking" },
+              { label: "Bicycle", value: "Bicycle" },
+              { label: "Motorbike", value: "Motorbike" },
+              { label: "Car", value: "Car" },
+              { label: "Van", value: "Van" },
+            ]}
+            value={vehicleFilter}
+            onChange={(option: any) => setVehicleFilter(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
+          />
+        </div>
+        <div className="min-w-[180px] flex-1 sm:max-w-[220px]">
+          <Select
+            placeholder="Zone"
+            options={[
+              { label: "All zones", value: "all" },
+              { label: "CBD", value: "CBD" },
+              { label: "Roma", value: "Roma" },
+              { label: "Woodlands", value: "Woodlands" },
+              { label: "Airport", value: "Airport" },
+              { label: "Rhodes Park", value: "Rhodes Park" },
+            ]}
+            value={zoneFilter}
+            onChange={(option: any) => setZoneFilter(option?.value ?? "all")}
+            selectClassName="rounded-2xl"
+          />
+        </div>
+      </div>
+
       <div className="relative h-[72vh] min-h-[620px] max-h-[860px] w-full bg-gray-100">
         <div ref={mapRef} className="h-full w-full" />
 
+        <div className="pointer-events-none absolute inset-x-5 top-5 z-10 flex flex-wrap items-start justify-between gap-3">
+          <div className="pointer-events-auto flex flex-wrap gap-2">
+            <Badge variant="flat" className="rounded-2xl bg-white/95 px-3 py-2 text-gray-900 shadow">
+              {filteredEntities.filter((entity) => entity.kind === "tasker").length} taskers
+            </Badge>
+            <Badge variant="flat" className="rounded-2xl bg-white/95 px-3 py-2 text-gray-900 shadow">
+              {filteredEntities.filter((entity) => entity.kind === "vendor").length} vendors
+            </Badge>
+            <Badge variant="flat" className="rounded-2xl bg-white/95 px-3 py-2 text-gray-900 shadow">
+              {filteredEntities.filter((entity) => entity.kind === "alert").length} alerts
+            </Badge>
+          </div>
+
+          <div className="pointer-events-auto rounded-[22px] border border-gray-200 bg-white/96 p-3 shadow-lg backdrop-blur">
+            <div className="grid gap-2 text-sm">
+              <LegendRow label="Taskers" toneClass="bg-primary" />
+              <LegendRow label="Vendors" toneClass="bg-secondary" />
+              <LegendRow label="Alerts" toneClass="bg-red-500" />
+            </div>
+          </div>
+        </div>
+
         {selectedEntity ? (
-          <div className="pointer-events-none absolute left-5 top-5 z-10 max-w-sm rounded-[24px] border border-gray-200 bg-white/96 p-4 shadow-xl backdrop-blur">
+          <div className="absolute bottom-5 left-5 z-10 max-w-sm rounded-[24px] border border-gray-200 bg-white/96 p-4 shadow-xl backdrop-blur">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Text className="font-semibold text-gray-900">{selectedEntity.name}</Text>
@@ -338,6 +457,32 @@ export default function LiveDispatchMap() {
                 )}
                 <span>{toneLabel[selectedEntity.kind]}</span>
               </div>
+              {selectedEntity.zone ? (
+                <div className="flex items-center gap-2">
+                  <PiClockCounterClockwiseBold className="h-4 w-4 text-primary" />
+                  <span>{selectedEntity.zone}</span>
+                </div>
+              ) : null}
+              {selectedEntity.vehicleType ? (
+                <div className="flex items-center gap-2">
+                  <PiArrowsOutCardinalBold className="h-4 w-4 text-primary" />
+                  <span>{selectedEntity.vehicleType}</span>
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button size="sm" className="rounded-2xl bg-primary px-3 text-white hover:bg-primary/90">
+                <PiEyeBold className="me-1.5 h-4 w-4" />
+                View tasker
+              </Button>
+              <Button size="sm" variant="outline" className="rounded-2xl px-3">
+                <PiPhoneCallBold className="me-1.5 h-4 w-4" />
+                Call
+              </Button>
+              <Button size="sm" variant="outline" className="rounded-2xl px-3">
+                <PiStackPlusBold className="me-1.5 h-4 w-4" />
+                Open order
+              </Button>
             </div>
           </div>
         ) : null}
@@ -362,6 +507,21 @@ export default function LiveDispatchMap() {
           </div>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+function LegendRow({
+  label,
+  toneClass,
+}: {
+  label: string;
+  toneClass: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`h-3 w-3 rounded-full ${toneClass}`} />
+      <span className="text-gray-700">{label}</span>
     </div>
   );
 }
