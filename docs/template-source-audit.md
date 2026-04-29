@@ -299,10 +299,9 @@ Reason:
 #### Logistics
 
 - `Logistics > Logistics Overview`
-- `Logistics > Tracking`
 
 Reason:
-- overview/tracking are still custom-composed and not yet tied to a stronger recovered page source
+- overview is still custom-composed and not yet tied to a stronger recovered page source
 
 #### Global temporary scaffolds
 
@@ -325,6 +324,5 @@ If work resumes later, the best next targets are:
 1. `Sales > Orders > List`
 2. `Marketplace > Marketplace Overview`
 3. `Logistics > Logistics Overview`
-4. `Logistics > Tracking`
-5. `Sales > Orders > List` detail tightening only if a stricter source recovery is found
-6. overview pages still using `SectionPage` / `ModulePage`
+4. `Sales > Orders > List` detail tightening only if a stricter source recovery is found
+5. overview pages still using `SectionPage` / `ModulePage`

@@ -42,6 +42,7 @@ export const routes = {
     shipmentDetails: (id: string) => `/logistics/shipments/${id}`,
     editShipment: (id: string) => `/logistics/shipments/${id}/edit`,
     tracking: "/logistics/tracking",
+    trackingDetails: (id: string) => `/logistics/tracking/${id}`,
     drivers: "/logistics/drivers",
     exceptions: "/logistics/exceptions",
     zones: "/logistics/zones-geofencing",
