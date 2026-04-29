@@ -308,7 +308,7 @@ The main remaining architectural drift point is:
 
 Reason:
 - the fallback `ModulePage` layer and unused entity-list wrappers were removed
-- remaining pages still depending on `SectionPage` should still be treated as temporary
+- remaining config-style pages still depending on `SectionPage` should still be treated as temporary
 
 ### Practical Resume Order
 
@@ -316,4 +316,5 @@ If work resumes later, the best next targets are:
 
 1. `Marketplace > Marketplace Overview`
 2. `Logistics > Logistics Overview`
-3. overview pages still using `SectionPage`
+3. `Platform > Settings / Admin Users / Activity Logs / App Version Control`
+4. `Logistics > Zones / Service Types / Pricing`
