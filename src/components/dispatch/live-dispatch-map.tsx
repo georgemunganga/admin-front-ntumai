@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Badge, Button, Select, Text, Title } from "rizzui";
 import {
   PiArrowClockwiseBold,
@@ -29,6 +30,15 @@ type MapEntity = {
   lng: number;
   vehicleType?: "Walking" | "Bicycle" | "Motorbike" | "Car" | "Van";
   zone: "CBD" | "Roma" | "Woodlands" | "Airport" | "Rhodes Park";
+  heartbeatSec?: number;
+  routePath?: Array<{ lat: number; lng: number }>;
+};
+
+type ZoneOverlay = {
+  name: MapEntity["zone"];
+  center: { lat: number; lng: number };
+  radius: number;
+  pressure: "Healthy" | "Watch" | "Hot";
 };
 
 const GOOGLE_MAPS_API_KEY =
@@ -46,6 +56,12 @@ const dispatchEntities: MapEntity[] = [
     lng: 28.3118,
     vehicleType: "Bicycle",
     zone: "Roma",
+    heartbeatSec: 8,
+    routePath: [
+      { lat: -15.4165, lng: 28.3118 },
+      { lat: -15.4214, lng: 28.3189 },
+      { lat: -15.4262, lng: 28.3278 },
+    ],
   },
   {
     id: "tsk_cbd_3",
@@ -57,6 +73,12 @@ const dispatchEntities: MapEntity[] = [
     lng: 28.2823,
     vehicleType: "Bicycle",
     zone: "CBD",
+    heartbeatSec: 21,
+    routePath: [
+      { lat: -15.4136, lng: 28.2823 },
+      { lat: -15.4123, lng: 28.2873 },
+      { lat: -15.4098, lng: 28.2922 },
+    ],
   },
   {
     id: "tsk_woodlands_8",
@@ -68,6 +90,12 @@ const dispatchEntities: MapEntity[] = [
     lng: 28.3346,
     vehicleType: "Van",
     zone: "Woodlands",
+    heartbeatSec: 34,
+    routePath: [
+      { lat: -15.445, lng: 28.3346 },
+      { lat: -15.4382, lng: 28.3202 },
+      { lat: -15.4325, lng: 28.3112 },
+    ],
   },
   {
     id: "tsk_airport_2",
@@ -79,6 +107,12 @@ const dispatchEntities: MapEntity[] = [
     lng: 28.4532,
     vehicleType: "Bicycle",
     zone: "Airport",
+    heartbeatSec: 5,
+    routePath: [
+      { lat: -15.329, lng: 28.4532 },
+      { lat: -15.3384, lng: 28.4419 },
+      { lat: -15.3491, lng: 28.4277 },
+    ],
   },
   {
     id: "ven_cbd_1",
@@ -129,6 +163,33 @@ const dispatchEntities: MapEntity[] = [
     lat: -15.4271,
     lng: 28.3004,
     zone: "Rhodes Park",
+  },
+];
+
+const zoneOverlays: ZoneOverlay[] = [
+  {
+    name: "CBD",
+    center: { lat: -15.4128, lng: 28.2854 },
+    radius: 1900,
+    pressure: "Hot",
+  },
+  {
+    name: "Roma",
+    center: { lat: -15.4071, lng: 28.3148 },
+    radius: 1650,
+    pressure: "Healthy",
+  },
+  {
+    name: "Woodlands",
+    center: { lat: -15.4405, lng: 28.3258 },
+    radius: 1750,
+    pressure: "Watch",
+  },
+  {
+    name: "Airport",
+    center: { lat: -15.3337, lng: 28.4486 },
+    radius: 2100,
+    pressure: "Watch",
   },
 ];
 
@@ -197,6 +258,9 @@ export default function LiveDispatchMap() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const clustererRef = useRef<MarkerClusterer | null>(null);
+  const polylinesRef = useRef<google.maps.Polyline[]>([]);
+  const circlesRef = useRef<google.maps.Circle[]>([]);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "missing-key" | "error">("loading");
   const [selectedId, setSelectedId] = useState<string>(dispatchEntities[0]?.id ?? "");
@@ -279,6 +343,31 @@ export default function LiveDispatchMap() {
           return marker;
         });
 
+        clustererRef.current = new MarkerClusterer({
+          map,
+          markers: markersRef.current,
+        });
+
+        circlesRef.current = zoneOverlays.map((zone) => {
+          const tone =
+            zone.pressure === "Hot"
+              ? { fill: "#ef4444", stroke: "#ef4444" }
+              : zone.pressure === "Watch"
+                ? { fill: "#eab308", stroke: "#d97706" }
+                : { fill: "#1ABAA6", stroke: "#0f766e" };
+
+          return new google.maps.Circle({
+            map,
+            center: zone.center,
+            radius: zone.radius,
+            fillColor: tone.fill,
+            fillOpacity: 0.12,
+            strokeColor: tone.stroke,
+            strokeOpacity: 0.4,
+            strokeWeight: 2,
+          });
+        });
+
         if (filteredEntities.length > 0) {
           const bounds = new google.maps.LatLngBounds();
           filteredEntities.forEach((entity) =>
@@ -295,6 +384,12 @@ export default function LiveDispatchMap() {
 
     return () => {
       mounted = false;
+      clustererRef.current?.clearMarkers();
+      clustererRef.current = null;
+      polylinesRef.current.forEach((polyline) => polyline.setMap(null));
+      polylinesRef.current = [];
+      circlesRef.current.forEach((circle) => circle.setMap(null));
+      circlesRef.current = [];
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
       infoWindowRef.current?.close();
@@ -309,6 +404,33 @@ export default function LiveDispatchMap() {
     setSelectedId(entity.id);
     mapInstanceRef.current.panTo({ lat: entity.lat, lng: entity.lng });
     mapInstanceRef.current.setZoom(entity.kind === "alert" ? 14 : 13);
+
+    polylinesRef.current.forEach((polyline) => polyline.setMap(null));
+    polylinesRef.current = [];
+
+    if (entity.kind === "tasker" && entity.routePath?.length) {
+      const routeLine = new google.maps.Polyline({
+        map: mapInstanceRef.current,
+        path: entity.routePath,
+        geodesic: true,
+        strokeColor: "#1ABAA6",
+        strokeOpacity: 0.9,
+        strokeWeight: 5,
+        icons: [
+          {
+            icon: {
+              path: "M 0,-1 0,1",
+              strokeOpacity: 1,
+              scale: 3,
+            },
+            offset: "0",
+            repeat: "14px",
+          },
+        ],
+      });
+
+      polylinesRef.current = [routeLine];
+    }
 
     const marker = markersRef.current[dispatchEntities.findIndex((item) => item.id === entity.id)];
     if (marker && infoWindowRef.current) {
@@ -422,6 +544,7 @@ export default function LiveDispatchMap() {
               <LegendRow label="Taskers" toneClass="bg-primary" />
               <LegendRow label="Vendors" toneClass="bg-secondary" />
               <LegendRow label="Alerts" toneClass="bg-red-500" />
+              <LegendRow label="Hot zones" toneClass="bg-red-300" />
             </div>
           </div>
         </div>
@@ -469,6 +592,12 @@ export default function LiveDispatchMap() {
                   <span>{selectedEntity.vehicleType}</span>
                 </div>
               ) : null}
+              {selectedEntity.kind === "tasker" && selectedEntity.heartbeatSec != null ? (
+                <div className="flex items-center gap-2">
+                  <PiClockCounterClockwiseBold className="h-4 w-4 text-primary" />
+                  <span>{heartbeatLabel(selectedEntity.heartbeatSec)}</span>
+                </div>
+              ) : null}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button size="sm" className="rounded-2xl bg-primary px-3 text-white hover:bg-primary/90">
@@ -509,6 +638,12 @@ export default function LiveDispatchMap() {
       </div>
     </div>
   );
+}
+
+function heartbeatLabel(seconds: number) {
+  if (seconds <= 10) return `Heartbeat live ${seconds}s ago`;
+  if (seconds <= 30) return `Heartbeat warm ${seconds}s ago`;
+  return `Heartbeat stale ${seconds}s ago`;
 }
 
 function LegendRow({
