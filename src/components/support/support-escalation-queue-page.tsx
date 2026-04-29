@@ -11,6 +11,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -121,7 +122,7 @@ const seed: EscalationCase[] = [
     ],
     notes: ["Needs a coordinated update, not isolated replies from separate teams."],
     links: [
-      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Vendor record", href: vendorDetailHrefByName["Green Basket Market"] },
       { label: "Shipments", href: routes.logistics.shipments },
     ],
   },
@@ -165,7 +166,7 @@ const seed: EscalationCase[] = [
     notes: ["This is blocked upstream, not a pure support issue."],
     links: [
       { label: "Safety compliance", href: routes.risk.compliance },
-      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Vendor record", href: vendorDetailHrefByName["CityCare Pharmacy"] },
     ],
   },
 ];

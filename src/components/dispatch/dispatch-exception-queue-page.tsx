@@ -9,6 +9,7 @@ import {
   PiMagnifyingGlassBold,
   PiWarningCircleBold,
 } from "react-icons/pi";
+import { vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
@@ -95,7 +96,7 @@ const seed: DispatchException[] = [
     notes: ["Likely vendor-side preparation delay. Dispatch may need support handoff if customer contacts us first."],
     links: [
       { label: "Support inbox", href: routes.supportDesk.inbox },
-      { label: "Marketplace vendors", href: routes.marketplace.vendors },
+      { label: "Vendor record", href: vendorDetailHrefByName["QuickBite Express"] },
     ],
   },
   {
@@ -144,6 +145,7 @@ const seed: DispatchException[] = [
     ],
     notes: ["High-priority case. If contact is not restored, Support and Risk may both need the case context."],
     links: [
+      { label: "Vendor record", href: vendorDetailHrefByName["Green Basket Market"] },
       { label: "Safety compliance", href: routes.risk.compliance },
       { label: "Support escalations", href: routes.supportDesk.escalations },
     ],
@@ -170,7 +172,7 @@ const seed: DispatchException[] = [
     notes: ["Could become a failed handoff if wait threshold expires."],
     links: [
       { label: "Support tickets", href: routes.supportDesk.tickets },
-      { label: "Tracking cases", href: routes.logistics.tracking },
+      { label: "Vendor record", href: vendorDetailHrefByName["HomeBox Supplies"] },
     ],
   },
   {
@@ -194,7 +196,7 @@ const seed: DispatchException[] = [
     ],
     notes: ["Best handled with merchant-side readiness context, not only trip tracking."],
     links: [
-      { label: "Marketplace vendors", href: routes.marketplace.vendors },
+      { label: "Vendor record", href: vendorDetailHrefByName["CityCare Pharmacy"] },
       { label: "Support inbox", href: routes.supportDesk.inbox },
     ],
   },

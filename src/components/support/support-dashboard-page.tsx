@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Badge, Button, Table, Text, Title } from "rizzui";
 import { PiArrowUpRightBold } from "react-icons/pi";
+import { vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -25,9 +27,9 @@ const problemTypes = [
 ];
 
 const topCustomers = [
-  { name: "Loveness Phiri", city: "Lusaka", tickets: 12, lane: "Refund recovery" },
-  { name: "Chisomo Tembo", city: "Kitwe", tickets: 9, lane: "Service recovery" },
-  { name: "Green Basket Market", city: "Kitwe", tickets: 7, lane: "Merchant support" },
+  { name: "Loveness Phiri", city: "Lusaka", tickets: 12, lane: "Refund recovery", href: routes.crm.customers },
+  { name: "Chisomo Tembo", city: "Kitwe", tickets: 9, lane: "Service recovery", href: routes.crm.customers },
+  { name: "Green Basket Market", city: "Kitwe", tickets: 7, lane: "Merchant support", href: vendorDetailHrefByName["Green Basket Market"] },
 ];
 
 const agentActivity = [
@@ -140,7 +142,9 @@ export default function SupportDashboardPage() {
               {topCustomers.map((customer) => (
                 <Table.Row key={customer.name}>
                   <Table.Cell>
-                    <Text className="font-semibold text-gray-900">{customer.name}</Text>
+                    <Link href={customer.href} className="font-semibold text-gray-900 hover:text-primary">
+                      {customer.name}
+                    </Link>
                   </Table.Cell>
                   <Table.Cell>{customer.city}</Table.Cell>
                   <Table.Cell>{customer.tickets}</Table.Cell>

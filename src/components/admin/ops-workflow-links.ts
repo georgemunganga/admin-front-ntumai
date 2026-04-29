@@ -22,3 +22,11 @@ export const manualDispatchOrderHrefByBooking: Record<string, string> = {
   "ORD-50318": routes.sales.orderDetails("ORD-90014"),
   "ORD-50426": routes.sales.orderDetails("ORD-89941"),
 };
+
+export const vendorDetailHrefByName: Record<string, string> = {
+  "Green Basket Market": routes.marketplace.vendorDetails("VND-2401"),
+  "QuickBite Kitchens": routes.marketplace.vendorDetails("VND-2398"),
+  "QuickBite Express": routes.marketplace.vendorDetails("VND-2398"),
+  "CityCare Pharmacy": routes.marketplace.vendorDetails("VND-2394"),
+  "HomeBox Supplies": routes.marketplace.vendorDetails("VND-2388"),
+};
