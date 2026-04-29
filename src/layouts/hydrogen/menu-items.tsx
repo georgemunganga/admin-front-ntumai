@@ -3,6 +3,7 @@ import {
   PiArrowsSplitDuotone,
   PiChartLineUpDuotone,
   PiChatsCircleDuotone,
+  PiFolderLockDuotone,
   PiGearSixDuotone,
   PiHeadsetDuotone,
   PiHouseLineDuotone,
@@ -161,9 +162,14 @@ export const menuItems: MenuItem[] = [
       { name: "Content Management", href: routes.platform.content },
       { name: "App Version Control", href: routes.platform.appControl },
       { name: "System Health", href: routes.platform.health },
-      { name: "Admin Users & Roles", href: routes.platform.adminUsers },
+      { name: "Admin Users & Roles", href: routes.rolesPermissions },
       { name: "Admin Activity Logs", href: routes.platform.activityLogs },
       { name: "Settings", href: routes.platform.settings },
     ],
+  },
+  {
+    name: "Roles & Permissions",
+    href: routes.rolesPermissions,
+    icon: <PiFolderLockDuotone />,
   },
 ];

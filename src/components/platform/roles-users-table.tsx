@@ -1,0 +1,151 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
+import { PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
+import { useModal } from "@/app/shared/modal-views/use-modal";
+import CreateUserModal from "@/components/platform/create-user-modal";
+import { permissions, roleUsers, statuses } from "@/components/platform/roles-permissions-data";
+import { ROLES } from "@/config/constants";
+
+const roleOptions = [{ label: "All roles", value: "all" }].concat(
+  Object.values(ROLES).map((role) => ({ label: role, value: role })),
+);
+const statusOptions = [{ label: "All statuses", value: "all" }].concat(
+  statuses.map((status) => ({ label: status, value: status })),
+);
+
+function StatusPill({ value }: { value: string }) {
+  if (value === "Active") return <span className="text-green-dark">● {value}</span>;
+  if (value === "Deactivated") return <span className="text-red-dark">● {value}</span>;
+  return <span className="text-orange-dark">● {value}</span>;
+}
+
+export default function RolesUsersTable() {
+  const { openModal } = useModal();
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState("all");
+  const [status, setStatus] = useState("all");
+
+  const rows = useMemo(() => {
+    return roleUsers.filter((item) => {
+      const q = query.toLowerCase();
+      const queryMatch =
+        q.length === 0 ||
+        [item.fullName, item.email, item.role].join(" ").toLowerCase().includes(q);
+      const roleMatch = role === "all" || item.role === role;
+      const statusMatch = status === "all" || item.status === status;
+      return queryMatch && roleMatch && statusMatch;
+    });
+  }, [query, role, status]);
+
+  const isFiltered = query.length > 0 || role !== "all" || status !== "all";
+
+  return (
+    <div className="mt-14">
+      <div className="mb-4 @container">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3">
+          <Title as="h3" className="order-1 whitespace-nowrap pe-4 text-base font-semibold sm:text-lg">
+            All Users
+          </Title>
+          <div className="order-4 grid gap-2 @lg:grid-cols-2 @4xl:order-2 @4xl:flex @4xl:flex-row">
+            <Select
+              options={statusOptions}
+              value={status}
+              onChange={(option: any) => setStatus(option?.value ?? "all")}
+              selectClassName="rounded-2xl"
+            />
+            <Select
+              options={roleOptions}
+              value={role}
+              onChange={(option: any) => setRole(option?.value ?? "all")}
+              selectClassName="rounded-2xl"
+            />
+            {isFiltered ? (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setQuery("");
+                  setRole("all");
+                  setStatus("all");
+                }}
+                variant="flat"
+                className="h-9 w-full bg-gray-200/70 @lg:col-span-full @4xl:w-auto"
+              >
+                <PiTrashDuotone className="me-1.5 size-[17px]" /> Clear
+              </Button>
+            ) : null}
+          </div>
+          <Input
+            type="search"
+            clearable
+            placeholder="Search for users..."
+            value={query}
+            onClear={() => setQuery("")}
+            onChange={(e) => setQuery(e.target.value)}
+            prefix={<PiMagnifyingGlassBold className="size-4" />}
+            className="order-3 h-9 w-full @2xl:order-2 @2xl:ms-auto @2xl:max-w-60 @4xl:order-3"
+          />
+          <div className="order-2 ms-4 @2xl:order-3 @2xl:ms-0 @4xl:order-4 @4xl:shrink-0">
+            <Button
+              className="mt-0 rounded-2xl bg-primary text-white hover:bg-primary/90"
+              onClick={() => openModal({ view: <CreateUserModal />, customSize: 600 })}
+            >
+              <PiPlusBold className="me-1.5 h-4 w-4" />
+              Add New User
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-md border border-muted">
+        <Table>
+          <Table.Header>
+            <Table.Row>
+              <Table.Head>User ID</Table.Head>
+              <Table.Head>Name</Table.Head>
+              <Table.Head>Role</Table.Head>
+              <Table.Head>Created</Table.Head>
+              <Table.Head>Permissions</Table.Head>
+              <Table.Head>Status</Table.Head>
+              <Table.Head />
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {rows.map((row) => (
+              <Table.Row key={row.id}>
+                <Table.Cell>#{row.id}</Table.Cell>
+                <Table.Cell>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={row.fullName} size="sm" />
+                    <div>
+                      <Text className="font-medium text-gray-900">{row.fullName}</Text>
+                      <Text className="text-gray-500">{row.email}</Text>
+                    </div>
+                  </div>
+                </Table.Cell>
+                <Table.Cell>{row.role}</Table.Cell>
+                <Table.Cell>{new Date(row.createdAt).toLocaleDateString()}</Table.Cell>
+                <Table.Cell>
+                  <div className="flex flex-wrap gap-2">
+                    {row.permissions.map((permission) => (
+                      <Badge key={permission} rounded="lg" variant="outline" className="border-muted font-normal text-gray-500">
+                        {permission}
+                      </Badge>
+                    ))}
+                  </div>
+                </Table.Cell>
+                <Table.Cell>
+                  <StatusPill value={row.status} />
+                </Table.Cell>
+                <Table.Cell className="text-right">
+                  <Button variant="outline" size="sm">Delete</Button>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      </div>
+    </div>
+  );
+}

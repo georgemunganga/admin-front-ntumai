@@ -113,6 +113,7 @@ export const routes = {
     activityLogs: "/platform/admin-activity-logs",
     settings: "/platform/settings",
   },
+  rolesPermissions: "/roles-permissions",
   orders: "/orders",
   deliveries: "/deliveries",
   catalog: "/catalog",
