@@ -22,6 +22,7 @@ export default function Sidebar({ className }: { className?: string }) {
       <div className="sticky top-0 z-40 border-b border-white/10 bg-primary/95 px-5 pb-5 pt-5 backdrop-blur 2xl:px-6 2xl:pt-6">
         <Link
           href={"/"}
+          prefetch={false}
           aria-label="Site Logo"
           className="block text-white/90 hover:text-white"
         >
@@ -99,6 +100,7 @@ export default function Sidebar({ className }: { className?: string }) {
                           return (
                             <Link
                               href={dropdownItem?.href}
+                              prefetch={false}
                               key={dropdownItem?.name + index}
                               className={cn(
                                 "mx-3 mb-0.5 flex items-center justify-between rounded-2xl px-3 py-2.5 font-medium capitalize last-of-type:mb-1 lg:last-of-type:mb-2 2xl:mx-4",
@@ -127,6 +129,7 @@ export default function Sidebar({ className }: { className?: string }) {
                     ) : (
                       <Link
                         href={item?.href}
+                        prefetch={false}
                         className={cn(
                           "group relative mx-2.5 my-0.5 flex items-center justify-between rounded-2xl px-2.5 py-2.5 font-medium capitalize lg:my-1 2xl:mx-4 2xl:my-2",
                           isActive

@@ -108,6 +108,7 @@ export default function SearchList({ onClose }: { onClose?: () => void }) {
               {item?.href ? (
                 <Link
                   href={item?.href as string}
+                  prefetch={false}
                   className="relative my-0.5 flex items-center rounded-lg px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none focus-visible:bg-gray-100 dark:hover:bg-gray-50/50 dark:hover:backdrop-blur-lg"
                 >
                   <span className="inline-flex items-center justify-center rounded-md border border-gray-300 p-2 text-gray-500">
