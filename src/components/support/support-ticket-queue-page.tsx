@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
@@ -15,6 +16,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
+import { routes } from "@/config/routes";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type TicketLane = "billing" | "service" | "merchant";
@@ -38,6 +40,10 @@ type TicketCase = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const laneLabels: Record<TicketLane, string> = {
@@ -72,6 +78,10 @@ const seed: TicketCase[] = [
       { label: "Ticket routed", detail: "Support should trace wallet posting before closure.", time: "09:39" },
     ],
     notes: ["Likely depends on wallet confirmation, not a new refund decision."],
+    links: [
+      { label: "Refund approvals", href: routes.sales.refunds },
+      { label: "Payment ops", href: routes.sales.payments },
+    ],
   },
   {
     id: "TKT-4202",
@@ -91,6 +101,10 @@ const seed: TicketCase[] = [
       { label: "Waiting action", detail: "Support should decide whether to close or route to disputes.", time: "09:12" },
     ],
     notes: ["May be closable with a goodwill note if no refund is requested."],
+    links: [
+      { label: "Tracking cases", href: routes.logistics.tracking },
+      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
+    ],
   },
   {
     id: "TKT-4194",
@@ -110,6 +124,10 @@ const seed: TicketCase[] = [
       { label: "Risk flag raised", detail: "Support should not resolve until payments confirms the gateway trail.", time: "08:33" },
     ],
     notes: ["Should sync with payments before any support promise is sent."],
+    links: [
+      { label: "Payment ops", href: routes.sales.payments },
+      { label: "Refund approvals", href: routes.sales.refunds },
+    ],
   },
   {
     id: "TKT-4186",
@@ -129,6 +147,10 @@ const seed: TicketCase[] = [
       { label: "Queued for owner", detail: "Partner support should decide whether to solve or escalate to marketplace ops.", time: "07:57" },
     ],
     notes: ["Likely a quick escalation to marketplace rather than a prolonged support case."],
+    links: [
+      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Categories", href: routes.marketplace.categories },
+    ],
   },
   {
     id: "TKT-4179",
@@ -148,6 +170,10 @@ const seed: TicketCase[] = [
       { label: "Paused", detail: "No final support closure until trust returns an outcome.", time: "07:08" },
     ],
     notes: ["Keep paused until trust clears the conduct review."],
+    links: [
+      { label: "Escalations", href: routes.supportDesk.escalations },
+      { label: "Safety compliance", href: routes.risk.compliance },
+    ],
   },
 ];
 
@@ -257,6 +283,18 @@ function TicketDrawer({
 
         <SectionBlock title="Ticket summary">
           <Text className="text-sm leading-6 text-gray-600">{item.summary}</Text>
+        </SectionBlock>
+
+        <SectionBlock title="Related workflow">
+          <div className="flex flex-wrap gap-3">
+            {item.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
+            ))}
+          </div>
         </SectionBlock>
 
         <SectionBlock title="Ticket tags">
@@ -515,20 +553,25 @@ export default function SupportTicketQueuePage() {
                     <StatusBadge status={item.status} />
                   </Table.Cell>
                   <Table.Cell className="px-4 py-4 text-right">
-                    <Button
-                      variant="text"
-                      className="h-auto p-0 text-primary hover:text-primary/80"
-                      onClick={() =>
-                        openDrawer({
-                          view: <TicketDrawer item={item} onApplyDecision={applyDecision} />,
-                          placement: "right",
-                          containerClassName: "max-w-[540px]",
-                        })
-                      }
-                    >
-                      Open
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link href={item.links[0].href} className="text-xs font-semibold text-gray-500 transition hover:text-primary">
+                        {item.links[0].label}
+                      </Link>
+                      <Button
+                        variant="text"
+                        className="h-auto p-0 text-primary hover:text-primary/80"
+                        onClick={() =>
+                          openDrawer({
+                            view: <TicketDrawer item={item} onApplyDecision={applyDecision} />,
+                            placement: "right",
+                            containerClassName: "max-w-[540px]",
+                          })
+                        }
+                      >
+                        Open
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
@@ -15,6 +16,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
+import { routes } from "@/config/routes";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type EscalationLane = "trust" | "vip" | "partner";
@@ -37,6 +39,10 @@ type EscalationCase = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const laneLabels: Record<EscalationLane, string> = {
@@ -70,6 +76,10 @@ const seed: EscalationCase[] = [
       { label: "Awaiting trust decision", detail: "Escalation is active pending a final account-action call.", time: "09:31" },
     ],
     notes: ["Do not let frontline support close this without trust sign-off."],
+    links: [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Disputes", href: routes.supportDesk.disputes },
+    ],
   },
   {
     id: "ESC-4201",
@@ -88,6 +98,10 @@ const seed: EscalationCase[] = [
       { label: "Recovery proposal pending", detail: "Support lead should approve the response package.", time: "09:12" },
     ],
     notes: ["Likely a same-day recovery case if handled tightly."],
+    links: [
+      { label: "Customers", href: routes.crm.customers },
+      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
+    ],
   },
   {
     id: "ESC-4193",
@@ -106,6 +120,10 @@ const seed: EscalationCase[] = [
       { label: "Cross-team risk raised", detail: "Escalation needs support, marketplace, and ops coordination.", time: "08:28" },
     ],
     notes: ["Needs a coordinated update, not isolated replies from separate teams."],
+    links: [
+      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Shipments", href: routes.logistics.shipments },
+    ],
   },
   {
     id: "ESC-4184",
@@ -123,6 +141,10 @@ const seed: EscalationCase[] = [
       { label: "History added", detail: "Past refunds and ticket clusters were attached to the case.", time: "07:44" },
     ],
     notes: ["This may move into disputes if a new refund request is added."],
+    links: [
+      { label: "Refund approvals", href: routes.sales.refunds },
+      { label: "Disputes", href: routes.supportDesk.disputes },
+    ],
   },
   {
     id: "ESC-4178",
@@ -141,6 +163,10 @@ const seed: EscalationCase[] = [
       { label: "Paused", detail: "Escalation should wait until compliance closes the dependency.", time: "07:03" },
     ],
     notes: ["This is blocked upstream, not a pure support issue."],
+    links: [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Vendors", href: routes.marketplace.vendors },
+    ],
   },
 ];
 
@@ -253,6 +279,18 @@ function EscalationDrawer({
           <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
             <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Impact</Text>
             <Text className="mt-2 text-sm leading-6 text-gray-600">{item.impact}</Text>
+          </div>
+        </SectionBlock>
+
+        <SectionBlock title="Related workflow">
+          <div className="flex flex-wrap gap-3">
+            {item.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
+            ))}
           </div>
         </SectionBlock>
 
@@ -511,20 +549,25 @@ export default function SupportEscalationQueuePage() {
                     <StatusBadge status={item.status} />
                   </Table.Cell>
                   <Table.Cell className="px-4 py-4 text-right">
-                    <Button
-                      variant="text"
-                      className="h-auto p-0 text-primary hover:text-primary/80"
-                      onClick={() =>
-                        openDrawer({
-                          view: <EscalationDrawer item={item} onApplyDecision={applyDecision} />,
-                          placement: "right",
-                          containerClassName: "max-w-[540px]",
-                        })
-                      }
-                    >
-                      Open
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link href={item.links[0].href} className="text-xs font-semibold text-gray-500 transition hover:text-primary">
+                        {item.links[0].label}
+                      </Link>
+                      <Button
+                        variant="text"
+                        className="h-auto p-0 text-primary hover:text-primary/80"
+                        onClick={() =>
+                          openDrawer({
+                            view: <EscalationDrawer item={item} onApplyDecision={applyDecision} />,
+                            placement: "right",
+                            containerClassName: "max-w-[540px]",
+                          })
+                        }
+                      >
+                        Open
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}

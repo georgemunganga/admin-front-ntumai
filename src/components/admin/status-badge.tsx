@@ -10,6 +10,16 @@ const statusClasses: Record<string, string> = {
   review: "bg-secondary/20 text-secondary-foreground",
 };
 
+const statusLabels: Record<string, string> = {
+  live: "Live",
+  stable: "Stable",
+  monitoring: "Watching",
+  at_risk: "At risk",
+  queued: "Queued",
+  paused: "Blocked",
+  review: "Needs review",
+};
+
 export default function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase().replace(/\s+/g, "_");
   return (
@@ -19,7 +29,7 @@ export default function StatusBadge({ status }: { status: string }) {
         statusClasses[normalized] ?? "bg-gray-100 text-gray-600",
       )}
     >
-      {status.replace(/_/g, " ")}
+      {statusLabels[normalized] ?? status.replace(/_/g, " ")}
     </span>
   );
 }

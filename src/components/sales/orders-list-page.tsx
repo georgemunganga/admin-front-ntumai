@@ -12,7 +12,9 @@ import {
 } from "@tanstack/react-table";
 import { Badge, Button, Input, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
+import { orderTrackingHrefBySlug } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
+import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import { salesOrders, type SalesOrder } from "@/components/sales/order-data";
 
@@ -121,13 +123,23 @@ export default function OrdersListPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <OrderStatus status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-4">
+            <Link href={orderTrackingHrefBySlug[row.original.slug] ?? routes.logistics.tracking}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Track
+              </Button>
+            </Link>
+            <Link href={routes.supportDesk.inbox}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Support
+              </Button>
+            </Link>
             <Link href={routes.sales.editOrder(row.original.slug)}>
               <Button variant="text" className="h-auto p-0 text-primary">
                 Edit
@@ -262,16 +274,4 @@ export default function OrdersListPage() {
       </div>
     </div>
   );
-}
-
-function OrderStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
-  };
-  return <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>{status.replace("_", " ")}</span>;
 }

@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Badge, Button, Text, Title } from "rizzui";
 import { PiArrowRightBold } from "react-icons/pi";
+import { shipmentOrderHrefById } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
+import StatusBadge from "@/components/admin/status-badge";
 import { logisticsShipments } from "@/components/logistics/shipment-data";
 import { routes } from "@/config/routes";
 
@@ -46,7 +48,7 @@ export default function LogisticsTrackingPage() {
                     <Title as="h4" className="text-base font-semibold text-gray-900">
                       {shipment.trackingId}
                     </Title>
-                    <TrackingStatus status={shipment.status} />
+                    <StatusBadge status={shipment.status} />
                     <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1 text-primary">
                       {shipment.items[2]?.value ?? shipment.updatedAt}
                     </Badge>
@@ -71,34 +73,36 @@ export default function LogisticsTrackingPage() {
                   </div>
                 </div>
 
-                <Link href={routes.logistics.trackingDetails(shipment.id)}>
-                  <Button className="h-10 rounded-2xl bg-primary px-4 text-white hover:bg-primary-dark">
-                    Open Tracking
-                    <PiArrowRightBold className="ms-2 h-4 w-4" />
-                  </Button>
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={routes.logistics.shipmentDetails(shipment.id)}>
+                    <Button variant="outline" className="h-10 rounded-2xl px-4">
+                      Shipment
+                    </Button>
+                  </Link>
+                  {shipmentOrderHrefById[shipment.id] ? (
+                    <Link href={shipmentOrderHrefById[shipment.id]}>
+                      <Button variant="outline" className="h-10 rounded-2xl px-4">
+                        Order
+                      </Button>
+                    </Link>
+                  ) : null}
+                  <Link href={routes.dispatch.manualDispatch}>
+                    <Button variant="outline" className="h-10 rounded-2xl px-4">
+                      Dispatch
+                    </Button>
+                  </Link>
+                  <Link href={routes.logistics.trackingDetails(shipment.id)}>
+                    <Button className="h-10 rounded-2xl bg-primary px-4 text-white hover:bg-primary-dark">
+                      Open Tracking
+                      <PiArrowRightBold className="ms-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </ShellCard>
     </div>
-  );
-}
-
-function TrackingStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
-  };
-
-  return (
-    <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>
-      {status.replace("_", " ")}
-    </span>
   );
 }

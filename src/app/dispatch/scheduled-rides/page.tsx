@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ColumnDef,
@@ -23,6 +24,7 @@ import PageHeader from "@/components/admin/page-header";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
+import { routes } from "@/config/routes";
 
 type RideStatus =
   | "live"
@@ -247,6 +249,29 @@ export default function DispatchScheduledRidesPage() {
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
+      {
+        id: "actions",
+        header: "",
+        cell: () => (
+          <div className="flex flex-wrap justify-end gap-4">
+            <Link href={routes.dispatch.manualDispatch}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Dispatch
+              </Button>
+            </Link>
+            <Link href={routes.dispatch.liveMap}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Live map
+              </Button>
+            </Link>
+            <Link href={routes.supportDesk.inbox}>
+              <Button variant="text" className="h-auto p-0 text-primary">
+                Support
+              </Button>
+            </Link>
+          </div>
+        ),
+      },
     ],
     [],
   );

@@ -15,10 +15,13 @@ import {
   PiDownloadSimpleBold,
   PiMapPinBold,
   PiMagnifyingGlassBold,
-  PiNotePencilBold,
   PiPlusBold,
   PiScooterBold,
 } from "react-icons/pi";
+import {
+  manualDispatchOrderHrefByBooking,
+  manualDispatchTrackingHrefByBooking,
+} from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
@@ -386,24 +389,42 @@ export default function DispatchManualDispatchPage() {
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-4">
-            <Button
-              variant="text"
-              className="h-auto p-0 text-primary"
-              onClick={() => {
-                setAssigningItem(row.original);
-                setSelectedTaskerId(null);
-              }}
-            >
-              Assign
-            </Button>
-            <Button variant="text" className="h-auto p-0 text-primary">
-              Open
-              <PiNotePencilBold className="ms-1 h-4 w-4" />
-            </Button>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const trackingHref = manualDispatchTrackingHrefByBooking[row.original.booking] ?? routes.logistics.tracking;
+          const orderHref = manualDispatchOrderHrefByBooking[row.original.booking];
+
+          return (
+            <div className="flex flex-wrap justify-end gap-4">
+              <Button
+                variant="text"
+                className="h-auto p-0 text-primary"
+                onClick={() => {
+                  setAssigningItem(row.original);
+                  setSelectedTaskerId(null);
+                }}
+              >
+                Assign
+              </Button>
+              <Link href={trackingHref}>
+                <Button variant="text" className="h-auto p-0 text-primary">
+                  Track
+                </Button>
+              </Link>
+              {orderHref ? (
+                <Link href={orderHref}>
+                  <Button variant="text" className="h-auto p-0 text-primary">
+                    Order
+                  </Button>
+                </Link>
+              ) : null}
+              <Link href={routes.supportDesk.inbox}>
+                <Button variant="text" className="h-auto p-0 text-primary">
+                  Support
+                </Button>
+              </Link>
+            </div>
+          );
+        },
       },
     ],
     [],
