@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
@@ -13,6 +14,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
@@ -46,6 +48,10 @@ type DispatchException = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const typeLabels: Record<ExceptionType, string> = {
@@ -87,6 +93,10 @@ const seed: DispatchException[] = [
       { label: "Exception opened", detail: "Dispatch lane escalated the pickup delay.", time: "09:13" },
     ],
     notes: ["Likely vendor-side preparation delay. Dispatch may need support handoff if customer contacts us first."],
+    links: [
+      { label: "Support inbox", href: routes.supportDesk.inbox },
+      { label: "Marketplace vendors", href: routes.marketplace.vendors },
+    ],
   },
   {
     id: "EXC-4015",
@@ -108,6 +118,10 @@ const seed: DispatchException[] = [
       { label: "Queue hold", detail: "Dispatch should decide on manual assignment or cancellation.", time: "08:58" },
     ],
     notes: ["This should surface next to live supply shortage signals."],
+    links: [
+      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
+      { label: "Taskers", href: routes.logistics.taskers },
+    ],
   },
   {
     id: "EXC-4007",
@@ -129,6 +143,10 @@ const seed: DispatchException[] = [
       { label: "Escalation opened", detail: "Dispatch raised a live-delivery safety and SLA risk.", time: "08:24" },
     ],
     notes: ["High-priority case. If contact is not restored, Support and Risk may both need the case context."],
+    links: [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Support escalations", href: routes.supportDesk.escalations },
+    ],
   },
   {
     id: "EXC-3998",
@@ -150,6 +168,10 @@ const seed: DispatchException[] = [
       { label: "Recovery monitoring", detail: "Awaiting return-or-wait decision.", time: "08:03" },
     ],
     notes: ["Could become a failed handoff if wait threshold expires."],
+    links: [
+      { label: "Support tickets", href: routes.supportDesk.tickets },
+      { label: "Tracking cases", href: routes.logistics.tracking },
+    ],
   },
   {
     id: "EXC-3989",
@@ -171,6 +193,10 @@ const seed: DispatchException[] = [
       { label: "Vendor ops alert", detail: "Vendor-side readiness intervention needed.", time: "07:34" },
     ],
     notes: ["Best handled with merchant-side readiness context, not only trip tracking."],
+    links: [
+      { label: "Marketplace vendors", href: routes.marketplace.vendors },
+      { label: "Support inbox", href: routes.supportDesk.inbox },
+    ],
   },
 ];
 
@@ -281,6 +307,19 @@ function DispatchExceptionDrawer({
         <section className="rounded-3xl border border-gray-200 bg-gray-50/70 p-5">
           <Title as="h4" className="text-sm font-semibold text-gray-900">Current issue</Title>
           <Text className="mt-3 text-sm leading-6 text-gray-600">{item.issue}</Text>
+        </section>
+
+        <section>
+          <Title as="h4" className="text-sm font-semibold text-gray-900">Related workflow</Title>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {item.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
+            ))}
+          </div>
         </section>
 
         <section className="grid gap-4 sm:grid-cols-3">
@@ -602,17 +641,26 @@ export default function DispatchExceptionQueuePage() {
                     <StatusBadge status={item.status} />
                   </Table.Cell>
                   <Table.Cell className="text-right">
-                    <Button
-                      variant="text"
-                      className="h-auto p-0 text-primary"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openException(item);
-                      }}
-                    >
-                      Review
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link
+                        href={item.links[0].href}
+                        className="text-xs font-semibold text-gray-500 transition hover:text-primary"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {item.links[0].label}
+                      </Link>
+                      <Button
+                        variant="text"
+                        className="h-auto p-0 text-primary"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openException(item);
+                        }}
+                      >
+                        Review
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}

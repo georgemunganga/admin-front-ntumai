@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
@@ -14,6 +15,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
@@ -40,6 +42,10 @@ type RefundCase = {
     time: string;
   }>;
   notes: string[];
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 const laneLabels: Record<RefundLane, string> = {
@@ -76,6 +82,10 @@ const seed: RefundCase[] = [
       { label: "Manual review started", detail: "Refund desk should validate the final payable amount.", time: "09:23" },
     ],
     notes: ["Likely approvable after separating promo-funded value from merchant-funded value."],
+    links: [
+      { label: "Support disputes", href: routes.supportDesk.disputes },
+      { label: "Payments", href: routes.sales.payments },
+    ],
   },
   {
     id: "REF-4198",
@@ -97,6 +107,10 @@ const seed: RefundCase[] = [
       { label: "Waiting release", detail: "Finance should confirm wallet disbursement value.", time: "09:03" },
     ],
     notes: ["Good candidate for fast approval if no duplicate credit exists."],
+    links: [
+      { label: "Support tickets", href: routes.supportDesk.tickets },
+      { label: "Customers", href: routes.crm.customers },
+    ],
   },
   {
     id: "REF-4189",
@@ -118,6 +132,10 @@ const seed: RefundCase[] = [
       { label: "Risk hold applied", detail: "Do not release reversal until payments confirms source movement.", time: "08:23" },
     ],
     notes: ["This should not auto-approve until gateway reconciliation is complete."],
+    links: [
+      { label: "Payments", href: routes.sales.payments },
+      { label: "Support disputes", href: routes.supportDesk.disputes },
+    ],
   },
   {
     id: "REF-4174",
@@ -138,6 +156,10 @@ const seed: RefundCase[] = [
       { label: "Disbursement queued", detail: "Wallet posting has not yet been confirmed.", time: "07:37" },
     ],
     notes: ["This should clear as soon as wallet confirmation lands."],
+    links: [
+      { label: "Payments", href: routes.sales.payments },
+      { label: "Support inbox", href: routes.supportDesk.inbox },
+    ],
   },
   {
     id: "REF-4168",
@@ -159,6 +181,10 @@ const seed: RefundCase[] = [
       { label: "Refund paused", detail: "Finance should wait for trust clearance before releasing value.", time: "07:00" },
     ],
     notes: ["No credit should be issued until the abuse review closes."],
+    links: [
+      { label: "Support escalations", href: routes.supportDesk.escalations },
+      { label: "Safety compliance", href: routes.risk.compliance },
+    ],
   },
 ];
 
@@ -271,6 +297,18 @@ function RefundDrawer({
           <div className="mt-4 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
             <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Source context</Text>
             <Text className="mt-2 text-sm leading-6 text-gray-600">{item.sourceSummary}</Text>
+          </div>
+        </SectionBlock>
+
+        <SectionBlock title="Related workflow">
+          <div className="flex flex-wrap gap-3">
+            {item.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <Button variant="outline" className="h-10 rounded-2xl px-4">
+                  {link.label}
+                </Button>
+              </Link>
+            ))}
           </div>
         </SectionBlock>
 
@@ -531,20 +569,25 @@ export default function RefundApprovalQueuePage() {
                     <StatusBadge status={item.status} />
                   </Table.Cell>
                   <Table.Cell className="px-4 py-4 text-right">
-                    <Button
-                      variant="text"
-                      className="h-auto p-0 text-primary hover:text-primary/80"
-                      onClick={() =>
-                        openDrawer({
-                          view: <RefundDrawer item={item} onApplyDecision={applyDecision} />,
-                          placement: "right",
-                          containerClassName: "max-w-[540px]",
-                        })
-                      }
-                    >
-                      Review case
-                      <PiCaretRightBold className="ms-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      <Link href={item.links[0].href} className="text-xs font-semibold text-gray-500 transition hover:text-primary">
+                        {item.links[0].label}
+                      </Link>
+                      <Button
+                        variant="text"
+                        className="h-auto p-0 text-primary hover:text-primary/80"
+                        onClick={() =>
+                          openDrawer({
+                            view: <RefundDrawer item={item} onApplyDecision={applyDecision} />,
+                            placement: "right",
+                            containerClassName: "max-w-[540px]",
+                          })
+                        }
+                      >
+                        Review case
+                        <PiCaretRightBold className="ms-1 h-4 w-4" />
+                      </Button>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}
