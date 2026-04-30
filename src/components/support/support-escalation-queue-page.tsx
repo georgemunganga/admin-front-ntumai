@@ -16,34 +16,21 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import type { AdminCaseBase, AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
 
-type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type EscalationLane = "trust" | "vip" | "partner";
 type DecisionAction = "assign" | "escalate" | "close";
 
-type EscalationCase = {
-  id: string;
+type EscalationCase = AdminCaseBase & {
   accountName: string;
   lane: EscalationLane;
   city: string;
-  status: ReviewStatus;
-  owner: string;
   age: string;
   summary: string;
   impact: string;
   tags: string[];
-  timeline: Array<{
-    label: string;
-    detail: string;
-    time: string;
-  }>;
-  notes: string[];
-  links: Array<{
-    label: string;
-    href: string;
-  }>;
 };
 
 const laneLabels: Record<EscalationLane, string> = {
@@ -401,7 +388,7 @@ export default function SupportEscalationQueuePage() {
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
-        const status: ReviewStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
+        const status: AdminStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
         const timelineLabel =
           action === "assign" ? "Escalation assigned" : action === "escalate" ? "Cross-team escalation sent" : "Escalation closed";
         return {

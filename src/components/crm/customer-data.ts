@@ -1,12 +1,14 @@
 "use client";
 
+import type { AdminStatus, AdminTimelineEntry } from "@/contracts/admin-domain";
+
 export type CustomerProfile = {
   id: string;
   name: string;
   email: string;
   phone: string;
   segment: string;
-  status: "live" | "stable" | "review" | "monitoring" | "queued" | "paused" | "at_risk";
+  status: AdminStatus;
   city: string;
   address: string;
   owner: string;
@@ -22,11 +24,7 @@ export type CustomerProfile = {
   paymentMethod: string;
   notes: string;
   tags: string[];
-  timeline: Array<{
-    label: string;
-    detail: string;
-    time: string;
-  }>;
+  timeline: AdminTimelineEntry[];
 };
 
 export const customerProfiles: CustomerProfile[] = [

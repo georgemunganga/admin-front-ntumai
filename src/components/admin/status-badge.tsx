@@ -1,3 +1,4 @@
+import type { AdminStatus } from "@/contracts/admin-domain";
 import cn from "@/utils/class-names";
 
 const statusClasses: Record<string, string> = {
@@ -20,7 +21,7 @@ const statusLabels: Record<string, string> = {
   review: "Needs review",
 };
 
-export default function StatusBadge({ status }: { status: string }) {
+export default function StatusBadge({ status }: { status: AdminStatus | string }) {
   const normalized = status.toLowerCase().replace(/\s+/g, "_");
   return (
     <span

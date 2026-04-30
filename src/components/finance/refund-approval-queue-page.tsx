@@ -16,37 +16,23 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import type { AdminRiskCaseBase, AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
-type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type RefundLane = "auto_policy" | "manual" | "partial";
 type DecisionAction = "approve" | "hold" | "deny";
 
-type RefundCase = {
-  id: string;
+type RefundCase = AdminRiskCaseBase & {
   reference: string;
   lane: RefundLane;
   customerName: string;
   city: string;
-  status: ReviewStatus;
   amount: string;
   destination: string;
-  owner: string;
   age: string;
   issue: string;
   sourceSummary: string;
-  riskFlags: string[];
-  timeline: Array<{
-    label: string;
-    detail: string;
-    time: string;
-  }>;
-  notes: string[];
-  links: Array<{
-    label: string;
-    href: string;
-  }>;
 };
 
 const laneLabels: Record<RefundLane, string> = {
@@ -419,7 +405,7 @@ export default function RefundApprovalQueuePage() {
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
-        const status: ReviewStatus = action === "approve" ? "live" : action === "hold" ? "monitoring" : "paused";
+        const status: AdminStatus = action === "approve" ? "live" : action === "hold" ? "monitoring" : "paused";
         const timelineLabel =
           action === "approve" ? "Refund approved" : action === "hold" ? "Refund held" : "Refund denied";
 

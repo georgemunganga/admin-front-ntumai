@@ -16,38 +16,24 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import type { AdminRiskCaseBase, AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
 
-type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type DisputeLane = "refund" | "delivery" | "payment";
 type DecisionAction = "refund" | "deny" | "escalate";
 
-type DisputeCase = {
-  id: string;
+type DisputeCase = AdminRiskCaseBase & {
   ticket: string;
   lane: DisputeLane;
   customerName: string;
   taskerName: string;
   merchantName: string;
   city: string;
-  status: ReviewStatus;
   amount: string;
-  owner: string;
   age: string;
   issue: string;
   sourceSummary: string;
-  riskFlags: string[];
-  timeline: Array<{
-    label: string;
-    detail: string;
-    time: string;
-  }>;
-  notes: string[];
-  links: Array<{
-    label: string;
-    href: string;
-  }>;
 };
 
 const laneLabels: Record<DisputeLane, string> = {
@@ -446,7 +432,7 @@ export default function DisputeReviewQueuePage() {
       current.map((item) => {
         if (item.id !== id) return item;
 
-        const status: ReviewStatus =
+        const status: AdminStatus =
           action === "refund" ? "live" : action === "deny" ? "paused" : "monitoring";
 
         const timelineLabel =

@@ -1,5 +1,7 @@
 "use client";
 
+import type { AdminStatus, AdminTimelineEntry } from "@/contracts/admin-domain";
+
 export type LogisticsShipment = {
   id: string;
   trackingId: string;
@@ -10,13 +12,13 @@ export type LogisticsShipment = {
   recipient: string;
   lane: string;
   owner: string;
-  status: "live" | "stable" | "review" | "monitoring" | "queued" | "at_risk";
+  status: AdminStatus;
   updatedAt: string;
   value: string;
   tasker: string;
   notes: string;
   items: Array<{ label: string; value: string }>;
-  timeline: Array<{ label: string; detail: string; time: string }>;
+  timeline: AdminTimelineEntry[];
 };
 
 export const logisticsShipments: LogisticsShipment[] = [

@@ -15,35 +15,22 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import type { AdminCaseBase, AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
 
-type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type TicketLane = "billing" | "service" | "merchant";
 type DecisionAction = "assign" | "escalate" | "resolve";
 
-type TicketCase = {
-  id: string;
+type TicketCase = AdminCaseBase & {
   customerName: string;
   lane: TicketLane;
   city: string;
-  status: ReviewStatus;
-  owner: string;
   age: string;
   contact: string;
   subject: string;
   summary: string;
   tags: string[];
-  timeline: Array<{
-    label: string;
-    detail: string;
-    time: string;
-  }>;
-  notes: string[];
-  links: Array<{
-    label: string;
-    href: string;
-  }>;
 };
 
 const laneLabels: Record<TicketLane, string> = {
@@ -403,7 +390,7 @@ export default function SupportTicketQueuePage() {
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
-        const status: ReviewStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
+        const status: AdminStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
         const timelineLabel =
           action === "assign" ? "Ticket assigned" : action === "escalate" ? "Ticket escalated" : "Ticket resolved";
         return {

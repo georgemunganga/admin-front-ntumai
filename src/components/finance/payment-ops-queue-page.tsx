@@ -16,37 +16,23 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import type { AdminRiskCaseBase, AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
-type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type PaymentLane = "retry" | "chargeback" | "reconciliation";
 type DecisionAction = "retry" | "escalate" | "close";
 
-type PaymentCase = {
-  id: string;
+type PaymentCase = AdminRiskCaseBase & {
   reference: string;
   lane: PaymentLane;
   customerName: string;
   city: string;
-  status: ReviewStatus;
   amount: string;
   method: string;
-  owner: string;
   age: string;
   issue: string;
   sourceSummary: string;
-  riskFlags: string[];
-  timeline: Array<{
-    label: string;
-    detail: string;
-    time: string;
-  }>;
-  notes: string[];
-  links: Array<{
-    label: string;
-    href: string;
-  }>;
 };
 
 const laneLabels: Record<PaymentLane, string> = {
@@ -424,7 +410,7 @@ export default function PaymentOpsQueuePage() {
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
-        const status: ReviewStatus = action === "retry" ? "live" : action === "escalate" ? "monitoring" : "paused";
+        const status: AdminStatus = action === "retry" ? "live" : action === "escalate" ? "monitoring" : "paused";
         const timelineLabel =
           action === "retry" ? "Retry released" : action === "escalate" ? "Case escalated" : "Case closed";
         return {

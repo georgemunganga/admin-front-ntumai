@@ -1,5 +1,7 @@
 "use client";
 
+import type { AdminStatus, AdminTimelineEntry } from "@/contracts/admin-domain";
+
 export type SalesOrder = {
   id: string;
   slug: string;
@@ -15,7 +17,7 @@ export type SalesOrder = {
   tax: string;
   totalAmount: string;
   itemCount: string;
-  status: "live" | "stable" | "review" | "monitoring" | "queued" | "at_risk";
+  status: AdminStatus;
   fulfillment: string;
   paymentState: string;
   paymentMethod: string;
@@ -23,7 +25,7 @@ export type SalesOrder = {
   updatedAt: string;
   summary: string;
   items: Array<{ name: string; qty: string; price: string }>;
-  timeline: Array<{ label: string; detail: string; time: string }>;
+  timeline: AdminTimelineEntry[];
 };
 
 export const salesOrders: SalesOrder[] = [
