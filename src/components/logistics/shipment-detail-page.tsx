@@ -1,17 +1,52 @@
 "use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Badge, Button, Table, Text, Title } from "rizzui";
 import { PiArrowLeftBold, PiDownloadSimpleBold, PiPrinterBold } from "react-icons/pi";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getLogisticsShipmentById } from "@/repositories/admin/shipments";
+import { useLogisticsShipment } from "@/repositories/admin/shipments";
 
 export default function ShipmentDetailPage({ id }: { id: string }) {
-  const shipment = getLogisticsShipmentById(id);
-  if (!shipment) notFound();
+  const { data: shipment, isLoading, isLive, error } = useLogisticsShipment(id);
+
+  if (!shipment && isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "Logistics", "Shipments", id]}
+          eyebrow="Logistics Kit"
+          title="Shipment Details"
+          description="Loading shipment context from the staff logistics service."
+        />
+        <DataSourceState isLoading />
+      </div>
+    );
+  }
+
+  if (!shipment) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "Logistics", "Shipments", id]}
+          eyebrow="Logistics Kit"
+          title="Shipment Details"
+          description="No shipment record was found for this identifier."
+          action={
+            <Link href={routes.logistics.shipments}>
+              <Button variant="outline" className="h-11 rounded-2xl px-4">
+                <PiArrowLeftBold className="me-1.5 h-4 w-4" />
+                Back to Shipments
+              </Button>
+            </Link>
+          }
+        />
+        <DataSourceState isLive={false} error={error ?? "Shipment record not found"} />
+      </div>
+    );
+  }
 
   const invoiceRows = [
     {
@@ -44,6 +79,8 @@ export default function ShipmentDetailPage({ id }: { id: string }) {
           </div>
         }
       />
+
+      <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
 
       <div className="mt-2 flex flex-col gap-y-6 sm:gap-y-10">
         <div className="w-full rounded-xl border border-muted p-5 text-sm sm:p-6 lg:p-8 2xl:p-10">

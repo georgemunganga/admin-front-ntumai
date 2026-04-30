@@ -23,13 +23,14 @@ export default function SignInPage() {
 
   const [email, setEmail] = useState("admin@ntumai.com");
   const [password, setPassword] = useState("password123");
+  const [apiToken, setApiToken] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
-    signIn({ email, password });
+    signIn({ email, password, apiToken });
     router.replace(next);
   };
 
@@ -98,6 +99,19 @@ export default function SignInPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
+        <Input
+          label="Admin API Token"
+          placeholder="Optional bearer token for live staff records"
+          size={isMedium ? "lg" : "xl"}
+          className="[&>label>span]:font-medium"
+          value={apiToken}
+          onChange={(event) => setApiToken(event.target.value)}
+        />
+        <Text className="-mt-2 text-xs leading-6 text-gray-500">
+          Leave this blank to keep using local preview data. Add a valid admin
+          bearer token to load live customer, order, and shipment records from
+          the Nest API.
+        </Text>
         <div className="flex items-center justify-between pb-1">
           <Checkbox
             checked={rememberMe}

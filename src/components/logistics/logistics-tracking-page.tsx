@@ -4,14 +4,15 @@ import Link from "next/link";
 import { Badge, Button, Text, Title } from "rizzui";
 import { PiArrowRightBold } from "react-icons/pi";
 import { shipmentOrderHrefById } from "@/components/admin/ops-workflow-links";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
-import { listLogisticsShipments } from "@/repositories/admin/shipments";
+import { useLogisticsShipments } from "@/repositories/admin/shipments";
 
 export default function LogisticsTrackingPage() {
-  const shipments = listLogisticsShipments();
+  const { data: shipments, isLoading, isLive, error } = useLogisticsShipments();
   const trackingStats = [
     {
       label: "Live tracked",
@@ -52,6 +53,9 @@ export default function LogisticsTrackingPage() {
       </div>
 
       <ShellCard title="Tracked deliveries" description="Tracking references currently live in customer and public flows.">
+        <div className="mb-4 flex justify-end">
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
+        </div>
         <div className="mt-2 space-y-4">
           {shipments.map((shipment) => (
             <div key={shipment.id} className="rounded-2xl border border-gray-100 bg-white p-5">

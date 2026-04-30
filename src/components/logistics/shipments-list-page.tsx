@@ -20,11 +20,12 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { shipmentOrderHrefById } from "@/components/admin/ops-workflow-links";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import type { LogisticsShipment } from "@/components/logistics/shipment-data";
-import { listLogisticsShipments, listShipmentLanes } from "@/repositories/admin/shipments";
+import { useLogisticsShipments } from "@/repositories/admin/shipments";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -37,7 +38,7 @@ const statusOptions = [
 ] as const;
 
 export default function ShipmentsListPage() {
-  const shipments = useMemo(() => listLogisticsShipments(), []);
+  const { data: shipments, isLoading, isLive, error } = useLogisticsShipments();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [segment, setSegment] = useState("all");
@@ -71,9 +72,9 @@ export default function ShipmentsListPage() {
   const segmentOptions = useMemo(
     () => [
       { label: "All lanes", value: "all" },
-      ...listShipmentLanes().map((value) => ({ label: value, value })),
+      ...Array.from(new Set(shipments.map((shipment) => shipment.lane))).map((value) => ({ label: value, value })),
     ],
-    [],
+    [shipments],
   );
 
   const stats = useMemo(
@@ -267,9 +268,7 @@ export default function ShipmentsListPage() {
 
           <div className="mb-4 flex items-center justify-between gap-3">
             <Text className="text-sm text-gray-500">{filteredRows.length} shipments</Text>
-            <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-              Dispatch monitored
-            </Badge>
+            <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
           </div>
 
           <div className="custom-scrollbar overflow-x-auto">

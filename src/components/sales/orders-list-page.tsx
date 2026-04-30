@@ -13,11 +13,12 @@ import {
 import { Badge, Button, Input, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import { orderTrackingHrefBySlug } from "@/components/admin/ops-workflow-links";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import type { SalesOrder } from "@/components/sales/order-data";
-import { listSalesOrders } from "@/repositories/admin/orders";
+import { useSalesOrders } from "@/repositories/admin/orders";
 
 const lanes = [
   { label: "All", value: "all" },
@@ -27,7 +28,7 @@ const lanes = [
 ] as const;
 
 export default function OrdersListPage() {
-  const orders = useMemo(() => listSalesOrders(), []);
+  const { data: orders, isLoading, isLive, error } = useSalesOrders();
   const [query, setQuery] = useState("");
   const [lane, setLane] = useState("all");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 8 });
@@ -229,7 +230,7 @@ export default function OrdersListPage() {
 
         <div className="mb-4 flex items-center justify-between gap-3">
           <Text className="text-sm text-gray-500">{filteredRows.length} orders</Text>
-          <Text className="text-xs text-gray-500">Checkout, handoff, and tracking list</Text>
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
         </div>
 
         <div className="custom-scrollbar overflow-x-auto">

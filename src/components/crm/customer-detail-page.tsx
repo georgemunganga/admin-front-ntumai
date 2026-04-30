@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Avatar, Badge, Button, Table, Text, Title } from "rizzui";
 import {
   PiArrowLeftBold,
@@ -19,9 +18,10 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import DataSourceState from "@/components/admin/data-source-state";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getCustomerProfileById } from "@/repositories/admin/customers";
+import { useCustomerProfile } from "@/repositories/admin/customers";
 
 const coverPhotos = [
   "1648583076906-60338fa01f07",
@@ -29,8 +29,42 @@ const coverPhotos = [
 ];
 
 export default function CustomerDetailPage({ id }: { id: string }) {
-  const customer = getCustomerProfileById(id);
-  if (!customer) notFound();
+  const { data: customer, isLoading, isLive, error } = useCustomerProfile(id);
+  if (!customer && isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "CRM", "Customers", id]}
+          eyebrow="Customer CRM"
+          title="Customer Profile"
+          description="Loading customer account context from the staff record service."
+        />
+        <DataSourceState isLoading />
+      </div>
+    );
+  }
+
+  if (!customer) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "CRM", "Customers", id]}
+          eyebrow="Customer CRM"
+          title="Customer Profile"
+          description="No customer record was found for this identifier."
+          action={
+            <Link href={routes.crm.customers}>
+              <Button variant="outline" className="h-11 rounded-2xl px-4">
+                <PiArrowLeftBold className="me-1.5 h-4 w-4" />
+                Back
+              </Button>
+            </Link>
+          }
+        />
+        <DataSourceState isLive={false} error={error ?? "Customer record not found"} />
+      </div>
+    );
+  }
 
   const coverId = coverPhotos[Math.abs(customer.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % coverPhotos.length];
 
@@ -86,6 +120,8 @@ export default function CustomerDetailPage({ id }: { id: string }) {
           </div>
         }
       />
+
+      <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
 
       <div className="@container">
         <figure className="relative -mx-6 flex h-[150px] items-end justify-end overflow-hidden rounded-[28px] bg-gray-50 bg-gradient-to-r from-[#F8E1AF] to-[#F6CFCF] @5xl:h-[200px] 3xl:-mx-8 3xl:h-[250px] 4xl:-mx-10 4xl:h-[300px]">

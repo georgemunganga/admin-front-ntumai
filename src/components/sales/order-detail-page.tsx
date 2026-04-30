@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Badge, Button, Text, Title } from "rizzui";
+import { Button, Text, Title } from "rizzui";
 import { PiArrowLeftBold, PiCheckBold, PiNotePencilBold } from "react-icons/pi";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getSalesOrderById } from "@/repositories/admin/orders";
+import { useSalesOrder } from "@/repositories/admin/orders";
 
 const orderStatusSteps = [
   "Order Created",
@@ -18,8 +18,43 @@ const orderStatusSteps = [
 ];
 
 export default function OrderDetailPage({ id }: { id: string }) {
-  const order = getSalesOrderById(id);
-  if (!order) notFound();
+  const { data: order, isLoading, isLive, error } = useSalesOrder(id);
+
+  if (!order && isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "Sales", "Orders", id]}
+          eyebrow="Sales Kit"
+          title="Order"
+          description="Loading customer checkout and delivery context from the staff record service."
+        />
+        <DataSourceState isLoading />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "Sales", "Orders", id]}
+          eyebrow="Sales Kit"
+          title="Order"
+          description="No order record was found for this identifier."
+          action={
+            <Link href={routes.sales.orders}>
+              <Button variant="outline" className="h-11 rounded-2xl px-4">
+                <PiArrowLeftBold className="me-1.5 h-4 w-4" />
+                Back
+              </Button>
+            </Link>
+          }
+        />
+        <DataSourceState isLive={false} error={error ?? "Order record not found"} />
+      </div>
+    );
+  }
 
   const currentStep = order.status === "queued" ? 1 : order.status === "review" ? 2 : order.status === "monitoring" ? 3 : order.status === "live" ? 4 : 5;
 
@@ -52,6 +87,8 @@ export default function OrderDetailPage({ id }: { id: string }) {
           </div>
         }
       />
+
+      <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
 
       <div className="flex flex-wrap justify-center rounded-[24px] border border-gray-200 bg-white px-4 py-4 font-medium text-gray-700 shadow-sm @5xl:justify-start">
         <span className="my-2 border-r border-gray-200 px-5 py-0.5 first:ps-0 last:border-r-0">{order.updatedAt}</span>

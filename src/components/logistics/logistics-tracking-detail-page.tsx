@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { useState } from "react";
 import { Badge, Button, Input, Text, Title } from "rizzui";
 import {
@@ -14,24 +13,70 @@ import {
   PiTriangle,
   PiTruckTrailerBold,
 } from "react-icons/pi";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import type { LogisticsShipment } from "@/components/logistics/shipment-data";
 import { routes } from "@/config/routes";
-import { getLogisticsShipmentById } from "@/repositories/admin/shipments";
+import { useLogisticsShipment, useShipmentTracking } from "@/repositories/admin/shipments";
 
 export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
-  const shipment = getLogisticsShipmentById(id);
-  if (!shipment) notFound();
   const [copied, setCopied] = useState(false);
+  const {
+    data: shipment,
+    isLoading: isShipmentLoading,
+    isLive: isShipmentLive,
+    error: shipmentError,
+  } = useLogisticsShipment(id);
+  const {
+    data: tracking,
+    isLoading: isTrackingLoading,
+    isLive: isTrackingLive,
+    error: trackingError,
+  } = useShipmentTracking(id);
 
+  if (!shipment && isShipmentLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "Logistics", "Tracking", id]}
+          eyebrow="Logistics Kit"
+          title="Tracking"
+          description="Loading shipment movement and tracking history from the staff logistics service."
+        />
+        <DataSourceState isLoading />
+      </div>
+    );
+  }
+
+  if (!shipment) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          breadcrumb={["Home", "Logistics", "Tracking", id]}
+          eyebrow="Logistics Kit"
+          title="Tracking"
+          description="No tracking record was found for this identifier."
+          action={
+            <Link href={routes.logistics.tracking}>
+              <Button variant="outline" className="h-11 rounded-2xl px-4">
+                <PiArrowLeftBold className="me-1.5 h-4 w-4" />
+                Back
+              </Button>
+            </Link>
+          }
+        />
+        <DataSourceState isLive={false} error={shipmentError ?? "Shipment record not found"} />
+      </div>
+    );
+  }
   const packageType =
     shipment.items.find((item) => item.label === "Package type")?.value ?? "Shipment";
   const weight = shipment.items.find((item) => item.label === "Weight")?.value ?? "Not set";
   const eta = shipment.items.find((item) => item.label === "ETA")?.value ?? shipment.updatedAt;
   const update = getLatestUpdate(shipment);
   const shipmentInfo = getShipmentInfo(shipment, packageType, weight, eta);
-  const overviewTimeline = buildOverviewTimeline(shipment);
-  const historyTimeline = buildHistoryTimeline(shipment);
+  const overviewTimeline = buildOverviewTimeline(shipment, tracking);
+  const historyTimeline = buildHistoryTimeline(shipment, tracking);
 
   return (
     <div className="space-y-10">
@@ -55,6 +100,12 @@ export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
             </Link>
           </div>
         }
+      />
+
+      <DataSourceState
+        isLoading={isShipmentLoading || isTrackingLoading}
+        isLive={isShipmentLive || isTrackingLive}
+        error={trackingError ?? shipmentError}
       />
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 xl:gap-20">
@@ -259,8 +310,11 @@ function getLatestUpdate(shipment: LogisticsShipment) {
   };
 }
 
-function buildOverviewTimeline(shipment: LogisticsShipment) {
-  return [...shipment.timeline]
+function buildOverviewTimeline(
+  shipment: LogisticsShipment,
+  tracking?: { events?: Array<{ eventType?: string | null; timestamp?: string }> } | null,
+) {
+  return getTrackingTimeline(shipment, tracking)
     .slice()
     .reverse()
     .map((item, index) => ({
@@ -274,18 +328,35 @@ function buildOverviewTimeline(shipment: LogisticsShipment) {
     }));
 }
 
-function buildHistoryTimeline(shipment: LogisticsShipment) {
-  return shipment.timeline.map((item, index) => ({
+function buildHistoryTimeline(
+  shipment: LogisticsShipment,
+  tracking?: { events?: Array<{ eventType?: string | null; timestamp?: string }> } | null,
+) {
+  const timeline = getTrackingTimeline(shipment, tracking);
+  return timeline.map((item, index) => ({
     title: item.label,
     text: item.detail,
-    highlightedText: index === shipment.timeline.length - 1 ? shipment.dropoff : "",
+    highlightedText: index === timeline.length - 1 ? shipment.dropoff : "",
     date: index === 0 ? "Order day" : "Today",
     time: item.time,
     icon:
-      index === shipment.timeline.length - 1 ? (
+      index === timeline.length - 1 ? (
         <PiCheckCircle className="h-6 w-6 text-emerald-600" />
       ) : undefined,
-    status: index === shipment.timeline.length - 1 ? "success" : "",
+    status: index === timeline.length - 1 ? "success" : "",
+  }));
+}
+
+function getTrackingTimeline(
+  shipment: LogisticsShipment,
+  tracking?: { events?: Array<{ eventType?: string | null; timestamp?: string }> } | null,
+) {
+  if (!tracking?.events?.length) return shipment.timeline;
+
+  return tracking.events.map((event) => ({
+    label: normalizeEventLabel(event.eventType),
+    detail: `Live tracking event ${normalizeEventLabel(event.eventType).toLowerCase()} was recorded for this shipment.`,
+    time: formatTimelineTime(event.timestamp),
   }));
 }
 
@@ -328,4 +399,19 @@ function getShipmentInfo(
       ],
     },
   ];
+}
+
+function normalizeEventLabel(value?: string | null) {
+  return String(value ?? "tracking_update")
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatTimelineTime(value?: string) {
+  if (!value) return "Unknown";
+  return new Date(value).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

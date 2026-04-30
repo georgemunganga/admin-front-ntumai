@@ -13,9 +13,10 @@ import {
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import DataSourceState from "@/components/admin/data-source-state";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
-import { listCustomerRecords, listCustomerSegments, type CustomerListRecord } from "@/repositories/admin/customers";
+import { type CustomerListRecord, useCustomerRecords } from "@/repositories/admin/customers";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -29,7 +30,7 @@ const statusOptions = [
 ] as const;
 
 export default function CrmCustomersPage() {
-  const rows = useMemo(() => listCustomerRecords(), []);
+  const { data: rows, isLoading, isLive, error } = useCustomerRecords();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [segment, setSegment] = useState("all");
@@ -55,9 +56,9 @@ export default function CrmCustomersPage() {
   const segmentOptions = useMemo(
     () => [
       { label: "All segments", value: "all" },
-      ...listCustomerSegments().map((value) => ({ label: value, value })),
+      ...Array.from(new Set(rows.map((row) => row.segment))).map((value) => ({ label: value, value })),
     ],
-    [],
+    [rows],
   );
 
   const columns = useMemo<ColumnDef<CustomerListRecord>[]>(
@@ -161,9 +162,7 @@ export default function CrmCustomersPage() {
 
         <div className="mb-4 flex items-center justify-between gap-3">
           <Text className="text-sm text-gray-500">{filteredRows.length} customers</Text>
-          <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-            CRM monitored
-          </Badge>
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
         </div>
 
         <div className="custom-scrollbar overflow-x-auto">
