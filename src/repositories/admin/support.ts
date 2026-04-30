@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { customerDetailHrefByName, vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import type { AdminCaseBase, AdminRiskCaseBase } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
-import { useAdminResource } from "@/repositories/admin/admin-api";
+import { postAdminData, useAdminResource } from "@/repositories/admin/admin-api";
 
 export type SupportTicketLane = "billing" | "service" | "merchant";
 export type SupportEscalationLane = "trust" | "vip" | "partner";
@@ -44,6 +44,39 @@ export type SupportDisputeCase = AdminRiskCaseBase & {
   sourceSummary: string;
 };
 
+export type SupportInboxBucket = "open" | "closed";
+export type SupportInboxCategory = "unassigned" | "assigned-to-me" | "all-open" | "chat";
+
+export type SupportInboxThreadEntry = {
+  id: string;
+  author: string;
+  email: string;
+  time: string;
+  body: string;
+  senderRole: "ADMIN" | "CUSTOMER";
+  attachments?: Array<{ name: string; size: string }>;
+};
+
+export type SupportInboxMessage = {
+  id: string;
+  conversationId?: string | null;
+  title: string;
+  summary: string;
+  customer: string;
+  email: string;
+  supportType: "Chat" | "Email";
+  bucket: SupportInboxBucket;
+  category: SupportInboxCategory;
+  markedAsRead: boolean;
+  hasAttachments: boolean;
+  date: string;
+  priority: "Low" | "Medium" | "High";
+  agent: string;
+  status: "New" | "Waiting on contact" | "Waiting on us" | "Closed";
+  city: string;
+  thread: SupportInboxThreadEntry[];
+};
+
 type SupportTicketApiItem = {
   id: string;
   category?: string | null;
@@ -67,6 +100,53 @@ type SupportTicketApiItem = {
 
 type SupportTicketsPayload = {
   items: SupportTicketApiItem[];
+};
+
+type SupportInboxApiItem = {
+  id: string;
+  conversationId?: string | null;
+  subject: string;
+  description: string;
+  category?: string | null;
+  status?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  messageCount?: number;
+  customer?: {
+    id?: string;
+    fullName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    city?: string | null;
+  } | null;
+};
+
+type SupportInboxListPayload = {
+  items: SupportInboxApiItem[];
+};
+
+type SupportInboxDetailPayload = {
+  item: {
+    ticket: SupportInboxApiItem;
+    customer?: {
+      id?: string;
+      fullName?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      city?: string | null;
+      address?: string | null;
+    } | null;
+    messages?: Array<{
+      id: string;
+      senderId: string;
+      senderName?: string | null;
+      senderEmail?: string | null;
+      body: string;
+      messageType: string;
+      createdAt: string;
+      senderRole?: "ADMIN" | "CUSTOMER" | string;
+    }>;
+  };
 };
 
 const supportTicketCases: SupportTicketCase[] = [
@@ -436,6 +516,131 @@ const supportDisputeCases: SupportDisputeCase[] = [
   },
 ];
 
+const supportInboxMessages: SupportInboxMessage[] = [
+  {
+    id: "SUP-1842",
+    conversationId: "conv-sup-1842",
+    title: "Refund not reflected in wallet",
+    summary: "Customer confirms the cancelled order refund still has not landed in wallet after two hours.",
+    customer: "Martha Chola",
+    email: "martha.chola@ntumai.test",
+    supportType: "Chat",
+    bucket: "open",
+    category: "assigned-to-me",
+    markedAsRead: false,
+    hasAttachments: true,
+    date: "4 min ago",
+    priority: "High",
+    agent: "Support lead",
+    status: "Waiting on us",
+    city: "Lusaka",
+    thread: [
+      {
+        id: "msg-1",
+        author: "Martha Chola",
+        email: "martha.chola@ntumai.test",
+        time: "09:02",
+        body: "I cancelled the order after the rider called, but I still have not received the refund in my wallet. The app still shows the balance unchanged.",
+        senderRole: "CUSTOMER",
+        attachments: [{ name: "wallet-screenshot.png", size: "340 KB" }],
+      },
+      {
+        id: "msg-2",
+        author: "Ntumai agent",
+        email: "support@ntumai.com",
+        time: "09:05",
+        body: "We verified the cancellation event and escalated the wallet trace to finance operations. We are waiting for ledger confirmation before closing the case.",
+        senderRole: "ADMIN",
+      },
+    ],
+  },
+  {
+    id: "SUP-1838",
+    conversationId: "conv-sup-1838",
+    title: "Merchant tablet stops syncing",
+    summary: "Store cannot mark orders ready, causing queue buildup on the lunchtime dispatch board.",
+    customer: "QuickBite Kitchens",
+    email: "ops@quickbite.test",
+    supportType: "Email",
+    bucket: "open",
+    category: "all-open",
+    markedAsRead: true,
+    hasAttachments: false,
+    date: "12 min ago",
+    priority: "Medium",
+    agent: "Partner pod",
+    status: "Waiting on contact",
+    city: "Lusaka",
+    thread: [
+      {
+        id: "msg-3",
+        author: "QuickBite Kitchens",
+        email: "ops@quickbite.test",
+        time: "10:11",
+        body: "Orders are arriving but the tablet does not refresh when we try to mark them ready.",
+        senderRole: "CUSTOMER",
+      },
+    ],
+  },
+  {
+    id: "SUP-1834",
+    conversationId: "conv-sup-1834",
+    title: "Courier marked complete without handoff",
+    summary: "Customer says the driver completed the trip but the parcel was not delivered to the recipient.",
+    customer: "Joseph Tembo",
+    email: "j.tembo@ntumai.test",
+    supportType: "Chat",
+    bucket: "open",
+    category: "chat",
+    markedAsRead: false,
+    hasAttachments: true,
+    date: "18 min ago",
+    priority: "High",
+    agent: "Resolution pod",
+    status: "New",
+    city: "Kitwe",
+    thread: [
+      {
+        id: "msg-4",
+        author: "Joseph Tembo",
+        email: "j.tembo@ntumai.test",
+        time: "10:42",
+        body: "The driver marked this complete but nothing was handed over at the destination. Please help urgently.",
+        senderRole: "CUSTOMER",
+        attachments: [{ name: "handoff-location.jpg", size: "220 KB" }],
+      },
+    ],
+  },
+  {
+    id: "SUP-1807",
+    conversationId: "conv-sup-1807",
+    title: "Closed refund follow-up",
+    summary: "Customer confirmed refund was received and the issue can be closed.",
+    customer: "Agnes Mumba",
+    email: "agnes.mumba@ntumai.test",
+    supportType: "Email",
+    bucket: "closed",
+    category: "unassigned",
+    markedAsRead: true,
+    hasAttachments: false,
+    date: "1 day ago",
+    priority: "Low",
+    agent: "Billing queue",
+    status: "Closed",
+    city: "Kabwe",
+    thread: [
+      {
+        id: "msg-5",
+        author: "Agnes Mumba",
+        email: "agnes.mumba@ntumai.test",
+        time: "Yesterday",
+        body: "Refund has arrived now. Thank you.",
+        senderRole: "CUSTOMER",
+      },
+    ],
+  },
+];
+
 export function listSupportTicketCases(): SupportTicketCase[] {
   return supportTicketCases;
 }
@@ -448,12 +653,45 @@ export function listSupportDisputeCases(): SupportDisputeCase[] {
   return supportDisputeCases;
 }
 
+export function listSupportInboxMessages(): SupportInboxMessage[] {
+  return supportInboxMessages;
+}
+
+export function getSupportInboxMessageById(id: string) {
+  return supportInboxMessages.find((message) => message.id === id);
+}
+
 export function useSupportTicketCases() {
   const fallback = useMemo(() => listSupportTicketCases(), []);
   return useAdminResource({
     path: "/api/v1/admin/support/tickets?limit=100",
     fallback,
     map: mapSupportTicketPayload,
+  });
+}
+
+export function useSupportInboxMessages() {
+  const fallback = useMemo(() => listSupportInboxMessages(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/support/inbox?limit=100",
+    fallback,
+    map: mapSupportInboxListPayload,
+  });
+}
+
+export function useSupportInboxThread(id: string, refreshKey = 0) {
+  const fallback = useMemo(() => getSupportInboxMessageById(id) ?? null, [id]);
+  return useAdminResource({
+    path: `/api/v1/admin/support/inbox/${id}?v=${refreshKey}`,
+    fallback,
+    map: mapSupportInboxDetailPayload,
+    enabled: Boolean(id),
+  });
+}
+
+export async function sendSupportInboxMessage(ticketId: string, body: string) {
+  return postAdminData<{ message: unknown }>(`/api/v1/admin/support/inbox/${ticketId}/messages`, {
+    body,
   });
 }
 
@@ -591,4 +829,103 @@ function formatAge(value?: string) {
   const hours = Math.floor(diffMinutes / 60);
   const minutes = diffMinutes % 60;
   return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+}
+
+function mapSupportInboxListPayload(payload: unknown): SupportInboxMessage[] {
+  const items = (payload as SupportInboxListPayload)?.items ?? [];
+  return items.map((item) => {
+    const status = mapInboxStatus(item.status);
+    const bucket = mapInboxBucket(item.status);
+    const category = mapInboxCategory(item.status, item.messageCount ?? 0);
+    return {
+      id: item.id,
+      conversationId: item.conversationId ?? null,
+      title: item.subject,
+      summary: item.description,
+      customer: item.customer?.fullName ?? item.customer?.email ?? "Unknown customer",
+      email: item.customer?.email ?? "No email",
+      supportType: (item.messageCount ?? 0) > 0 ? "Chat" : "Email",
+      bucket,
+      category,
+      markedAsRead: bucket === "closed",
+      hasAttachments: false,
+      date: formatAge(item.updatedAt ?? item.createdAt),
+      priority: mapInboxPriority(item.category),
+      agent: mapInboxAgent(item.category),
+      status,
+      city: item.customer?.city ?? "Unknown",
+      thread: [],
+    };
+  });
+}
+
+function mapSupportInboxDetailPayload(payload: unknown): SupportInboxMessage | null {
+  const item = (payload as SupportInboxDetailPayload)?.item;
+  if (!item?.ticket) return null;
+
+  const summaryRecord = mapSupportInboxListPayload({ items: [item.ticket] })[0];
+
+  return {
+    ...summaryRecord,
+    customer: item.customer?.fullName ?? summaryRecord.customer,
+    email: item.customer?.email ?? summaryRecord.email,
+    city: item.customer?.city ?? summaryRecord.city,
+    thread: (item.messages ?? []).map((message) => ({
+      id: message.id,
+      author: message.senderName ?? message.senderEmail ?? "Unknown sender",
+      email: message.senderEmail ?? "No email",
+      time: formatTime(message.createdAt),
+      body: message.body,
+      senderRole: message.senderRole === "ADMIN" ? "ADMIN" : "CUSTOMER",
+    })),
+  };
+}
+
+function mapInboxBucket(status?: string | null): SupportInboxBucket {
+  return status === "RESOLVED" || status === "CLOSED" ? "closed" : "open";
+}
+
+function mapInboxCategory(status?: string | null, messageCount = 0): SupportInboxCategory {
+  if (messageCount > 0) return "chat";
+  if (status === "IN_PROGRESS") return "assigned-to-me";
+  if (status === "OPEN") return "unassigned";
+  return "all-open";
+}
+
+function mapInboxStatus(status?: string | null): SupportInboxMessage["status"] {
+  switch (status) {
+    case "IN_PROGRESS":
+      return "Waiting on us";
+    case "RESOLVED":
+    case "CLOSED":
+      return "Closed";
+    case "OPEN":
+      return "New";
+    default:
+      return "Waiting on contact";
+  }
+}
+
+function mapInboxPriority(category?: string | null): SupportInboxMessage["priority"] {
+  switch (category) {
+    case "PAYMENT":
+      return "High";
+    case "DELIVERY":
+    case "ORDER":
+      return "Medium";
+    default:
+      return "Low";
+  }
+}
+
+function mapInboxAgent(category?: string | null) {
+  switch (category) {
+    case "PAYMENT":
+      return "Billing queue";
+    case "DELIVERY":
+    case "ORDER":
+      return "Resolution pod";
+    default:
+      return "Support lead";
+  }
 }

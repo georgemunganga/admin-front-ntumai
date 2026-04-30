@@ -1,171 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import {
   PiCaretDownBold,
-  PiChatsBold,
   PiMagnifyingGlassBold,
   PiPaperPlaneTiltBold,
   PiPaperclipBold,
   PiPlusBold,
 } from "react-icons/pi";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
-
-type SupportBucket = "open" | "closed";
-type SupportCategory = "unassigned" | "assigned-to-me" | "all-open" | "chat";
-
-type ThreadEntry = {
-  author: string;
-  email: string;
-  time: string;
-  body: string;
-  attachments?: Array<{ name: string; size: string }>;
-};
-
-type MessageItem = {
-  id: string;
-  title: string;
-  summary: string;
-  customer: string;
-  email: string;
-  supportType: "Chat" | "Email";
-  bucket: SupportBucket;
-  category: SupportCategory;
-  markedAsRead: boolean;
-  hasAttachments: boolean;
-  date: string;
-  priority: "Low" | "Medium" | "High";
-  agent: string;
-  status: "New" | "Waiting on contact" | "Waiting on us" | "Closed";
-  thread: ThreadEntry[];
-};
-
-const supportNavItems = [
-  { value: "unassigned" as const, label: "Unassigned", count: 88 },
-  { value: "assigned-to-me" as const, label: "Assigned to me", count: 1515 },
-  { value: "all-open" as const, label: "All open", count: 1603 },
-  { value: "chat" as const, label: "Chat", count: 991 },
-];
-
-const messages: MessageItem[] = [
-  {
-    id: "SUP-1842",
-    title: "Refund not reflected in wallet",
-    summary: "Customer confirms the cancelled order refund still has not landed in wallet after two hours.",
-    customer: "Martha Chola",
-    email: "martha.chola@ntumai.test",
-    supportType: "Chat",
-    bucket: "open",
-    category: "assigned-to-me",
-    markedAsRead: false,
-    hasAttachments: true,
-    date: "4 min ago",
-    priority: "High",
-    agent: "Support lead",
-    status: "Waiting on us",
-    thread: [
-      {
-        author: "Martha Chola",
-        email: "martha.chola@ntumai.test",
-        time: "09:02",
-        body: "I cancelled the order after the rider called, but I still have not received the refund in my wallet. The app still shows the balance unchanged.",
-        attachments: [{ name: "wallet-screenshot.png", size: "340 KB" }],
-      },
-      {
-        author: "Ntumai agent",
-        email: "support@ntumai.com",
-        time: "09:05",
-        body: "We verified the cancellation event and escalated the wallet trace to finance operations. We are waiting for ledger confirmation before closing the case.",
-      },
-      {
-        author: "Finance ops",
-        email: "finance@ntumai.com",
-        time: "09:11",
-        body: "Gateway reversal is complete. Wallet ledger confirmation is still pending for this order.",
-      },
-    ],
-  },
-  {
-    id: "SUP-1838",
-    title: "Merchant tablet stops syncing",
-    summary: "Store cannot mark orders ready, causing queue buildup on the lunchtime dispatch board.",
-    customer: "QuickBite Kitchens",
-    email: "ops@quickbite.test",
-    supportType: "Email",
-    bucket: "open",
-    category: "all-open",
-    markedAsRead: true,
-    hasAttachments: false,
-    date: "12 min ago",
-    priority: "Medium",
-    agent: "Partner pod",
-    status: "Waiting on contact",
-    thread: [
-      {
-        author: "QuickBite Kitchens",
-        email: "ops@quickbite.test",
-        time: "10:11",
-        body: "Orders are arriving but the tablet does not refresh when we try to mark them ready.",
-      },
-      {
-        author: "Ntumai agent",
-        email: "support@ntumai.com",
-        time: "10:14",
-        body: "We linked the report to marketplace support and asked dispatch to watch the store queue.",
-      },
-    ],
-  },
-  {
-    id: "SUP-1834",
-    title: "Courier marked complete without handoff",
-    summary: "Customer says the driver completed the trip but the parcel was not delivered to the recipient.",
-    customer: "Joseph Tembo",
-    email: "j.tembo@ntumai.test",
-    supportType: "Chat",
-    bucket: "open",
-    category: "chat",
-    markedAsRead: false,
-    hasAttachments: true,
-    date: "18 min ago",
-    priority: "High",
-    agent: "Resolution pod",
-    status: "New",
-    thread: [
-      {
-        author: "Joseph Tembo",
-        email: "j.tembo@ntumai.test",
-        time: "10:42",
-        body: "The driver marked this complete but nothing was handed over at the destination. Please help urgently.",
-        attachments: [{ name: "handoff-location.jpg", size: "220 KB" }],
-      },
-    ],
-  },
-  {
-    id: "SUP-1807",
-    title: "Closed refund follow-up",
-    summary: "Customer confirmed refund was received and the issue can be closed.",
-    customer: "Agnes Mumba",
-    email: "agnes.mumba@ntumai.test",
-    supportType: "Email",
-    bucket: "closed",
-    category: "unassigned",
-    markedAsRead: true,
-    hasAttachments: false,
-    date: "1 day ago",
-    priority: "Low",
-    agent: "Billing queue",
-    status: "Closed",
-    thread: [
-      {
-        author: "Agnes Mumba",
-        email: "agnes.mumba@ntumai.test",
-        time: "Yesterday",
-        body: "Refund has arrived now. Thank you.",
-      },
-    ],
-  },
-];
+import {
+  sendSupportInboxMessage,
+  useSupportInboxMessages,
+  useSupportInboxThread,
+  type SupportInboxCategory,
+  type SupportInboxMessage,
+  type SupportInboxBucket,
+} from "@/repositories/admin/support";
 
 const sortOptions = [
   { value: "desc", label: "Newest" },
@@ -193,11 +46,16 @@ const priorityOptions = [
 ];
 
 export default function SupportInboxPage() {
-  const [category, setCategory] = useState<SupportCategory>("unassigned");
-  const [bucket, setBucket] = useState<SupportBucket>("open");
+  const { data: messages, isLoading, isLive, error } = useSupportInboxMessages();
+  const [category, setCategory] = useState<SupportInboxCategory>("unassigned");
+  const [bucket, setBucket] = useState<SupportInboxBucket>("open");
   const [sortBy, setSortBy] = useState("desc");
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedThreadId, setSelectedThreadId] = useState("");
+  const [replyBody, setReplyBody] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isSending, setIsSending] = useState(false);
 
   const visibleMessages = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -209,11 +67,57 @@ export default function SupportInboxPage() {
     });
 
     return filtered.sort((a, b) => (sortBy === "asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)));
-  }, [bucket, category, query, sortBy]);
+  }, [bucket, category, messages, query, sortBy]);
 
-  const activeMessage = visibleMessages[0] ?? messages[0];
+  useEffect(() => {
+    if (!visibleMessages.length) {
+      setSelectedThreadId("");
+      return;
+    }
+
+    setSelectedThreadId((current) =>
+      current && visibleMessages.some((message) => message.id === current)
+        ? current
+        : visibleMessages[0].id,
+    );
+  }, [visibleMessages]);
+
+  const {
+    data: activeThread,
+    isLoading: isThreadLoading,
+    isLive: isThreadLive,
+    error: threadError,
+  } = useSupportInboxThread(selectedThreadId, refreshKey);
+
+  const activeMessage =
+    (selectedThreadId ? visibleMessages.find((message) => message.id === selectedThreadId) : null) ??
+    visibleMessages[0] ??
+    messages[0];
 
   const allSelected = visibleMessages.length > 0 && visibleMessages.every((message) => selectedIds.includes(message.id));
+
+  const supportNavItems = useMemo(
+    () => [
+      { value: "unassigned" as const, label: "Unassigned", count: messages.filter((message) => message.category === "unassigned").length },
+      { value: "assigned-to-me" as const, label: "Assigned to me", count: messages.filter((message) => message.category === "assigned-to-me").length },
+      { value: "all-open" as const, label: "All open", count: messages.filter((message) => message.bucket === "open").length },
+      { value: "chat" as const, label: "Chat", count: messages.filter((message) => message.supportType === "Chat").length },
+    ],
+    [messages],
+  );
+
+  async function handleSendReply() {
+    if (!selectedThreadId || !replyBody.trim()) return;
+    setIsSending(true);
+
+    try {
+      await sendSupportInboxMessage(selectedThreadId, replyBody.trim());
+      setReplyBody("");
+      setRefreshKey((current) => current + 1);
+    } finally {
+      setIsSending(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -229,6 +133,10 @@ export default function SupportInboxPage() {
           </Button>
         }
       />
+
+      <div className="flex justify-end">
+        <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
+      </div>
 
       <div className="custom-scrollbar overflow-x-auto scroll-smooth">
         <nav className="flex items-center gap-5 border-b border-gray-300">
@@ -315,15 +223,7 @@ export default function SupportInboxPage() {
                     className={`grid cursor-pointer grid-cols-[24px_1fr] items-start gap-3 border-t border-muted p-5 ${
                       isActive ? "border-t-2 border-t-primary bg-gray-50/70" : ""
                     }`}
-                    onClick={() => {
-                      const index = visibleMessages.findIndex((item) => item.id === message.id);
-                      if (index > -1) {
-                        const reordered = [...visibleMessages];
-                        const [selected] = reordered.splice(index, 1);
-                        reordered.unshift(selected);
-                        // no-op reorder effect through local active derivation not persisted
-                      }
-                    }}
+                    onClick={() => setSelectedThreadId(message.id)}
                   >
                     <input
                       type="checkbox"
@@ -357,6 +257,13 @@ export default function SupportInboxPage() {
 
           <div className="hidden @4xl:col-span-8 @4xl:block">
             <div className="relative rounded-lg border border-muted px-5 py-5">
+              <div className="mb-4 flex justify-end">
+                <DataSourceState
+                  isLoading={isThreadLoading}
+                  isLive={isThreadLive}
+                  error={threadError}
+                />
+              </div>
               <header className="flex flex-col justify-between gap-4 border-b border-muted pb-5 3xl:flex-row 3xl:items-center">
                 <div className="flex flex-col items-start justify-between gap-3 xs:flex-row xs:items-center xs:gap-6 lg:justify-normal">
                   <Title as="h4" className="font-semibold">{activeMessage.title}</Title>
@@ -396,7 +303,7 @@ export default function SupportInboxPage() {
 
               <div className="custom-scrollbar max-h-[calc(100dvh-32rem)] overflow-y-auto py-5">
                 <div className="grid gap-8">
-                  {activeMessage.thread.map((entry, index) => (
+                  {(activeThread?.thread ?? activeMessage.thread).map((entry, index) => (
                     <div key={`${entry.author}-${entry.time}-${index}`}>
                       <div className="grid grid-cols-[32px_1fr] items-start gap-3 lg:gap-4 xl:grid-cols-[48px_1fr]">
                         <Avatar
@@ -451,6 +358,8 @@ export default function SupportInboxPage() {
                   placeholder="Write a reply..."
                   rows={7}
                   textareaClassName="rounded-2xl"
+                  value={replyBody}
+                  onChange={(event) => setReplyBody(event.target.value)}
                 />
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -459,7 +368,11 @@ export default function SupportInboxPage() {
                       Attach
                     </Button>
                   </div>
-                  <Button className="h-10 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+                  <Button
+                    className="h-10 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+                    isLoading={isSending}
+                    onClick={handleSendReply}
+                  >
                     <PiPaperPlaneTiltBold className="me-1.5 h-4 w-4" />
                     Send Reply
                   </Button>
