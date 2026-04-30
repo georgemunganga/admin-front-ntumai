@@ -5,7 +5,7 @@ import { Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
-import type { SalesInvoice } from "@/components/sales/invoice-data";
+import type { SalesInvoiceRecord } from "@/repositories/admin/invoices";
 
 const statusOptions = [
   { label: "Draft", value: "Draft" },
@@ -22,7 +22,7 @@ const payoutMethodOptions = [
 
 type InvoiceFormWorkspaceProps = {
   mode: "create" | "edit";
-  invoice?: SalesInvoice;
+  invoice?: SalesInvoiceRecord;
 };
 
 export default function InvoiceFormWorkspace({
@@ -54,7 +54,7 @@ export default function InvoiceFormWorkspace({
         breadcrumb={["Home", "Sales", "Invoices", ...(mode === "edit" && invoice ? [invoice.id, "Edit"] : ["Create"])]}
         eyebrow="Sales Kit"
         title={mode === "edit" ? `Edit ${id}` : "Create Invoice"}
-        description="Prepare settlement invoices with payout destination, merchant totals, and finance review context."
+        description="Prepare settlement invoices with payout destination, merchant totals, and the finance context staff need before vendor funds move through the mobile business."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={backHref}>

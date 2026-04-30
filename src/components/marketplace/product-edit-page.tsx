@@ -2,10 +2,10 @@
 
 import { notFound } from "next/navigation";
 import ProductFormWorkspace from "@/components/marketplace/product-form-workspace";
-import { getMarketplaceProduct } from "@/components/marketplace/product-data";
+import { getMarketplaceProductBySlug } from "@/repositories/admin/products";
 
 export default function ProductEditPage({ slug }: { slug: string }) {
-  const product = getMarketplaceProduct(slug);
+  const product = getMarketplaceProductBySlug(slug);
   if (!product) notFound();
 
   return <ProductFormWorkspace mode="edit" product={product} />;

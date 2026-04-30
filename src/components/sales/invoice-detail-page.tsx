@@ -3,10 +3,10 @@
 import { QRCodeSVG } from "qrcode.react";
 import { notFound } from "next/navigation";
 import { Badge, Table, Text, Title } from "rizzui";
-import { getSalesInvoice } from "@/components/sales/invoice-data";
+import { getSalesInvoiceById } from "@/repositories/admin/invoices";
 
 export default function InvoiceDetailPage({ id }: { id: string }) {
-  const invoice = getSalesInvoice(id);
+  const invoice = getSalesInvoiceById(id);
   if (!invoice) notFound();
 
   const subtotal = parseMoney(invoice.amount) + 320;
@@ -38,6 +38,7 @@ export default function InvoiceDetailPage({ id }: { id: string }) {
             </Badge>
             <Title as="h6">{invoice.id}</Title>
             <Text className="mt-0.5 text-gray-500">Invoice Number</Text>
+            <Text className="mt-2 max-w-xs text-xs text-gray-500">{invoice.workflow.summary}</Text>
           </div>
         </div>
 

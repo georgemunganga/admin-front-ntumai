@@ -7,21 +7,22 @@ import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBo
 import PageHeader from "@/components/admin/page-header";
 import StatCard from "@/components/admin/stat-card";
 import { routes } from "@/config/routes";
-import { supportTemplates } from "@/components/support/template-data";
-
-const channelOptions = [
-  { label: "All channels", value: "all" },
-  { label: "Email", value: "Email" },
-  { label: "SMS", value: "SMS" },
-  { label: "Push", value: "Push" },
-];
+import {
+  listSupportTemplateChannels,
+  listSupportTemplates,
+} from "@/repositories/admin/support-templates";
 
 export default function SupportTemplatesListPage() {
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState("all");
+  const templates = useMemo(() => listSupportTemplates(), []);
+  const channelOptions = useMemo(
+    () => [{ label: "All channels", value: "all" }].concat(listSupportTemplateChannels().map((value) => ({ label: value, value }))),
+    [],
+  );
 
   const rows = useMemo(() => {
-    return supportTemplates.filter((item) => {
+    return templates.filter((item) => {
       const channelMatch = channel === "all" || item.channel === channel;
       const q = query.trim().toLowerCase();
       const queryMatch =
@@ -29,11 +30,11 @@ export default function SupportTemplatesListPage() {
         [item.name, item.audience, item.subject, item.owner].join(" ").toLowerCase().includes(q);
       return channelMatch && queryMatch;
     });
-  }, [query, channel]);
+  }, [channel, query, templates]);
 
-  const liveCount = supportTemplates.filter((item) => item.status === "live").length;
-  const reviewCount = supportTemplates.filter((item) => item.status === "review").length;
-  const queuedCount = supportTemplates.filter((item) => item.status === "queued").length;
+  const liveCount = templates.filter((item) => item.status === "live").length;
+  const reviewCount = templates.filter((item) => item.status === "review").length;
+  const queuedCount = templates.filter((item) => item.status === "queued").length;
 
   return (
     <div className="space-y-6">
@@ -41,7 +42,7 @@ export default function SupportTemplatesListPage() {
         breadcrumb={["Home", "Support", "Templates"]}
         eyebrow="Support Desk"
         title="Support Templates"
-        description="Manage reusable customer, vendor, tasker, and internal operations messages from one workspace."
+        description="Manage reusable customer, vendor, and tasker communications that staff use to run mobile support, dispatch, and payout workflows."
         action={
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">
@@ -59,7 +60,7 @@ export default function SupportTemplatesListPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total templates" value={String(supportTemplates.length).padStart(2, "0")} change="Workspace" tone="neutral" detail="All customer, vendor, tasker, and internal communication templates." />
+        <StatCard label="Total templates" value={String(templates.length).padStart(2, "0")} change="Workspace" tone="neutral" detail="All customer, vendor, tasker, and internal communication templates." />
         <StatCard label="Live" value={String(liveCount).padStart(2, "0")} change="Published" tone="positive" detail="Templates currently cleared for active use in support flows." />
         <StatCard label="Review" value={String(reviewCount).padStart(2, "0")} change="Pending" tone="warning" detail="Templates waiting on copy, product, or compliance review." />
         <StatCard label="Queued" value={String(queuedCount).padStart(2, "0")} change="Drafts" tone="neutral" detail="Templates prepared but not yet approved for live release." />
@@ -111,6 +112,7 @@ export default function SupportTemplatesListPage() {
                     {item.name}
                   </Link>
                   <Text className="mt-1 text-xs text-gray-500">{item.subject}</Text>
+                  <Text className="mt-1 text-xs text-gray-400">{item.workflow.summary}</Text>
                 </Table.Cell>
                 <Table.Cell>{item.channel}</Table.Cell>
                 <Table.Cell>{item.audience}</Table.Cell>

@@ -4,10 +4,11 @@ import { useState } from "react";
 import { AdvancedCheckbox, Button, CheckboxGroup, Title } from "rizzui";
 import { PiCheckBold, PiXBold } from "react-icons/pi";
 import { useModal } from "@/app/shared/modal-views/use-modal";
-import { permissions } from "@/components/platform/roles-permissions-data";
 import { ROLES } from "@/config/constants";
+import { listPlatformPermissions } from "@/repositories/admin/platform-access";
 
 const roleRows = Object.values(ROLES);
+const permissions = listPlatformPermissions();
 
 export default function EditRoleModal() {
   const { closeModal } = useModal();

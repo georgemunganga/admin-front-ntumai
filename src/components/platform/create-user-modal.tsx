@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Button, Input, Select, Title } from "rizzui";
 import { PiXBold } from "react-icons/pi";
 import { useModal } from "@/app/shared/modal-views/use-modal";
-import { permissions, statuses } from "@/components/platform/roles-permissions-data";
 import { ROLES } from "@/config/constants";
+import { listPlatformPermissions, listPlatformUserStatuses } from "@/repositories/admin/platform-access";
 
 const roleOptions = Object.entries(ROLES).map(([key, value]) => ({ label: value, value: key }));
-const statusOptions = statuses.map((status) => ({ label: status, value: status }));
-const permissionOptions = permissions.map((permission) => ({ label: permission, value: permission }));
+const statusOptions = listPlatformUserStatuses().map((status) => ({ label: status, value: status }));
+const permissionOptions = listPlatformPermissions().map((permission) => ({ label: permission, value: permission }));
 
 export default function CreateUserModal() {
   const { closeModal } = useModal();

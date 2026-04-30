@@ -15,15 +15,11 @@ import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBo
 import PageHeader from "@/components/admin/page-header";
 import StatCard from "@/components/admin/stat-card";
 import { routes } from "@/config/routes";
-import { salesInvoices, type SalesInvoice } from "@/components/sales/invoice-data";
-
-const statusOptions = [
-  { label: "All statuses", value: "all" },
-  { label: "Draft", value: "Draft" },
-  { label: "Pending", value: "Pending" },
-  { label: "Paid", value: "Paid" },
-  { label: "Overdue", value: "Overdue" },
-];
+import {
+  listInvoiceStatuses,
+  listSalesInvoices,
+  type SalesInvoiceRecord,
+} from "@/repositories/admin/invoices";
 
 export default function InvoiceListPage() {
   const [query, setQuery] = useState("");
@@ -32,10 +28,15 @@ export default function InvoiceListPage() {
     pageIndex: 0,
     pageSize: 6,
   });
+  const invoices = useMemo(() => listSalesInvoices(), []);
+  const statusOptions = useMemo(
+    () => [{ label: "All statuses", value: "all" }].concat(listInvoiceStatuses().map((value) => ({ label: value, value }))),
+    [],
+  );
 
   const filteredRows = useMemo(() => {
     const term = query.toLowerCase();
-    return salesInvoices.filter((row) => {
+    return invoices.filter((row) => {
       const matchesQuery = [row.id, row.customer, row.status, row.destination, row.cycle]
         .join(" ")
         .toLowerCase()
@@ -43,9 +44,9 @@ export default function InvoiceListPage() {
       const matchesStatus = status === "all" ? true : row.status === status;
       return matchesQuery && matchesStatus;
     });
-  }, [query, status]);
+  }, [invoices, query, status]);
 
-  const columns = useMemo<ColumnDef<SalesInvoice>[]>(
+  const columns = useMemo<ColumnDef<SalesInvoiceRecord>[]>(
     () => [
       {
         accessorKey: "id",
@@ -104,9 +105,9 @@ export default function InvoiceListPage() {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  const paid = salesInvoices.filter((item) => item.status === "Paid").length;
-  const pending = salesInvoices.filter((item) => item.status === "Pending").length;
-  const overdue = salesInvoices.filter((item) => item.status === "Overdue").length;
+  const paid = invoices.filter((item) => item.status === "Paid").length;
+  const pending = invoices.filter((item) => item.status === "Pending").length;
+  const overdue = invoices.filter((item) => item.status === "Overdue").length;
 
   return (
     <div className="space-y-6">
@@ -114,7 +115,7 @@ export default function InvoiceListPage() {
         breadcrumb={["Home", "Sales", "Invoices"]}
         eyebrow="Sales Kit"
         title="Invoice List"
-        description="Manage merchant settlement invoices, payout follow-up, and finance review from one list."
+        description="Manage settlement invoices, merchant release states, and finance follow-up for the vendors and customer orders affected by mobile payouts."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">
@@ -132,7 +133,7 @@ export default function InvoiceListPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Invoices" value={String(salesInvoices.length).padStart(2, "0")} change="Finance" tone="neutral" detail="All active merchant settlement invoices in the current workspace." />
+        <StatCard label="Invoices" value={String(invoices.length).padStart(2, "0")} change="Finance" tone="neutral" detail="All active merchant settlement invoices in the current workspace." />
         <StatCard label="Paid" value={String(paid).padStart(2, "0")} change="Closed" tone="positive" detail="Invoices already reconciled and marked as settled." />
         <StatCard label="Pending" value={String(pending).padStart(2, "0")} change="Watch" tone="warning" detail="Invoices still waiting on merchant confirmation or finance release." />
         <StatCard label="Overdue" value={String(overdue).padStart(2, "0")} change="Follow-up" tone="neutral" detail="Invoices requiring finance outreach or compliance clearance." />

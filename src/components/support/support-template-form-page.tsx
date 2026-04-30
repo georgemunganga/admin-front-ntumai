@@ -6,7 +6,7 @@ import { Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
-import { getSupportTemplate } from "@/components/support/template-data";
+import { getSupportTemplateById } from "@/repositories/admin/support-templates";
 
 const channelOptions = [
   { label: "Email", value: "Email" },
@@ -22,10 +22,10 @@ const audienceOptions = [
 ];
 
 const folderOptions = [
-  { label: "Order lifecycle", value: "order_lifecycle" },
-  { label: "Settlement notices", value: "settlement_notices" },
-  { label: "Dispatch alerts", value: "dispatch_alerts" },
-  { label: "Trust and risk", value: "trust_risk" },
+  { label: "Delivery recovery", value: "delivery_recovery" },
+  { label: "Dispatch alerts", value: "dispatch_updates" },
+  { label: "Settlement notices", value: "finance_settlements" },
+  { label: "Trust and risk", value: "trust_and_risk" },
 ];
 
 export default function SupportTemplateFormPage({
@@ -35,7 +35,7 @@ export default function SupportTemplateFormPage({
   mode: "create" | "edit";
   id?: string;
 }) {
-  const template = mode === "edit" ? getSupportTemplate(id ?? "") : null;
+  const template = mode === "edit" ? getSupportTemplateById(id ?? "") : null;
   if (mode === "edit" && !template) notFound();
 
   const title = mode === "create" ? "Create Template" : `Edit ${template?.name}`;
@@ -49,7 +49,7 @@ export default function SupportTemplateFormPage({
         breadcrumb={mode === "create" ? ["Home", "Support", "Templates", "Create"] : ["Home", "Support", "Templates", template!.id, "Edit"]}
         eyebrow="Support Desk"
         title={title}
-        description="Draft or update reusable support messages for customers, vendors, taskers, and internal teams."
+        description="Draft or update reusable support messages for customers, vendors, taskers, and internal teams handling mobile workflows."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={mode === "edit" ? routes.supportDesk.templateDetails(template!.id) : routes.supportDesk.templates}>
@@ -73,7 +73,7 @@ export default function SupportTemplateFormPage({
         <div className="grid gap-6">
           <div className="grid gap-4 md:grid-cols-2">
             <Input label="Template Name" rounded="lg" defaultValue={template?.name ?? "Vendor payout reminder"} />
-            <SelectField label="Folder" options={folderOptions} value="settlement_notices" />
+            <SelectField label="Folder" options={folderOptions} value={template?.folder ?? "finance_settlements"} />
             <Input label="Subject" rounded="lg" defaultValue={template?.subject ?? "Your payout summary is ready"} />
             <SelectField
               label="Channel"
@@ -99,6 +99,9 @@ export default function SupportTemplateFormPage({
                 <Badge variant="flat" className="mt-3 rounded-2xl bg-primary/10 px-3 py-1 text-primary">
                   {template?.status ?? "queued"}
                 </Badge>
+                <Text className="mt-3 text-xs leading-6 text-gray-500">
+                  {template?.workflow.summary ?? "Message should match the exact customer, tasker, or vendor workflow staff are operating."}
+                </Text>
               </div>
               <div className="rounded-[22px] border border-gray-200 bg-gray-50/70 p-4">
                 <Title as="h4" className="text-base font-semibold text-gray-900">

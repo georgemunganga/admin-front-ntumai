@@ -7,6 +7,53 @@ export type AdminStatus =
   | "paused"
   | "at_risk";
 
+export type AdminWorkflowActor = "customer" | "tasker" | "vendor" | "staff";
+
+export type AdminWorkflowSource =
+  | "delivery"
+  | "scheduled_ride"
+  | "errand"
+  | "marketplace_order"
+  | "onboarding_review"
+  | "payout_request"
+  | "invoice_settlement"
+  | "refund_dispute"
+  | "support_recovery"
+  | "catalog_management"
+  | "role_access";
+
+export type AdminOperationalState =
+  | "submitted"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "assigned"
+  | "in_progress"
+  | "blocked"
+  | "escalated"
+  | "settled"
+  | "resolved";
+
+export type AdminStaffTeam =
+  | "crm"
+  | "dispatch"
+  | "finance"
+  | "fleet"
+  | "growth"
+  | "logistics"
+  | "marketplace_ops"
+  | "platform"
+  | "risk"
+  | "support";
+
+export type AdminWorkflowContext = {
+  actor: AdminWorkflowActor;
+  source: AdminWorkflowSource;
+  state: AdminOperationalState;
+  ownerTeam: AdminStaffTeam;
+  summary: string;
+};
+
 export type AdminTimelineEntry = {
   label: string;
   detail: string;
@@ -51,6 +98,7 @@ export type AdminCaseBase = {
   notes: string[];
   links: AdminActionLink[];
   refs?: AdminEntityRefs;
+  workflow?: AdminWorkflowContext;
 };
 
 export type AdminRiskCaseBase = AdminCaseBase & {
@@ -63,4 +111,5 @@ export type AdminLifecycleRecord = {
   owner: string;
   updatedAt: string;
   timeline: AdminTimelineEntry[];
+  workflow?: AdminWorkflowContext;
 };

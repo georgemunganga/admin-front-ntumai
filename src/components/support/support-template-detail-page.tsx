@@ -7,10 +7,10 @@ import { PiArrowLeftBold, PiNotePencilBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getSupportTemplate } from "@/components/support/template-data";
+import { getSupportTemplateById } from "@/repositories/admin/support-templates";
 
 export default function SupportTemplateDetailPage({ id }: { id: string }) {
-  const template = getSupportTemplate(id);
+  const template = getSupportTemplateById(id);
   if (!template) notFound();
 
   return (
@@ -19,7 +19,7 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
         breadcrumb={["Home", "Support", "Templates", template.id]}
         eyebrow="Support Desk"
         title={template.name}
-        description="Review the live copy, placeholders, and release state for this support communication asset."
+        description="Review the live copy, placeholders, and release state for this staff-facing communication asset used in mobile support workflows."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.supportDesk.templates}>
@@ -46,6 +46,7 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
               {template.subject}
             </Title>
             <Text className="mt-4 text-sm leading-7 text-gray-600">{template.preview}</Text>
+            <Text className="mt-4 text-xs leading-6 text-gray-500">{template.workflow.summary}</Text>
           </div>
         </ShellCard>
 

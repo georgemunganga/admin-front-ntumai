@@ -6,14 +6,14 @@ import { Badge, Button, Text, Title } from "rizzui";
 import { PiArrowLeftBold, PiNotePencilBold, PiTruckBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
-import { getMarketplaceProduct, marketplaceProducts } from "@/components/marketplace/product-data";
 import { routes } from "@/config/routes";
+import { getMarketplaceProductBySlug, listMarketplaceProducts } from "@/repositories/admin/products";
 
 export default function ProductDetailPage({ slug }: { slug: string }) {
-  const product = getMarketplaceProduct(slug);
+  const product = getMarketplaceProductBySlug(slug);
   if (!product) notFound();
 
-  const related = marketplaceProducts.filter((item) => item.slug !== product.slug).slice(0, 3);
+  const related = listMarketplaceProducts().filter((item) => item.slug !== product.slug).slice(0, 3);
 
   return (
     <div className="@container space-y-6">
@@ -21,7 +21,7 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
         breadcrumb={["Home", "Marketplace", "Products", product.id]}
         eyebrow="Marketplace Kit"
         title={product.name}
-        description="Review storefront presentation, vendor context, and fulfillment details for this marketplace item."
+        description="Review storefront presentation, vendor context, and the customer-facing delivery promise staff are managing for this marketplace item."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={routes.marketplace.products}>
@@ -75,6 +75,7 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
             <Text as="p" className="mt-2 text-base leading-7 text-gray-600">
               {product.description}
             </Text>
+            <Text className="mt-3 text-sm leading-6 text-gray-500">{product.workflow.summary}</Text>
             <div className="mt-4 flex items-end gap-3">
               <div className="text-3xl font-semibold text-gray-900">{product.price}</div>
               <del className="pb-1 text-base font-medium text-gray-400">

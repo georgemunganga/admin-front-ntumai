@@ -5,14 +5,14 @@ import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui
 import { PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
-import { permissions, roleUsers, statuses } from "@/components/platform/roles-permissions-data";
 import { ROLES } from "@/config/constants";
+import {
+  listPlatformRoleUsers,
+  listPlatformUserStatuses,
+} from "@/repositories/admin/platform-access";
 
 const roleOptions = [{ label: "All roles", value: "all" }].concat(
   Object.values(ROLES).map((role) => ({ label: role, value: role })),
-);
-const statusOptions = [{ label: "All statuses", value: "all" }].concat(
-  statuses.map((status) => ({ label: status, value: status })),
 );
 
 function StatusPill({ value }: { value: string }) {
@@ -26,18 +26,22 @@ export default function RolesUsersTable() {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
+  const users = useMemo(() => listPlatformRoleUsers(), []);
+  const statusOptions = useMemo(
+    () => [{ label: "All statuses", value: "all" }].concat(listPlatformUserStatuses().map((value) => ({ label: value, value }))),
+    [],
+  );
 
   const rows = useMemo(() => {
-    return roleUsers.filter((item) => {
+    return users.filter((item) => {
       const q = query.toLowerCase();
       const queryMatch =
-        q.length === 0 ||
-        [item.fullName, item.email, item.role].join(" ").toLowerCase().includes(q);
+        q.length === 0 || [item.fullName, item.email, item.role, item.activeRole, item.accessScope].join(" ").toLowerCase().includes(q);
       const roleMatch = role === "all" || item.role === role;
       const statusMatch = status === "all" || item.status === status;
       return queryMatch && roleMatch && statusMatch;
     });
-  }, [query, role, status]);
+  }, [query, role, status, users]);
 
   const isFiltered = query.length > 0 || role !== "all" || status !== "all";
 
@@ -46,7 +50,7 @@ export default function RolesUsersTable() {
       <div className="mb-4 @container">
         <div className="flex w-full flex-wrap items-center justify-between gap-3">
           <Title as="h3" className="order-1 whitespace-nowrap pe-4 text-base font-semibold sm:text-lg">
-            All Users
+            Staff Access Users
           </Title>
           <div className="order-4 grid gap-2 @lg:grid-cols-2 @4xl:order-2 @4xl:flex @4xl:flex-row">
             <Select
@@ -105,6 +109,7 @@ export default function RolesUsersTable() {
               <Table.Head>User ID</Table.Head>
               <Table.Head>Name</Table.Head>
               <Table.Head>Role</Table.Head>
+              <Table.Head>Active flow</Table.Head>
               <Table.Head>Created</Table.Head>
               <Table.Head>Permissions</Table.Head>
               <Table.Head>Status</Table.Head>
@@ -125,6 +130,12 @@ export default function RolesUsersTable() {
                   </div>
                 </Table.Cell>
                 <Table.Cell>{row.role}</Table.Cell>
+                <Table.Cell>
+                  <div>
+                    <Text className="font-medium text-gray-900">{row.activeRole}</Text>
+                    <Text className="text-gray-500">{row.workflow.summary}</Text>
+                  </div>
+                </Table.Cell>
                 <Table.Cell>{new Date(row.createdAt).toLocaleDateString()}</Table.Cell>
                 <Table.Cell>
                   <div className="flex flex-wrap gap-2">

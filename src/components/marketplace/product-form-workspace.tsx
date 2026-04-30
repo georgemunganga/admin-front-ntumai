@@ -5,7 +5,7 @@ import { Badge, Button, Checkbox, Input, Select, Text, Textarea } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold, PiImageBold, PiUploadBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
-import type { MarketplaceProduct } from "@/components/marketplace/product-data";
+import type { MarketplaceProductRecord } from "@/repositories/admin/products";
 
 const formSections = [
   { id: "summary", label: "Summary" },
@@ -69,7 +69,7 @@ const reviewLaneOptions = [
 
 type ProductFormWorkspaceProps = {
   mode: "create" | "edit";
-  product?: MarketplaceProduct;
+  product?: MarketplaceProductRecord;
 };
 
 export default function ProductFormWorkspace({
@@ -102,7 +102,7 @@ export default function ProductFormWorkspace({
         breadcrumb={["Home", "Marketplace", "Products", ...(mode === "edit" && product ? [product.id, "Edit"] : ["Create"])]}
         eyebrow="Marketplace Kit"
         title={title}
-        description="Manage product identity, pricing, inventory, catalog placement, and storefront readiness."
+        description="Manage product identity, pricing, inventory, catalog placement, and storefront readiness for the vendor and customer mobile flows this item affects."
         action={
           <div className="flex flex-wrap gap-3">
             <Link href={backHref}>

@@ -7,7 +7,12 @@ This audit is based on the current Next.js admin workspace and is intended to gu
 - `src/components/crm/customer-data.ts`
 - `src/components/logistics/shipment-data.ts`
 - `src/components/sales/order-data.ts`
+- `src/components/sales/invoice-data.ts`
+- `src/components/marketplace/product-data.ts`
+- `src/components/marketplace/category-data.ts`
 - `src/components/marketplace/vendor-data.ts`
+- `src/components/support/template-data.ts`
+- `src/components/platform/roles-permissions-data.ts`
 - `src/components/support/support-ticket-queue-page.tsx`
 - `src/components/support/support-escalation-queue-page.tsx`
 - `src/components/support/dispute-review-queue-page.tsx`
@@ -27,6 +32,8 @@ This audit is based on the current Next.js admin workspace and is intended to gu
   - repeated in queue drawers and detail views
 - `riskFlags`
   - repeated in finance and disputes flows
+- `workflow`
+  - repeated operational meaning around who the mobile actor is, what workflow they are in, and what staff state the record is in
 
 These are now centralized in `src/contracts/admin-domain.ts`.
 
@@ -48,6 +55,16 @@ These are now centralized in `src/contracts/admin-domain.ts`.
   - lane, destination, amount, risk flags, related customer/order
 - `DispatchCase`
   - lane, route issue, tasker state, related customer/order/shipment
+- `Invoice`
+  - settlement cycle, payout destination, merchant release state, timeline
+- `Product`
+  - vendor-facing catalog state, storefront visibility, review lane, stock posture
+- `Category`
+  - taxonomy governance, vendor listing impact, storefront visibility, review ownership
+- `SupportTemplate`
+  - outbound support message, audience, channel, workflow folder, placeholders
+- `StaffAccessUser`
+  - staff role, permissions, access status, active workflow scope, audit state
 
 ## Minimum relationships required for clean admin integration
 
@@ -64,6 +81,13 @@ These are now centralized in `src/contracts/admin-domain.ts`.
 - `Shipment.taskerId`
 - `Order.customerId`
 - `Order.vendorId`
+- `Invoice.vendorId`
+- `Invoice.orderIds[]` where invoice lines settle order-driven revenue
+- `Product.vendorId`
+- `Product.categoryId`
+- `Category.parentCategoryId` where hierarchy exists
+- `SupportTemplate.ownerTeamId` or equivalent ownership context
+- `StaffAccessUser.roleIds[]`
 
 Without these foreign keys, the admin UI must keep falling back to module-level links instead of exact record routes.
 
@@ -86,11 +110,15 @@ Without these foreign keys, the admin UI must keep falling back to module-level 
 
 - shared enums:
   - `AdminStatus`
+  - `AdminWorkflowActor`
+  - `AdminWorkflowSource`
+  - `AdminOperationalState`
   - lane enums per domain: `SupportLane`, `PaymentLane`, `RefundLane`, `DispatchLane`
 - shared structs:
   - `TimelineEntryDto`
   - `ActionLinkDto` only if the backend intentionally drives workflow actions
   - `EntityRefsDto`
+  - `WorkflowContextDto`
 - per-resource DTOs:
   - `CustomerSummaryDto`
   - `CustomerDetailDto`
@@ -102,6 +130,15 @@ Without these foreign keys, the admin UI must keep falling back to module-level 
   - `SupportCaseDetailDto`
   - `PaymentCaseSummaryDto`
   - `RefundCaseSummaryDto`
+  - `InvoiceSummaryDto`
+  - `InvoiceDetailDto`
+  - `ProductSummaryDto`
+  - `ProductDetailDto`
+  - `CategorySummaryDto`
+  - `CategoryDetailDto`
+  - `SupportTemplateSummaryDto`
+  - `SupportTemplateDetailDto`
+  - `StaffAccessUserSummaryDto`
 
 ## Integration priority
 
@@ -113,5 +150,23 @@ Without these foreign keys, the admin UI must keep falling back to module-level 
 6. `refunds`
 7. `vendors`
 8. `taskers`
+9. `invoices`
+10. `products`
+11. `categories`
+12. `support templates`
+13. `staff access / roles`
 
 This order matches the highest-traffic cross-linking already present in the admin UI.
+
+## Remaining core domains now aligned to repository boundaries
+
+- `sales/invoices`
+  - should be treated as finance staff tools for merchant settlement and payout release, not generic invoice CRUD
+- `marketplace/products`
+  - should expose vendor listing readiness and customer storefront effect from the same record
+- `marketplace/categories`
+  - should expose taxonomy governance for both vendor submission and customer discovery
+- `support/templates`
+  - should be grouped by operational workflow: delivery recovery, dispatch updates, finance settlements, and trust/risk notices
+- `platform roles/users`
+  - should be interpreted as staff access management for mobile-user operations, not only generic back-office user accounts

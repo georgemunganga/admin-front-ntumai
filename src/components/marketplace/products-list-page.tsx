@@ -14,15 +14,12 @@ import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import StatCard from "@/components/admin/stat-card";
-import { marketplaceProducts, type MarketplaceProduct } from "@/components/marketplace/product-data";
 import { routes } from "@/config/routes";
-
-const statusOptions = [
-  { label: "All statuses", value: "all" },
-  { label: "Published", value: "Published" },
-  { label: "Low stock", value: "Low stock" },
-  { label: "Review", value: "Review" },
-];
+import {
+  listMarketplaceProducts,
+  listProductStatuses,
+  type MarketplaceProductRecord,
+} from "@/repositories/admin/products";
 
 export default function ProductsListPage() {
   const [query, setQuery] = useState("");
@@ -31,10 +28,15 @@ export default function ProductsListPage() {
     pageIndex: 0,
     pageSize: 6,
   });
+  const products = useMemo(() => listMarketplaceProducts(), []);
+  const statusOptions = useMemo(
+    () => [{ label: "All statuses", value: "all" }].concat(listProductStatuses().map((value) => ({ label: value, value }))),
+    [],
+  );
 
   const filteredProducts = useMemo(() => {
     const term = query.toLowerCase();
-    return marketplaceProducts.filter((product) => {
+    return products.filter((product) => {
       const matchesQuery = [product.id, product.name, product.category, product.vendor, product.status]
         .join(" ")
         .toLowerCase()
@@ -42,9 +44,9 @@ export default function ProductsListPage() {
       const matchesStatus = status === "all" ? true : product.status === status;
       return matchesQuery && matchesStatus;
     });
-  }, [query, status]);
+  }, [products, query, status]);
 
-  const columns = useMemo<ColumnDef<MarketplaceProduct>[]>(
+  const columns = useMemo<ColumnDef<MarketplaceProductRecord>[]>(
     () => [
       {
         accessorKey: "name",
@@ -115,9 +117,9 @@ export default function ProductsListPage() {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  const publishedCount = marketplaceProducts.filter((item) => item.status === "Published").length;
-  const reviewCount = marketplaceProducts.filter((item) => item.status === "Review").length;
-  const lowStockCount = marketplaceProducts.filter((item) => item.status === "Low stock").length;
+  const publishedCount = products.filter((item) => item.status === "Published").length;
+  const reviewCount = products.filter((item) => item.status === "Review").length;
+  const lowStockCount = products.filter((item) => item.status === "Low stock").length;
 
   return (
     <div className="space-y-6">
@@ -145,10 +147,10 @@ export default function ProductsListPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Catalog items"
-          value={String(marketplaceProducts.length).padStart(2, "0")}
-          change="Template parity"
+          value={String(products.length).padStart(2, "0")}
+          change="Catalog ops"
           tone="neutral"
-          detail="All products currently visible in the Ntumai marketplace workspace."
+          detail="All products currently affecting vendor listing flows and customer storefront discovery."
         />
         <StatCard
           label="Published"

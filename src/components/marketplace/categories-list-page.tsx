@@ -13,21 +13,13 @@ import {
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import { marketplaceCategories, type MarketplaceCategory } from "@/components/marketplace/category-data";
-
-const statusOptions = [
-  { label: "All statuses", value: "all" },
-  { label: "Stable", value: "stable" },
-  { label: "Live", value: "live" },
-  { label: "Review", value: "review" },
-  { label: "Monitoring", value: "monitoring" },
-  { label: "Queued", value: "queued" },
-] as const;
-
-const segmentOptions = [
-  { label: "All groups", value: "all" },
-  ...Array.from(new Set(marketplaceCategories.map((row) => row.group))).map((value) => ({ label: value, value })),
-];
+import StatusBadge from "@/components/admin/status-badge";
+import {
+  listCategoryGroups,
+  listCategoryStatuses,
+  listMarketplaceCategories,
+  type MarketplaceCategoryRecord,
+} from "@/repositories/admin/categories";
 
 export default function CategoriesListPage() {
   const [query, setQuery] = useState("");
@@ -37,11 +29,20 @@ export default function CategoriesListPage() {
     pageIndex: 0,
     pageSize: 8,
   });
+  const categories = useMemo(() => listMarketplaceCategories(), []);
+  const statusOptions = useMemo(
+    () => [{ label: "All statuses", value: "all" }].concat(listCategoryStatuses().map((value) => ({ label: value, value }))),
+    [],
+  );
+  const segmentOptions = useMemo(
+    () => [{ label: "All groups", value: "all" }].concat(listCategoryGroups().map((value) => ({ label: value, value }))),
+    [],
+  );
 
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return marketplaceCategories.filter((row) => {
+    return categories.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
       const matchesSegment = segment === "all" ? true : row.group === segment;
       const haystack = [row.id, row.name, row.description, row.group, row.owner, row.status]
@@ -50,9 +51,9 @@ export default function CategoriesListPage() {
 
       return matchesStatus && matchesSegment && (!needle || haystack.includes(needle));
     });
-  }, [query, segment, status]);
+  }, [categories, query, segment, status]);
 
-  const columns = useMemo<ColumnDef<MarketplaceCategory>[]>(
+  const columns = useMemo<ColumnDef<MarketplaceCategoryRecord>[]>(
     () => [
       {
         accessorKey: "name",
@@ -70,7 +71,7 @@ export default function CategoriesListPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <CategoryStatus status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
       {
@@ -106,7 +107,7 @@ export default function CategoriesListPage() {
         breadcrumb={["Home", "Marketplace", "Categories"]}
         eyebrow="Marketplace Kit"
         title="Categories"
-        description="Category list."
+        description="Manage category governance for vendor product creation and customer storefront discovery in the mobile marketplace."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" className="h-11 rounded-2xl px-4">
@@ -220,22 +221,5 @@ export default function CategoriesListPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function CategoryStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
-  };
-
-  return (
-    <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>
-      {status.replace("_", " ")}
-    </span>
   );
 }

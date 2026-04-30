@@ -18,8 +18,8 @@ import {
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
-import { getMarketplaceCategory } from "@/components/marketplace/category-data";
 import { routes } from "@/config/routes";
+import { getMarketplaceCategoryById } from "@/repositories/admin/categories";
 
 const groupOptions = [
   { label: "Grocery", value: "Grocery" },
@@ -63,7 +63,7 @@ const reviewOwnerOptions = [
 ];
 
 export default function CategoryEditPage({ id }: { id: string }) {
-  const category = getMarketplaceCategory(id);
+  const category = getMarketplaceCategoryById(id);
   if (!category) notFound();
 
   const isRegulated = category.group === "Regulated";
@@ -78,7 +78,7 @@ export default function CategoryEditPage({ id }: { id: string }) {
         breadcrumb={["Home", "Marketplace", "Categories", category.id, "Edit"]}
         eyebrow="Marketplace Kit"
         title={`Edit ${category.name}`}
-        description="Admin policy workspace for how this category appears to vendors, storefront customers, and compliance reviewers."
+        description="Admin policy workspace for how this category behaves in vendor product creation, customer storefront discovery, and compliance review."
         badge="Category"
         action={
           <div className="flex flex-wrap gap-3">
@@ -122,6 +122,7 @@ export default function CategoryEditPage({ id }: { id: string }) {
                 <Text className="mt-2 max-w-2xl text-sm leading-7 text-gray-600">
                   {category.description} Use this screen to control storefront placement, vendor-facing taxonomy, and review routing from one place.
                 </Text>
+                <Text className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">{category.workflow.summary}</Text>
               </div>
               <div className="rounded-[24px] border border-white/80 bg-white/85 px-4 py-3 shadow-sm">
                 <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
