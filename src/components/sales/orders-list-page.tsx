@@ -16,7 +16,8 @@ import { orderTrackingHrefBySlug } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
-import { salesOrders, type SalesOrder } from "@/components/sales/order-data";
+import type { SalesOrder } from "@/components/sales/order-data";
+import { listSalesOrders } from "@/repositories/admin/orders";
 
 const lanes = [
   { label: "All", value: "all" },
@@ -26,13 +27,14 @@ const lanes = [
 ] as const;
 
 export default function OrdersListPage() {
+  const orders = useMemo(() => listSalesOrders(), []);
   const [query, setQuery] = useState("");
   const [lane, setLane] = useState("all");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 8 });
 
   const filteredRows = useMemo(() => {
     const term = query.toLowerCase();
-    return salesOrders.filter((row) => {
+    return orders.filter((row) => {
       const haystack = [
         row.id,
         row.orderNumber,
@@ -61,7 +63,7 @@ export default function OrdersListPage() {
 
       return matchesQuery && matchesLane;
     });
-  }, [lane, query]);
+  }, [lane, orders, query]);
 
   const columns = useMemo<ColumnDef<SalesOrder>[]>(
     () => [

@@ -15,14 +15,12 @@ import {
   PiTruckTrailerBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import {
-  type LogisticsShipment,
-  getLogisticsShipment,
-} from "@/components/logistics/shipment-data";
+import type { LogisticsShipment } from "@/components/logistics/shipment-data";
 import { routes } from "@/config/routes";
+import { getLogisticsShipmentById } from "@/repositories/admin/shipments";
 
 export default function LogisticsTrackingDetailPage({ id }: { id: string }) {
-  const shipment = getLogisticsShipment(id);
+  const shipment = getLogisticsShipmentById(id);
   if (!shipment) notFound();
   const [copied, setCopied] = useState(false);
 

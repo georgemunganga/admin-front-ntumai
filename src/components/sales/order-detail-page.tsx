@@ -7,7 +7,7 @@ import { PiArrowLeftBold, PiCheckBold, PiNotePencilBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getSalesOrder } from "@/components/sales/order-data";
+import { getSalesOrderById } from "@/repositories/admin/orders";
 
 const orderStatusSteps = [
   "Order Created",
@@ -18,7 +18,7 @@ const orderStatusSteps = [
 ];
 
 export default function OrderDetailPage({ id }: { id: string }) {
-  const order = getSalesOrder(id);
+  const order = getSalesOrderById(id);
   if (!order) notFound();
 
   const currentStep = order.status === "queued" ? 1 : order.status === "review" ? 2 : order.status === "monitoring" ? 3 : order.status === "live" ? 4 : 5;

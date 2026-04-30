@@ -23,7 +23,8 @@ import { shipmentOrderHrefById } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
-import { logisticsShipments, type LogisticsShipment } from "@/components/logistics/shipment-data";
+import type { LogisticsShipment } from "@/components/logistics/shipment-data";
+import { listLogisticsShipments, listShipmentLanes } from "@/repositories/admin/shipments";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -35,12 +36,8 @@ const statusOptions = [
   { label: "At risk", value: "at_risk" },
 ] as const;
 
-const segmentOptions = [
-  { label: "All lanes", value: "all" },
-  ...Array.from(new Set(logisticsShipments.map((row) => row.lane))).map((value) => ({ label: value, value })),
-];
-
 export default function ShipmentsListPage() {
+  const shipments = useMemo(() => listLogisticsShipments(), []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [segment, setSegment] = useState("all");
@@ -52,7 +49,7 @@ export default function ShipmentsListPage() {
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return logisticsShipments.filter((row) => {
+    return shipments.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
       const matchesSegment = segment === "all" ? true : row.lane === segment;
       const haystack = [
@@ -69,30 +66,38 @@ export default function ShipmentsListPage() {
 
       return matchesStatus && matchesSegment && (!needle || haystack.includes(needle));
     });
-  }, [query, segment, status]);
+  }, [query, segment, shipments, status]);
+
+  const segmentOptions = useMemo(
+    () => [
+      { label: "All lanes", value: "all" },
+      ...listShipmentLanes().map((value) => ({ label: value, value })),
+    ],
+    [],
+  );
 
   const stats = useMemo(
     () => [
       {
         label: "Total shipments",
-        value: String(logisticsShipments.length).padStart(2, "0"),
+        value: String(shipments.length).padStart(2, "0"),
         detail: "All active and staged shipment records in the working set.",
         icon: PiTruckBold,
       },
       {
         label: "Live lanes",
-        value: String(logisticsShipments.filter((row) => row.status === "live").length).padStart(2, "0"),
+        value: String(shipments.filter((row) => row.status === "live").length).padStart(2, "0"),
         detail: "Shipments actively moving in customer-visible delivery lanes.",
         icon: PiTruckBold,
       },
       {
         label: "Exceptions",
-        value: String(logisticsShipments.filter((row) => row.status === "review" || row.status === "at_risk").length).padStart(2, "0"),
+        value: String(shipments.filter((row) => row.status === "review" || row.status === "at_risk").length).padStart(2, "0"),
         detail: "Shipments currently requiring recovery, review, or intervention.",
         icon: PiWarningCircleBold,
       },
     ],
-    [],
+    [shipments],
   );
 
   const columns = useMemo<ColumnDef<LogisticsShipment>[]>(

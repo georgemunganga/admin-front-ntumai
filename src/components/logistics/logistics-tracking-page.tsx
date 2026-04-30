@@ -7,16 +7,29 @@ import { shipmentOrderHrefById } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatusBadge from "@/components/admin/status-badge";
-import { logisticsShipments } from "@/components/logistics/shipment-data";
 import { routes } from "@/config/routes";
-
-const trackingStats = [
-  { label: "Live tracked", value: "38", meta: "customer-visible links active" },
-  { label: "At risk", value: "6", meta: "ETA or route watch required" },
-  { label: "Recovery handoffs", value: "3", meta: "exceptions still open" },
-];
+import { listLogisticsShipments } from "@/repositories/admin/shipments";
 
 export default function LogisticsTrackingPage() {
+  const shipments = listLogisticsShipments();
+  const trackingStats = [
+    {
+      label: "Live tracked",
+      value: String(shipments.filter((shipment) => shipment.status === "live" || shipment.status === "monitoring").length),
+      meta: "customer-visible links active",
+    },
+    {
+      label: "At risk",
+      value: String(shipments.filter((shipment) => shipment.status === "at_risk" || shipment.status === "review").length),
+      meta: "ETA or route watch required",
+    },
+    {
+      label: "Recovery handoffs",
+      value: String(shipments.filter((shipment) => shipment.status === "review" || shipment.status === "queued").length),
+      meta: "exceptions still open",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -40,7 +53,7 @@ export default function LogisticsTrackingPage() {
 
       <ShellCard title="Tracked deliveries" description="Tracking references currently live in customer and public flows.">
         <div className="mt-2 space-y-4">
-          {logisticsShipments.map((shipment) => (
+          {shipments.map((shipment) => (
             <div key={shipment.id} className="rounded-2xl border border-gray-100 bg-white p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="space-y-3">

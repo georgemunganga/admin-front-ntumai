@@ -7,10 +7,10 @@ import { PiArrowLeftBold, PiDownloadSimpleBold, PiPrinterBold } from "react-icon
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getLogisticsShipment } from "@/components/logistics/shipment-data";
+import { getLogisticsShipmentById } from "@/repositories/admin/shipments";
 
 export default function ShipmentDetailPage({ id }: { id: string }) {
-  const shipment = getLogisticsShipment(id);
+  const shipment = getLogisticsShipmentById(id);
   if (!shipment) notFound();
 
   const invoiceRows = [

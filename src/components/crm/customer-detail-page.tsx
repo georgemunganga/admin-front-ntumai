@@ -20,8 +20,8 @@ import {
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
-import { getCustomerProfile } from "@/components/crm/customer-data";
 import { routes } from "@/config/routes";
+import { getCustomerProfileById } from "@/repositories/admin/customers";
 
 const coverPhotos = [
   "1648583076906-60338fa01f07",
@@ -29,7 +29,7 @@ const coverPhotos = [
 ];
 
 export default function CustomerDetailPage({ id }: { id: string }) {
-  const customer = getCustomerProfile(id);
+  const customer = getCustomerProfileById(id);
   if (!customer) notFound();
 
   const coverId = coverPhotos[Math.abs(customer.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)) % coverPhotos.length];
