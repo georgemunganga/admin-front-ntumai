@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
@@ -11,6 +11,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -18,7 +19,7 @@ import StatusBadge from "@/components/admin/status-badge";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
-import { listPaymentCases, type PaymentCase, type PaymentLane } from "@/repositories/admin/finance";
+import { type PaymentCase, type PaymentLane, usePaymentCases } from "@/repositories/admin/finance";
 
 type DecisionAction = "retry" | "escalate" | "close";
 
@@ -235,10 +236,15 @@ function PaymentDrawer({
 
 export default function PaymentOpsQueuePage() {
   const { openDrawer } = useDrawer();
+  const { data, isLoading, isLive, error } = usePaymentCases();
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
   const [query, setQuery] = useState("");
-  const [cases, setCases] = useState(() => listPaymentCases());
+  const [cases, setCases] = useState<PaymentCase[]>([]);
+
+  useEffect(() => {
+    setCases(data);
+  }, [data]);
 
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
@@ -325,6 +331,9 @@ export default function PaymentOpsQueuePage() {
         title="Payment operations queue"
         description="Review and act."
       >
+        <div className="mb-4 flex justify-end">
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
+        </div>
         <div className="flex flex-col gap-4 border-b border-gray-100 pb-4">
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => {

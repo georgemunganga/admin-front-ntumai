@@ -1,8 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import type { AdminRiskCaseBase } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
+import { useAdminResource } from "@/repositories/admin/admin-api";
 
 export type PaymentLane = "retry" | "chargeback" | "reconciliation";
 export type RefundLane = "auto_policy" | "manual" | "partial";
@@ -29,6 +31,78 @@ export type RefundCase = AdminRiskCaseBase & {
   age: string;
   issue: string;
   sourceSummary: string;
+};
+
+type PaymentApiItem = {
+  id: string;
+  reference?: string | null;
+  amount: number;
+  method?: string | null;
+  status?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  order?: {
+    id: string;
+    trackingId?: string | null;
+    status?: string | null;
+    totalAmount?: number;
+  } | null;
+  customer?: {
+    id: string;
+    fullName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+  address?: {
+    city?: string | null;
+    street?: string | null;
+  } | null;
+  store?: {
+    id: string;
+    name?: string | null;
+  } | null;
+};
+
+type PaymentsPayload = {
+  items: PaymentApiItem[];
+};
+
+type RefundApiItem = {
+  id: string;
+  refundState?: "pending_review" | "refunded" | "blocked" | null;
+  createdAt?: string;
+  updatedAt?: string;
+  amount: number;
+  order: {
+    id: string;
+    trackingId?: string | null;
+    status?: string | null;
+    totalAmount?: number;
+  };
+  payment?: {
+    id: string;
+    method?: string | null;
+    status?: string | null;
+    reference?: string | null;
+  } | null;
+  customer?: {
+    id: string;
+    fullName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+  address?: {
+    city?: string | null;
+    street?: string | null;
+  } | null;
+  store?: {
+    id: string;
+    name?: string | null;
+  } | null;
+};
+
+type RefundsPayload = {
+  items: RefundApiItem[];
 };
 
 const paymentCases: PaymentCase[] = [
@@ -296,4 +370,262 @@ export function listPaymentCases(): PaymentCase[] {
 
 export function listRefundCases(): RefundCase[] {
   return refundCases;
+}
+
+export function usePaymentCases() {
+  const fallback = useMemo(() => listPaymentCases(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/payments?limit=100",
+    fallback,
+    map: mapPaymentsPayload,
+  });
+}
+
+export function useRefundCases() {
+  const fallback = useMemo(() => listRefundCases(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/refunds?limit=100",
+    fallback,
+    map: mapRefundsPayload,
+  });
+}
+
+function mapPaymentsPayload(payload: unknown): PaymentCase[] {
+  const items = (payload as PaymentsPayload)?.items ?? [];
+  return items.map((item) => {
+    const lane = mapPaymentLane(item.status, item.order?.status);
+    const customerHref = item.customer?.id
+      ? routes.crm.customerDetails(item.customer.id)
+      : customerDetailHrefByName[item.customer?.fullName ?? ""] ?? routes.crm.customers;
+
+    return {
+      id: item.id,
+      reference: item.order?.trackingId ?? item.reference ?? item.id,
+      lane,
+      customerName: item.customer?.fullName ?? item.customer?.email ?? "Unknown customer",
+      city: item.address?.city ?? "Unknown",
+      status: mapPaymentStatus(item.status, item.order?.status),
+      amount: formatMoney(item.amount),
+      method: normalizeMethod(item.method),
+      owner: lane === "retry" ? "Payments ops" : lane === "chargeback" ? "Chargeback desk" : "Ledger reconciliation",
+      age: formatAge(item.createdAt ?? item.updatedAt),
+      issue: buildPaymentIssue(lane, item),
+      sourceSummary: buildPaymentSourceSummary(lane, item),
+      riskFlags: buildPaymentFlags(lane, item),
+      timeline: [
+        {
+          label: "Payment record created",
+          detail: `Payment event linked to order ${item.order?.trackingId ?? item.order?.id ?? "unknown"} entered the finance queue.`,
+          time: formatTime(item.createdAt),
+        },
+        {
+          label: "Latest finance state",
+          detail: `Payment is ${normalizeToken(item.status ?? "pending").toLowerCase()} while order status is ${normalizeToken(item.order?.status ?? "pending").toLowerCase()}.`,
+          time: formatTime(item.updatedAt ?? item.createdAt),
+        },
+      ],
+      notes: [
+        "Live payment case loaded from the Nest admin endpoint.",
+        lane === "retry"
+          ? "Check retry, fallback, or duplicate-capture risk before rerunning payment."
+          : lane === "chargeback"
+            ? "Coordinate with support before promising customer resolution."
+            : "Confirm ledger parity against order and settlement state before closure.",
+      ],
+      links: [
+        { label: "Customer profile", href: customerHref },
+        { label: "Order", href: item.order?.id ? routes.sales.orderDetails(item.order.id) : routes.sales.orders },
+        { label: "Support tickets", href: routes.supportDesk.tickets },
+      ],
+      refs: {
+        customerId: item.customer?.id,
+        orderId: item.order?.id,
+        paymentCaseId: item.id,
+      },
+      workflow: {
+        actor: "customer",
+        source: "refund_dispute",
+        state:
+          lane === "retry"
+            ? "under_review"
+            : lane === "chargeback"
+              ? "escalated"
+              : "in_progress",
+        ownerTeam: "finance",
+        summary: buildPaymentSourceSummary(lane, item),
+      },
+    };
+  });
+}
+
+function mapRefundsPayload(payload: unknown): RefundCase[] {
+  const items = (payload as RefundsPayload)?.items ?? [];
+  return items.map((item) => {
+    const lane = mapRefundLane(item);
+    const customerHref = item.customer?.id
+      ? routes.crm.customerDetails(item.customer.id)
+      : customerDetailHrefByName[item.customer?.fullName ?? ""] ?? routes.crm.customers;
+
+    return {
+      id: item.id,
+      reference: item.order?.trackingId ?? item.payment?.reference ?? item.id,
+      lane,
+      customerName: item.customer?.fullName ?? item.customer?.email ?? "Unknown customer",
+      city: item.address?.city ?? "Unknown",
+      status: mapRefundStatus(item.refundState),
+      amount: formatMoney(item.amount),
+      destination: item.payment?.method ? `${normalizeMethod(item.payment.method)} reversal` : "Original order value review",
+      owner:
+        lane === "auto_policy"
+          ? "Auto-refund monitor"
+          : lane === "partial"
+            ? "Service recovery"
+            : "Refund desk",
+      age: formatAge(item.createdAt ?? item.updatedAt),
+      issue: buildRefundIssue(item),
+      sourceSummary: buildRefundSourceSummary(item),
+      riskFlags: buildRefundFlags(item),
+      timeline: [
+        {
+          label: "Refund case identified",
+          detail: `Order ${item.order?.trackingId ?? item.order?.id ?? "unknown"} entered the refund review workflow.`,
+          time: formatTime(item.createdAt),
+        },
+        {
+          label: "Latest refund state",
+          detail: `Refund case is currently ${normalizeToken(item.refundState ?? "pending_review").toLowerCase()} with payment state ${normalizeToken(item.payment?.status ?? "unknown").toLowerCase()}.`,
+          time: formatTime(item.updatedAt ?? item.createdAt),
+        },
+      ],
+      notes: [
+        item.refundState === "refunded"
+          ? "This refund has already been posted from the live payment trail."
+          : "Derived refund review case loaded from live order and payment state.",
+      ],
+      links: [
+        { label: "Customer profile", href: customerHref },
+        { label: "Order", href: item.order?.id ? routes.sales.orderDetails(item.order.id) : routes.sales.orders },
+        { label: "Payments", href: routes.sales.payments },
+      ],
+      refs: {
+        customerId: item.customer?.id,
+        orderId: item.order?.id,
+        paymentCaseId: item.payment?.id,
+        refundCaseId: item.id,
+      },
+      workflow: {
+        actor: "customer",
+        source: "refund_dispute",
+        state:
+          item.refundState === "refunded"
+            ? "resolved"
+            : item.refundState === "blocked"
+              ? "blocked"
+              : "under_review",
+        ownerTeam: "finance",
+        summary: buildRefundSourceSummary(item),
+      },
+    };
+  });
+}
+
+function mapPaymentLane(status?: string | null, orderStatus?: string | null): PaymentLane {
+  if (status === "FAILED" || status === "PENDING") return "retry";
+  if (status === "REFUNDED" || orderStatus === "CANCELLED") return "chargeback";
+  return "reconciliation";
+}
+
+function mapPaymentStatus(status?: string | null, orderStatus?: string | null) {
+  if (status === "FAILED") return "review";
+  if (status === "PENDING") return "queued";
+  if (status === "REFUNDED") return "monitoring";
+  if (orderStatus === "CANCELLED") return "at_risk";
+  return "live";
+}
+
+function mapRefundLane(item: RefundApiItem): RefundLane {
+  if (item.refundState === "refunded") return "auto_policy";
+  if ((item.order?.totalAmount ?? item.amount) > item.amount) return "partial";
+  return "manual";
+}
+
+function mapRefundStatus(state?: string | null) {
+  if (state === "refunded") return "stable";
+  if (state === "blocked") return "at_risk";
+  return "review";
+}
+
+function buildPaymentIssue(lane: PaymentLane, item: PaymentApiItem) {
+  if (lane === "retry") {
+    return `Customer payment for ${item.order?.trackingId ?? item.id} is pending or failed and may need retry or fallback handling.`;
+  }
+  if (lane === "chargeback") {
+    return `Funds tied to ${item.order?.trackingId ?? item.id} were reversed or conflict with order state, so finance should review recovery exposure.`;
+  }
+  return `Captured payment for ${item.order?.trackingId ?? item.id} needs reconciliation against order fulfillment and settlement context.`;
+}
+
+function buildPaymentSourceSummary(lane: PaymentLane, item: PaymentApiItem) {
+  if (lane === "retry") return "Checkout payment path is incomplete and may still affect the customer’s order flow.";
+  if (lane === "chargeback") return "Order and payment outcomes are no longer aligned, creating customer-recovery and dispute pressure.";
+  return `Live payment record from ${item.store?.name ?? "Ntumai commerce"} needs finance parity review.`;
+}
+
+function buildPaymentFlags(lane: PaymentLane, item: PaymentApiItem) {
+  if (lane === "retry") return ["Retry candidate", normalizeToken(item.status ?? "pending")];
+  if (lane === "chargeback") return ["Recovery exposure", normalizeToken(item.order?.status ?? "cancelled")];
+  return ["Ledger review", normalizeMethod(item.method)];
+}
+
+function buildRefundIssue(item: RefundApiItem) {
+  if (item.refundState === "refunded") {
+    return `Refund related to ${item.order?.trackingId ?? item.id} has already posted and should be checked for downstream customer communication only.`;
+  }
+  if (item.refundState === "blocked") {
+    return `Cancelled order ${item.order?.trackingId ?? item.id} is blocked behind failed payment state and needs manual finance review before release.`;
+  }
+  return `Cancelled or disputed order ${item.order?.trackingId ?? item.id} is pending refund review from the live order and payment trail.`;
+}
+
+function buildRefundSourceSummary(item: RefundApiItem) {
+  if (item.refundState === "refunded") return "Refund was derived from a live refunded payment record.";
+  if (item.refundState === "blocked") return "Order cancellation and payment failure are both present, so the case cannot auto-release.";
+  return "Order cancellation was detected without a completed refund posting, so staff review is still required.";
+}
+
+function buildRefundFlags(item: RefundApiItem) {
+  if (item.refundState === "refunded") return ["Refund posted", normalizeMethod(item.payment?.method)];
+  if (item.refundState === "blocked") return ["Manual review", normalizeToken(item.payment?.status ?? "failed")];
+  return ["Pending review", normalizeToken(item.order?.status ?? "cancelled")];
+}
+
+function normalizeMethod(method?: string | null) {
+  if (!method) return "Unknown method";
+  return method.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function normalizeToken(value: string) {
+  return value.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatMoney(amount: number, currency = "ZMW") {
+  return `${currency} ${Math.round(amount).toLocaleString()}`;
+}
+
+function formatAge(value?: string) {
+  if (!value) return "Unknown";
+  const diffMs = Date.now() - new Date(value).getTime();
+  const diffMinutes = Math.max(1, Math.round(diffMs / 60000));
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  const hours = Math.floor(diffMinutes / 60);
+  const minutes = diffMinutes % 60;
+  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+}
+
+function formatTime(value?: string) {
+  if (!value) return "Unknown";
+  return new Date(value).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

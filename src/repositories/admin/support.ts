@@ -1,8 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { customerDetailHrefByName, vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import type { AdminCaseBase, AdminRiskCaseBase } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
+import { useAdminResource } from "@/repositories/admin/admin-api";
 
 export type SupportTicketLane = "billing" | "service" | "merchant";
 export type SupportEscalationLane = "trust" | "vip" | "partner";
@@ -40,6 +42,31 @@ export type SupportDisputeCase = AdminRiskCaseBase & {
   age: string;
   issue: string;
   sourceSummary: string;
+};
+
+type SupportTicketApiItem = {
+  id: string;
+  category?: string | null;
+  subject: string;
+  description: string;
+  status?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  user?: {
+    id: string;
+    email?: string | null;
+    phone?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    Address?: Array<{
+      city?: string | null;
+      address?: string | null;
+    }>;
+  } | null;
+};
+
+type SupportTicketsPayload = {
+  items: SupportTicketApiItem[];
 };
 
 const supportTicketCases: SupportTicketCase[] = [
@@ -419,4 +446,149 @@ export function listSupportEscalationCases(): SupportEscalationCase[] {
 
 export function listSupportDisputeCases(): SupportDisputeCase[] {
   return supportDisputeCases;
+}
+
+export function useSupportTicketCases() {
+  const fallback = useMemo(() => listSupportTicketCases(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/support/tickets?limit=100",
+    fallback,
+    map: mapSupportTicketPayload,
+  });
+}
+
+function mapSupportTicketPayload(payload: unknown): SupportTicketCase[] {
+  const items = (payload as SupportTicketsPayload)?.items ?? [];
+  return items.map((item) => {
+    const lane = mapSupportTicketLane(item.category);
+    const customerName = fullName(item.user?.firstName, item.user?.lastName) || item.user?.email || "Unknown customer";
+    const city = item.user?.Address?.[0]?.city ?? "Unknown";
+    const customerHref = item.user?.id ? routes.crm.customerDetails(item.user.id) : routes.crm.customers;
+    const age = formatAge(item.createdAt ?? item.updatedAt);
+
+    return {
+      id: item.id,
+      customerName,
+      lane,
+      city,
+      status: mapSupportTicketStatus(item.status),
+      owner: lane === "billing" ? "Finance support" : lane === "merchant" ? "Partner support" : "Resolution pod",
+      age,
+      contact: item.user?.phone ?? item.user?.email ?? "No contact",
+      subject: item.subject,
+      summary: item.description,
+      tags: [normalizeToken(item.category ?? "general"), normalizeToken(item.status ?? "open")],
+      timeline: [
+        {
+          label: "Ticket opened",
+          detail: `Support ticket entered the ${lane} queue for mobile-user follow-up.`,
+          time: formatTime(item.createdAt),
+        },
+        {
+          label: "Latest staff update",
+          detail: `Ticket is currently ${normalizeToken(item.status ?? "open").toLowerCase()} in the staff support queue.`,
+          time: formatTime(item.updatedAt ?? item.createdAt),
+        },
+      ],
+      notes: [
+        "Live support ticket loaded from the Nest admin endpoint.",
+        lane === "billing"
+          ? "Coordinate with finance before promising a wallet or refund outcome."
+          : lane === "merchant"
+            ? "Check vendor and catalog context before replying."
+            : "Use order, delivery, and tasker context before closing the ticket.",
+      ],
+      links: buildSupportTicketLinks(lane, customerHref),
+      refs: item.user?.id ? { customerId: item.user.id, supportCaseId: item.id } : { supportCaseId: item.id },
+      workflow: {
+        actor: "customer",
+        source: lane === "billing" ? "refund_dispute" : "support_recovery",
+        state:
+          item.status === "RESOLVED"
+            ? "resolved"
+            : item.status === "IN_PROGRESS"
+              ? "in_progress"
+              : "under_review",
+        ownerTeam: "support",
+        summary: item.description,
+      },
+    };
+  });
+}
+
+function mapSupportTicketLane(category?: string | null): SupportTicketLane {
+  switch (category) {
+    case "PAYMENT":
+      return "billing";
+    case "ORDER":
+    case "DELIVERY":
+      return "service";
+    default:
+      return "merchant";
+  }
+}
+
+function mapSupportTicketStatus(status?: string | null) {
+  switch (status) {
+    case "OPEN":
+      return "review";
+    case "IN_PROGRESS":
+      return "monitoring";
+    case "RESOLVED":
+      return "live";
+    case "CLOSED":
+      return "stable";
+    default:
+      return "queued";
+  }
+}
+
+function buildSupportTicketLinks(lane: SupportTicketLane, customerHref: string) {
+  if (lane === "billing") {
+    return [
+      { label: "Customer profile", href: customerHref },
+      { label: "Payment ops", href: routes.sales.payments },
+      { label: "Refund approvals", href: routes.sales.refunds },
+    ];
+  }
+
+  if (lane === "merchant") {
+    return [
+      { label: "Customer profile", href: customerHref },
+      { label: "Vendors", href: routes.marketplace.vendors },
+      { label: "Categories", href: routes.marketplace.categories },
+    ];
+  }
+
+  return [
+    { label: "Customer profile", href: customerHref },
+    { label: "Tracking cases", href: routes.logistics.tracking },
+    { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
+  ];
+}
+
+function fullName(firstName?: string | null, lastName?: string | null) {
+  return [firstName, lastName].filter(Boolean).join(" ");
+}
+
+function normalizeToken(value: string) {
+  return value.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatTime(value?: string) {
+  if (!value) return "Unknown";
+  return new Date(value).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatAge(value?: string) {
+  if (!value) return "Unknown";
+  const diffMs = Date.now() - new Date(value).getTime();
+  const diffMinutes = Math.max(1, Math.round(diffMs / 60000));
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  const hours = Math.floor(diffMinutes / 60);
+  const minutes = diffMinutes % 60;
+  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
 }
