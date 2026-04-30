@@ -19,7 +19,12 @@ import StatusBadge from "@/components/admin/status-badge";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
-import { type SupportDisputeCase as DisputeCase, type SupportDisputeLane, useSupportDisputeCases } from "@/repositories/admin/support";
+import {
+  saveSupportDisputeDecision,
+  type SupportDisputeCase as DisputeCase,
+  type SupportDisputeLane,
+  useSupportDisputeCases,
+} from "@/repositories/admin/support";
 
 type DecisionAction = "refund" | "deny" | "escalate";
 
@@ -46,12 +51,13 @@ function DisputeDecisionModal({
   item: DisputeCase;
   action: DecisionAction;
   onClose: () => void;
-  onSubmit: (payload: { reasonCode: string; note: string }) => void;
+  onSubmit: (payload: { reasonCode: string; note: string }) => Promise<void> | void;
 }) {
   const [reasonCode, setReasonCode] = useState(
     action === "refund" ? "refund_approved" : action === "deny" ? "claim_denied" : "escalated_for_policy",
   );
   const [note, setNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tone =
     action === "refund"
@@ -101,7 +107,18 @@ function DisputeDecisionModal({
         <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={onClose}>
           Cancel
         </Button>
-        <Button className={`h-11 rounded-2xl px-4 ${tone}`} onClick={() => onSubmit({ reasonCode, note })}>
+        <Button
+          className={`h-11 rounded-2xl px-4 ${tone}`}
+          disabled={isSubmitting}
+          onClick={async () => {
+            setIsSubmitting(true);
+            try {
+              await onSubmit({ reasonCode, note });
+            } finally {
+              setIsSubmitting(false);
+            }
+          }}
+        >
           {action === "refund" ? "Confirm recovery" : action === "deny" ? "Confirm denial" : "Confirm escalation"}
         </Button>
       </div>
@@ -225,8 +242,8 @@ function DisputeDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -283,7 +300,16 @@ export default function DisputeReviewQueuePage() {
     return { open, urgent, financeLinked };
   }, [filteredCases]);
 
-  function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    if (isLive) {
+      try {
+        await saveSupportDisputeDecision(id, action, reasonCode, note);
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Failed to save the dispute action.");
+        return;
+      }
+    }
+
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;

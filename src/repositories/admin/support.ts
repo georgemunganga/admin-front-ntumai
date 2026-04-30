@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { customerDetailHrefByName, vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import type { AdminCaseBase, AdminRiskCaseBase } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
-import { postAdminData, useAdminResource } from "@/repositories/admin/admin-api";
+import { patchAdminData, postAdminData, useAdminResource } from "@/repositories/admin/admin-api";
 
 export type SupportTicketLane = "billing" | "service" | "merchant";
 export type SupportEscalationLane = "trust" | "vip" | "partner";
@@ -232,6 +232,9 @@ type SupportDisputeApiItem = {
 type SupportDisputesPayload = {
   items: SupportDisputeApiItem[];
 };
+
+type SupportEscalationDecision = "assign" | "escalate" | "close";
+type SupportDisputeDecision = "refund" | "deny" | "escalate";
 
 const supportTicketCases: SupportTicketCase[] = [
   {
@@ -794,6 +797,32 @@ export function useSupportInboxThread(id: string, refreshKey = 0) {
 export async function sendSupportInboxMessage(ticketId: string, body: string) {
   return postAdminData<{ message: unknown }>(`/api/v1/admin/support/inbox/${ticketId}/messages`, {
     body,
+  });
+}
+
+export async function saveSupportEscalationDecision(
+  id: string,
+  action: SupportEscalationDecision,
+  reasonCode: string,
+  note: string,
+) {
+  return patchAdminData<{ item: SupportEscalationApiItem }>(`/api/v1/admin/support/escalations/${id}`, {
+    action,
+    reasonCode,
+    note,
+  });
+}
+
+export async function saveSupportDisputeDecision(
+  id: string,
+  action: SupportDisputeDecision,
+  reasonCode: string,
+  note: string,
+) {
+  return patchAdminData<{ item: SupportDisputeApiItem }>(`/api/v1/admin/support/disputes/${id}`, {
+    action,
+    reasonCode,
+    note,
   });
 }
 

@@ -19,7 +19,12 @@ import StatusBadge from "@/components/admin/status-badge";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
-import { type SupportEscalationCase as EscalationCase, type SupportEscalationLane, useSupportEscalationCases } from "@/repositories/admin/support";
+import {
+  saveSupportEscalationDecision,
+  type SupportEscalationCase as EscalationCase,
+  type SupportEscalationLane,
+  useSupportEscalationCases,
+} from "@/repositories/admin/support";
 
 type DecisionAction = "assign" | "escalate" | "close";
 
@@ -46,12 +51,13 @@ function EscalationDecisionModal({
   item: EscalationCase;
   action: DecisionAction;
   onClose: () => void;
-  onSubmit: (payload: { reasonCode: string; note: string }) => void;
+  onSubmit: (payload: { reasonCode: string; note: string }) => Promise<void> | void;
 }) {
   const [reasonCode, setReasonCode] = useState(
     action === "assign" ? "assigned_for_follow_up" : action === "escalate" ? "cross_team_escalation" : "escalation_closed",
   );
   const [note, setNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tone =
     action === "assign"
@@ -100,7 +106,18 @@ function EscalationDecisionModal({
         <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={onClose}>
           Cancel
         </Button>
-        <Button className={`h-11 rounded-2xl px-4 ${tone}`} onClick={() => onSubmit({ reasonCode, note })}>
+        <Button
+          className={`h-11 rounded-2xl px-4 ${tone}`}
+          disabled={isSubmitting}
+          onClick={async () => {
+            setIsSubmitting(true);
+            try {
+              await onSubmit({ reasonCode, note });
+            } finally {
+              setIsSubmitting(false);
+            }
+          }}
+        >
           {action === "assign" ? "Confirm assignment" : action === "escalate" ? "Confirm escalation" : "Confirm closure"}
         </Button>
       </div>
@@ -222,8 +239,8 @@ function EscalationDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -268,7 +285,16 @@ export default function SupportEscalationQueuePage() {
     return { active, crossTeam, partner };
   }, [filteredCases]);
 
-  function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    if (isLive) {
+      try {
+        await saveSupportEscalationDecision(id, action, reasonCode, note);
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Failed to save the escalation action.");
+        return;
+      }
+    }
+
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;

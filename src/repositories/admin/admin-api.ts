@@ -74,6 +74,32 @@ export async function postAdminData<T>(
   return payload.data ?? null;
 }
 
+export async function patchAdminData<T>(
+  path: string,
+  body: Record<string, unknown>,
+): Promise<T | null> {
+  const token = getAdminApiToken();
+  if (!token) return null;
+
+  const response = await fetch(`${getAdminApiBaseUrl()}${path}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Admin API request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as AdminEnvelope<T>;
+  return payload.data ?? null;
+}
+
 export function useAdminResource<T>({
   path,
   fallback,
