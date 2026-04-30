@@ -11,29 +11,16 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
-import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
-import type { AdminRiskCaseBase, AdminStatus } from "@/contracts/admin-domain";
+import type { AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
+import { listRefundCases, type RefundCase, type RefundLane } from "@/repositories/admin/finance";
 
-type RefundLane = "auto_policy" | "manual" | "partial";
 type DecisionAction = "approve" | "hold" | "deny";
-
-type RefundCase = AdminRiskCaseBase & {
-  reference: string;
-  lane: RefundLane;
-  customerName: string;
-  city: string;
-  amount: string;
-  destination: string;
-  age: string;
-  issue: string;
-  sourceSummary: string;
-};
 
 const laneLabels: Record<RefundLane, string> = {
   auto_policy: "Auto-policy",
@@ -48,132 +35,6 @@ const tabs = [
   { value: "partial", label: "Partial" },
 ] as const;
 
-const seed: RefundCase[] = [
-  {
-    id: "REF-4204",
-    reference: "ORD-88214",
-    lane: "manual",
-    customerName: "Loveness Phiri",
-    city: "Lusaka",
-    status: "review",
-    amount: "ZMW 186",
-    destination: "Wallet refund",
-    owner: "Refund desk",
-    age: "12m",
-    issue: "Merchant delay and missing-item evidence point to recovery, but the amount needs finance sign-off because the order also included a platform coupon.",
-    sourceSummary: "Coupon-linked order with missing-item claim and refund request",
-    riskFlags: ["Coupon adjustment", "Merchant evidence attached"],
-    timeline: [
-      { label: "Refund request opened", detail: "Support sent the case into finance review.", time: "09:11" },
-      { label: "Coupon offset flagged", detail: "Recovery value should exclude the platform-funded promo share.", time: "09:18" },
-      { label: "Manual review started", detail: "Refund desk should validate the final payable amount.", time: "09:23" },
-    ],
-    notes: ["Likely approvable after separating promo-funded value from merchant-funded value."],
-    links: [
-      { label: "Support disputes", href: routes.supportDesk.disputes },
-      { label: "Payments", href: routes.sales.payments },
-    ],
-  },
-  {
-    id: "REF-4198",
-    reference: "ORD-88197",
-    lane: "partial",
-    customerName: "Chisomo Tembo",
-    city: "Kitwe",
-    status: "monitoring",
-    amount: "ZMW 72",
-    destination: "Wallet refund",
-    owner: "Service recovery",
-    age: "26m",
-    issue: "Delivery arrived late, but the order was completed. Support proposed a partial goodwill credit rather than a full refund.",
-    sourceSummary: "Completed delivery with lateness-based partial recovery",
-    riskFlags: ["Service recovery", "No merchant fault"],
-    timeline: [
-      { label: "Case escalated", detail: "Support proposed partial recovery after delay review.", time: "08:41" },
-      { label: "Policy checked", detail: "Service recovery thresholds matched the partial-credit lane.", time: "08:54" },
-      { label: "Waiting release", detail: "Finance should confirm wallet disbursement value.", time: "09:03" },
-    ],
-    notes: ["Good candidate for fast approval if no duplicate credit exists."],
-    links: [
-      { label: "Support tickets", href: routes.supportDesk.tickets },
-      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
-    ],
-  },
-  {
-    id: "REF-4189",
-    reference: "ORD-88144",
-    lane: "manual",
-    customerName: "Agnes Mumba",
-    city: "Kabwe",
-    status: "at_risk",
-    amount: "ZMW 412",
-    destination: "Card reversal",
-    owner: "Payments review",
-    age: "39m",
-    issue: "Customer was charged twice during checkout retry. One capture appears to have settled, and the other is still unresolved in the gateway trail.",
-    sourceSummary: "Potential duplicate charge linked to payment gateway retry path",
-    riskFlags: ["Duplicate capture", "Gateway mismatch"],
-    timeline: [
-      { label: "Refund request created", detail: "Customer reported a duplicated charge after payment retry.", time: "08:02" },
-      { label: "Gateway mismatch found", detail: "Only one order settlement is visible in the marketplace ledger.", time: "08:15" },
-      { label: "Risk hold applied", detail: "Do not release reversal until payments confirms source movement.", time: "08:23" },
-    ],
-    notes: ["This should not auto-approve until gateway reconciliation is complete."],
-    links: [
-      { label: "Payments", href: routes.sales.payments },
-      { label: "Support disputes", href: routes.supportDesk.disputes },
-    ],
-  },
-  {
-    id: "REF-4174",
-    reference: "ORD-88083",
-    lane: "auto_policy",
-    customerName: "Brian Zulu",
-    city: "Ndola",
-    status: "queued",
-    amount: "ZMW 92",
-    destination: "Wallet refund",
-    owner: "Auto-refund monitor",
-    age: "51m",
-    issue: "Order canceled after delay threshold passed, but the refund is still waiting for wallet confirmation after the auto-policy engine approved it.",
-    sourceSummary: "Auto-approved cancellation refund awaiting wallet posting",
-    riskFlags: ["Wallet posting pending"],
-    timeline: [
-      { label: "Auto-policy approved", detail: "Delay threshold released the refund automatically.", time: "07:24" },
-      { label: "Disbursement queued", detail: "Wallet posting has not yet been confirmed.", time: "07:37" },
-    ],
-    notes: ["This should clear as soon as wallet confirmation lands."],
-    links: [
-      { label: "Payments", href: routes.sales.payments },
-      { label: "Support inbox", href: routes.supportDesk.inbox },
-    ],
-  },
-  {
-    id: "REF-4168",
-    reference: "ORD-88022",
-    lane: "partial",
-    customerName: "Natasha Chinyama",
-    city: "Lusaka",
-    status: "paused",
-    amount: "ZMW 54",
-    destination: "Wallet credit",
-    owner: "Refund governance",
-    age: "1h 07m",
-    issue: "Support proposed partial recovery, but the customer account is tied to an open abuse review so disbursement is paused pending trust clearance.",
-    sourceSummary: "Partial recovery blocked behind trust and abuse review",
-    riskFlags: ["Trust dependency", "Abuse review open"],
-    timeline: [
-      { label: "Recovery proposed", detail: "Support recommended a partial wallet credit.", time: "06:42" },
-      { label: "Trust dependency found", detail: "Customer account is linked to an unresolved abuse review.", time: "06:53" },
-      { label: "Refund paused", detail: "Finance should wait for trust clearance before releasing value.", time: "07:00" },
-    ],
-    notes: ["No credit should be issued until the abuse review closes."],
-    links: [
-      { label: "Support escalations", href: routes.supportDesk.escalations },
-      { label: "Safety compliance", href: routes.risk.compliance },
-    ],
-  },
-];
 
 function RefundDecisionModal({
   item,
@@ -377,7 +238,7 @@ export default function RefundApprovalQueuePage() {
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
   const [query, setQuery] = useState("");
-  const [cases, setCases] = useState(seed);
+  const [cases, setCases] = useState(() => listRefundCases());
 
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
@@ -390,9 +251,9 @@ export default function RefundApprovalQueuePage() {
   }, [cases, lane, owner, query]);
 
   const ownerOptions = useMemo(() => {
-    const values = Array.from(new Set(seed.map((item) => item.owner)));
+    const values = Array.from(new Set(cases.map((item) => item.owner)));
     return [{ label: "All owners", value: "all" }, ...values.map((value) => ({ label: value, value }))];
-  }, []);
+  }, [cases]);
 
   const stats = useMemo(() => {
     const open = filteredCases.length;

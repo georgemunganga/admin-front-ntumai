@@ -11,32 +11,18 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
-import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
-import type { AdminRiskCaseBase, AdminStatus } from "@/contracts/admin-domain";
+import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
+import { listSupportDisputeCases, type SupportDisputeCase as DisputeCase, type SupportDisputeLane } from "@/repositories/admin/support";
 
-type DisputeLane = "refund" | "delivery" | "payment";
 type DecisionAction = "refund" | "deny" | "escalate";
 
-type DisputeCase = AdminRiskCaseBase & {
-  ticket: string;
-  lane: DisputeLane;
-  customerName: string;
-  taskerName: string;
-  merchantName: string;
-  city: string;
-  amount: string;
-  age: string;
-  issue: string;
-  sourceSummary: string;
-};
-
-const laneLabels: Record<DisputeLane, string> = {
+const laneLabels: Record<SupportDisputeLane, string> = {
   refund: "Refund review",
   delivery: "Delivery dispute",
   payment: "Payment dispute",
@@ -49,142 +35,6 @@ const tabs = [
   { value: "payment", label: "Payments" },
 ] as const;
 
-const seed: DisputeCase[] = [
-  {
-    id: "DSP-4204",
-    ticket: "SUP-22108",
-    lane: "refund",
-    customerName: "Loveness Phiri",
-    taskerName: "Moses Banda",
-    merchantName: "QuickBite Express",
-    city: "Lusaka",
-    status: "review",
-    amount: "ZMW 186",
-    owner: "Support finance",
-    age: "11m",
-    issue: "Customer says two items never arrived, while merchant marked the order fully packed and the tasker completed the handoff.",
-    sourceSummary: "Marketplace order with missing-items claim and partial refund request",
-    riskFlags: ["Item mismatch", "Merchant evidence attached"],
-    timeline: [
-      { label: "Ticket opened", detail: "Customer reported missing items after completed handoff.", time: "09:18" },
-      { label: "Merchant evidence added", detail: "Packing image and order confirmation attached.", time: "09:24" },
-      { label: "Refund review started", detail: "Support finance should decide partial recovery.", time: "09:29" },
-    ],
-    notes: ["Likely partial refund, not a full write-off."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Loveness Phiri"] },
-      { label: "Refund approvals", href: routes.sales.refunds },
-      { label: "Tracking cases", href: routes.logistics.tracking },
-    ],
-  },
-  {
-    id: "DSP-4198",
-    ticket: "SUP-22097",
-    lane: "delivery",
-    customerName: "Chisomo Tembo",
-    taskerName: "Ruth Mwape",
-    merchantName: "Green Basket Market",
-    city: "Kitwe",
-    status: "monitoring",
-    amount: "ZMW 0",
-    owner: "Resolution pod",
-    age: "23m",
-    issue: "Customer says the tasker delivered to the wrong gate, while the tasker claims the customer was unreachable during the final handoff.",
-    sourceSummary: "Two-sided delivery dispute requiring contact and route evidence review",
-    riskFlags: ["Two-sided account", "Contact gap"],
-    timeline: [
-      { label: "Case escalated", detail: "Tier 1 support moved the case into disputes.", time: "08:48" },
-      { label: "Tasker notes reviewed", detail: "Final-drop notes and call attempts pulled into the case.", time: "08:57" },
-      { label: "Waiting customer confirmation", detail: "Support still needs destination clarification.", time: "09:06" },
-    ],
-    notes: ["This may end as a courtesy credit, not a merchant refund."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
-      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
-      { label: "Tracking cases", href: routes.logistics.tracking },
-    ],
-  },
-  {
-    id: "DSP-4189",
-    ticket: "SUP-22074",
-    lane: "payment",
-    customerName: "Agnes Mumba",
-    taskerName: "Natasha Chinyama",
-    merchantName: "HomeBox Supplies",
-    city: "Kabwe",
-    status: "at_risk",
-    amount: "ZMW 412",
-    owner: "Payments review",
-    age: "37m",
-    issue: "Wallet balance was debited twice after a retry flow, but the order only settled once in the marketplace ledger.",
-    sourceSummary: "Possible duplicate capture involving wallet retry and checkout fallback",
-    riskFlags: ["Double debit", "Payments discrepancy"],
-    timeline: [
-      { label: "Payment complaint opened", detail: "Customer reported duplicated debit after checkout retry.", time: "08:02" },
-      { label: "Ledger mismatch found", detail: "Order shows one successful settlement only.", time: "08:16" },
-      { label: "Risk flag attached", detail: "Payments team should validate source before refund release.", time: "08:24" },
-    ],
-    notes: ["Do not auto-refund until payments confirms the duplicate movement."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Agnes Mumba"] },
-      { label: "Payment ops", href: routes.sales.payments },
-      { label: "Refund approvals", href: routes.sales.refunds },
-    ],
-  },
-  {
-    id: "DSP-4174",
-    ticket: "SUP-22031",
-    lane: "refund",
-    customerName: "Brian Zulu",
-    taskerName: "Ruth Mulenga",
-    merchantName: "CityCare Pharmacy",
-    city: "Ndola",
-    status: "queued",
-    amount: "ZMW 92",
-    owner: "Refund desk",
-    age: "52m",
-    issue: "Customer canceled after merchant delay, and the refund is waiting on policy confirmation because restricted-item handling changed the normal timing rules.",
-    sourceSummary: "Delayed-order cancellation with policy-sensitive refund timing",
-    riskFlags: ["Restricted category", "Policy check pending"],
-    timeline: [
-      { label: "Cancellation logged", detail: "Order canceled after merchant delay threshold passed.", time: "07:26" },
-      { label: "Policy check opened", detail: "Refund desk needs restricted-item rule validation.", time: "07:39" },
-    ],
-    notes: ["Should move quickly once policy confirms category handling."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Brian Zulu"] },
-      { label: "Safety compliance", href: routes.risk.compliance },
-      { label: "Refund approvals", href: routes.sales.refunds },
-    ],
-  },
-  {
-    id: "DSP-4168",
-    ticket: "SUP-21994",
-    lane: "delivery",
-    customerName: "Natasha Chinyama",
-    taskerName: "Martha Chola",
-    merchantName: "FastFix Services",
-    city: "Lusaka",
-    status: "paused",
-    amount: "ZMW 0",
-    owner: "Support governance",
-    age: "1h 09m",
-    issue: "Customer and tasker accounts are both claiming abuse in chat history, so the case is paused pending trust review before support decides any service recovery.",
-    sourceSummary: "Conduct dispute with linked chat abuse review",
-    riskFlags: ["Abuse review open", "Trust dependency"],
-    timeline: [
-      { label: "Conduct complaint opened", detail: "Support marked the thread for governance review.", time: "06:44" },
-      { label: "Chat export attached", detail: "Conversation log and call attempts added to evidence bundle.", time: "06:52" },
-      { label: "Trust hold applied", detail: "Case should stay paused pending risk outcome.", time: "07:01" },
-    ],
-    notes: ["No refund or credit should be promised before trust clears the conduct review."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Natasha Chinyama"] },
-      { label: "Escalations", href: routes.supportDesk.escalations },
-      { label: "Safety compliance", href: routes.risk.compliance },
-    ],
-  },
-];
 
 function DisputeDecisionModal({
   item,
@@ -391,7 +241,7 @@ export default function DisputeReviewQueuePage() {
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
   const [query, setQuery] = useState("");
-  const [cases, setCases] = useState(seed);
+  const [cases, setCases] = useState(() => listSupportDisputeCases());
 
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
@@ -415,9 +265,9 @@ export default function DisputeReviewQueuePage() {
   }, [cases, lane, owner, query]);
 
   const ownerOptions = useMemo(() => {
-    const values = Array.from(new Set(seed.map((item) => item.owner)));
+    const values = Array.from(new Set(cases.map((item) => item.owner)));
     return [{ label: "All owners", value: "all" }, ...values.map((value) => ({ label: value, value }))];
-  }, []);
+  }, [cases]);
 
   const stats = useMemo(() => {
     const open = filteredCases.length;

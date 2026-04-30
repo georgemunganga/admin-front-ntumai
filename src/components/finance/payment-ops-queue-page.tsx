@@ -11,29 +11,16 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
-import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
-import type { AdminRiskCaseBase, AdminStatus } from "@/contracts/admin-domain";
+import type { AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
+import { listPaymentCases, type PaymentCase, type PaymentLane } from "@/repositories/admin/finance";
 
-type PaymentLane = "retry" | "chargeback" | "reconciliation";
 type DecisionAction = "retry" | "escalate" | "close";
-
-type PaymentCase = AdminRiskCaseBase & {
-  reference: string;
-  lane: PaymentLane;
-  customerName: string;
-  city: string;
-  amount: string;
-  method: string;
-  age: string;
-  issue: string;
-  sourceSummary: string;
-};
 
 const laneLabels: Record<PaymentLane, string> = {
   retry: "Retry handling",
@@ -48,137 +35,6 @@ const tabs = [
   { value: "reconciliation", label: "Reconciliation" },
 ] as const;
 
-const seed: PaymentCase[] = [
-  {
-    id: "PAYM-4204",
-    reference: "ORD-88314",
-    lane: "retry",
-    customerName: "Loveness Phiri",
-    city: "Lusaka",
-    status: "review",
-    amount: "ZMW 186",
-    method: "Card ••• 2204",
-    owner: "Payments ops",
-    age: "10m",
-    issue: "Primary card capture failed, wallet fallback was not attempted, and the customer is still trying to complete checkout.",
-    sourceSummary: "Checkout failure with eligible wallet fallback path",
-    riskFlags: ["Retry candidate", "Fallback available"],
-    timeline: [
-      { label: "Capture failed", detail: "Gateway returned a soft decline during checkout.", time: "09:21" },
-      { label: "Fallback missed", detail: "Wallet backup path did not trigger after the decline.", time: "09:23" },
-      { label: "Retry review opened", detail: "Payments ops should decide the next recovery step.", time: "09:27" },
-    ],
-    notes: ["Likely a clean retry or fallback release case."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Loveness Phiri"] },
-      { label: "Refund approvals", href: routes.sales.refunds },
-      { label: "Support inbox", href: routes.supportDesk.inbox },
-    ],
-  },
-  {
-    id: "PAYM-4198",
-    reference: "ORD-88297",
-    lane: "chargeback",
-    customerName: "Chisomo Tembo",
-    city: "Kitwe",
-    status: "monitoring",
-    amount: "ZMW 312",
-    method: "Visa ••• 1930",
-    owner: "Chargeback desk",
-    age: "24m",
-    issue: "Issuer-side reversal was opened after the order completed, but merchant evidence suggests the service was delivered correctly.",
-    sourceSummary: "Completed order with early chargeback notice and merchant evidence",
-    riskFlags: ["Issuer dispute", "Evidence pack attached"],
-    timeline: [
-      { label: "Chargeback notice received", detail: "Issuer event entered the chargeback lane.", time: "08:46" },
-      { label: "Merchant evidence attached", detail: "Proof of fulfillment and completion added.", time: "08:58" },
-      { label: "Awaiting desk review", detail: "Chargeback desk should choose representment or closure.", time: "09:05" },
-    ],
-    notes: ["Needs a finance decision before support promises any customer recovery."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
-      { label: "Disputes", href: routes.supportDesk.disputes },
-      { label: "Orders", href: routes.sales.orders },
-    ],
-  },
-  {
-    id: "PAYM-4189",
-    reference: "SET-88244",
-    lane: "reconciliation",
-    customerName: "Agnes Mumba",
-    city: "Kabwe",
-    status: "at_risk",
-    amount: "ZMW 412",
-    method: "Wallet + card split",
-    owner: "Ledger reconciliation",
-    age: "38m",
-    issue: "Internal ledger shows a split-payment settlement, but the provider only confirmed the card leg and never posted the wallet movement.",
-    sourceSummary: "Split-payment mismatch between internal ledger and provider confirmation",
-    riskFlags: ["Ledger mismatch", "Provider confirmation gap"],
-    timeline: [
-      { label: "Mismatch detected", detail: "Settlement audit found provider and wallet drift.", time: "08:04" },
-      { label: "Customer balance frozen", detail: "Finance blocked downstream refund actions pending reconciliation.", time: "08:12" },
-      { label: "Risk escalation attached", detail: "This should not be closed until ledger parity is restored.", time: "08:20" },
-    ],
-    notes: ["Do not close until payment-source parity is confirmed."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Agnes Mumba"] },
-      { label: "Refund approvals", href: routes.sales.refunds },
-      { label: "Support tickets", href: routes.supportDesk.tickets },
-    ],
-  },
-  {
-    id: "PAYM-4174",
-    reference: "ORD-88183",
-    lane: "retry",
-    customerName: "Brian Zulu",
-    city: "Ndola",
-    status: "queued",
-    amount: "ZMW 92",
-    method: "MTN MoMo ••• 0184",
-    owner: "Retry runner",
-    age: "49m",
-    issue: "Mobile-money payment timed out, but the customer immediately retried and may be charged again if the original pending event settles late.",
-    sourceSummary: "Pending mobile-money timeout with duplicate-charge risk on rerun",
-    riskFlags: ["Pending timeout", "Duplicate-risk"],
-    timeline: [
-      { label: "Timeout recorded", detail: "Provider did not confirm within the checkout window.", time: "07:31" },
-      { label: "Rerun queued", detail: "Case was moved into retry holding to prevent duplicate capture.", time: "07:43" },
-    ],
-    notes: ["Should only rerun after the old pending event is definitively dead."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Brian Zulu"] },
-      { label: "Refund approvals", href: routes.sales.refunds },
-      { label: "Support inbox", href: routes.supportDesk.inbox },
-    ],
-  },
-  {
-    id: "PAYM-4168",
-    reference: "SET-88092",
-    lane: "reconciliation",
-    customerName: "Natasha Chinyama",
-    city: "Lusaka",
-    status: "paused",
-    amount: "ZMW 54",
-    method: "Wallet credit",
-    owner: "Finance governance",
-    age: "1h 04m",
-    issue: "Wallet credit was created manually during support recovery, but the matching ledger annotation is incomplete so governance paused the payment case.",
-    sourceSummary: "Manual wallet credit missing full ledger audit context",
-    riskFlags: ["Manual adjustment", "Audit gap"],
-    timeline: [
-      { label: "Credit issued", detail: "Support-triggered manual wallet credit posted.", time: "06:48" },
-      { label: "Audit gap found", detail: "Finance could not trace the full ledger note chain.", time: "06:56" },
-      { label: "Governance hold applied", detail: "Case should stay paused until annotation is corrected.", time: "07:03" },
-    ],
-    notes: ["Needs audit completion, not just payment closure."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Natasha Chinyama"] },
-      { label: "Activity logs", href: routes.platform.activityLogs },
-      { label: "Support escalations", href: routes.supportDesk.escalations },
-    ],
-  },
-];
 
 function PaymentDecisionModal({
   item,
@@ -382,7 +238,7 @@ export default function PaymentOpsQueuePage() {
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
   const [query, setQuery] = useState("");
-  const [cases, setCases] = useState(seed);
+  const [cases, setCases] = useState(() => listPaymentCases());
 
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
@@ -395,9 +251,9 @@ export default function PaymentOpsQueuePage() {
   }, [cases, lane, owner, query]);
 
   const ownerOptions = useMemo(() => {
-    const values = Array.from(new Set(seed.map((item) => item.owner)));
+    const values = Array.from(new Set(cases.map((item) => item.owner)));
     return [{ label: "All owners", value: "all" }, ...values.map((value) => ({ label: value, value }))];
-  }, []);
+  }, [cases]);
 
   const stats = useMemo(() => {
     const open = filteredCases.length;

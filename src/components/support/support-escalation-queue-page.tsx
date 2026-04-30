@@ -11,29 +11,18 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
-import { customerDetailHrefByName, vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
-import type { AdminCaseBase, AdminStatus } from "@/contracts/admin-domain";
+import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
+import { listSupportEscalationCases, type SupportEscalationCase as EscalationCase, type SupportEscalationLane } from "@/repositories/admin/support";
 
-type EscalationLane = "trust" | "vip" | "partner";
 type DecisionAction = "assign" | "escalate" | "close";
 
-type EscalationCase = AdminCaseBase & {
-  accountName: string;
-  lane: EscalationLane;
-  city: string;
-  age: string;
-  summary: string;
-  impact: string;
-  tags: string[];
-};
-
-const laneLabels: Record<EscalationLane, string> = {
+const laneLabels: Record<SupportEscalationLane, string> = {
   trust: "Trust",
   vip: "VIP",
   partner: "Partner",
@@ -46,117 +35,6 @@ const tabs = [
   { value: "partner", label: "Partner" },
 ] as const;
 
-const seed: EscalationCase[] = [
-  {
-    id: "ESC-4210",
-    accountName: "Natasha Chinyama",
-    lane: "trust",
-    city: "Lusaka",
-    status: "review",
-    owner: "Trust support",
-    age: "14m",
-    summary: "Customer and tasker both filed conduct complaints after a delivery chat escalated into abuse claims.",
-    impact: "Support cannot close the case until trust decides whether account action is needed.",
-    tags: ["Conduct review", "Two-sided complaint"],
-    timeline: [
-      { label: "Escalation opened", detail: "Support marked the case as sensitive and routed it to trust.", time: "09:16" },
-      { label: "Evidence bundle attached", detail: "Chat log, call attempts, and complaint notes were added.", time: "09:24" },
-      { label: "Awaiting trust decision", detail: "Escalation is active pending a final account-action call.", time: "09:31" },
-    ],
-    notes: ["Do not let frontline support close this without trust sign-off."],
-    links: [
-      { label: "Safety compliance", href: routes.risk.compliance },
-      { label: "Disputes", href: routes.supportDesk.disputes },
-    ],
-  },
-  {
-    id: "ESC-4201",
-    accountName: "Chisomo Tembo",
-    lane: "vip",
-    city: "Kitwe",
-    status: "monitoring",
-    owner: "VIP recovery",
-    age: "26m",
-    summary: "A high-value customer had two failed orders in one day and is threatening to stop using the platform.",
-    impact: "Requires white-glove service recovery and coordinated follow-up from support and operations.",
-    tags: ["VIP recovery", "Retention risk"],
-    timeline: [
-      { label: "Escalation opened", detail: "Customer profile was flagged for premium recovery handling.", time: "08:52" },
-      { label: "Ops notes added", detail: "Operations confirmed one issue was route-related, the other merchant-related.", time: "09:03" },
-      { label: "Recovery proposal pending", detail: "Support lead should approve the response package.", time: "09:12" },
-    ],
-    notes: ["Likely a same-day recovery case if handled tightly."],
-    links: [
-      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
-      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
-    ],
-  },
-  {
-    id: "ESC-4193",
-    accountName: "Green Basket Market",
-    lane: "partner",
-    city: "Kitwe",
-    status: "at_risk",
-    owner: "Partner escalation desk",
-    age: "41m",
-    summary: "Merchant reports a storefront outage during peak demand and says active orders are failing to route correctly.",
-    impact: "Commercial exposure is elevated because the outage affects multiple customer orders and partner confidence.",
-    tags: ["Storefront outage", "Commercial risk"],
-    timeline: [
-      { label: "Escalation opened", detail: "Merchant-support ticket was promoted to escalation after repeated failures.", time: "08:07" },
-      { label: "Marketplace context added", detail: "Publishing and routing anomalies were linked into the case.", time: "08:19" },
-      { label: "Cross-team risk raised", detail: "Escalation needs support, marketplace, and ops coordination.", time: "08:28" },
-    ],
-    notes: ["Needs a coordinated update, not isolated replies from separate teams."],
-    links: [
-      { label: "Vendor record", href: vendorDetailHrefByName["Green Basket Market"] },
-      { label: "Shipments", href: routes.logistics.shipments },
-    ],
-  },
-  {
-    id: "ESC-4184",
-    accountName: "Brian Zulu",
-    lane: "vip",
-    city: "Ndola",
-    status: "queued",
-    owner: "Support lead",
-    age: "53m",
-    summary: "Customer has repeated refund and lateness complaints and requested direct leadership review.",
-    impact: "Escalation should decide if this remains in care or moves into finance-linked service recovery.",
-    tags: ["Leadership review", "Repeat complaints"],
-    timeline: [
-      { label: "Escalation opened", detail: "Customer requested leadership review after repeated service failures.", time: "07:29" },
-      { label: "History added", detail: "Past refunds and ticket clusters were attached to the case.", time: "07:44" },
-    ],
-    notes: ["This may move into disputes if a new refund request is added."],
-    links: [
-      { label: "Refund approvals", href: routes.sales.refunds },
-      { label: "Disputes", href: routes.supportDesk.disputes },
-    ],
-  },
-  {
-    id: "ESC-4178",
-    accountName: "CityCare Pharmacy",
-    lane: "partner",
-    city: "Ndola",
-    status: "paused",
-    owner: "Compliance support",
-    age: "1h 08m",
-    summary: "Restricted-category merchant escalation is blocked because compliance still has an unresolved review on one document.",
-    impact: "Support should not promise a launch or reopen service until compliance clears the blocker.",
-    tags: ["Restricted category", "Compliance dependency"],
-    timeline: [
-      { label: "Escalation opened", detail: "Merchant complained about delayed enablement and order visibility.", time: "06:45" },
-      { label: "Compliance dependency found", detail: "A pending document review blocks the commercial resolution path.", time: "06:56" },
-      { label: "Paused", detail: "Escalation should wait until compliance closes the dependency.", time: "07:03" },
-    ],
-    notes: ["This is blocked upstream, not a pure support issue."],
-    links: [
-      { label: "Safety compliance", href: routes.risk.compliance },
-      { label: "Vendor record", href: vendorDetailHrefByName["CityCare Pharmacy"] },
-    ],
-  },
-];
 
 function EscalationDecisionModal({
   item,
@@ -360,7 +238,7 @@ export default function SupportEscalationQueuePage() {
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
   const [query, setQuery] = useState("");
-  const [cases, setCases] = useState(seed);
+  const [cases, setCases] = useState(() => listSupportEscalationCases());
 
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
@@ -373,9 +251,9 @@ export default function SupportEscalationQueuePage() {
   }, [cases, lane, owner, query]);
 
   const ownerOptions = useMemo(() => {
-    const values = Array.from(new Set(seed.map((item) => item.owner)));
+    const values = Array.from(new Set(cases.map((item) => item.owner)));
     return [{ label: "All owners", value: "all" }, ...values.map((value) => ({ label: value, value }))];
-  }, []);
+  }, [cases]);
 
   const stats = useMemo(() => {
     const active = filteredCases.length;

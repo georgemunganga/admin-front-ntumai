@@ -12,9 +12,8 @@ import {
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import { crudPages, CrudRecord } from "@/components/crud/crud-data";
-
-const rows = crudPages.logisticsDrivers.rows;
+import StatusBadge from "@/components/admin/status-badge";
+import { listTaskerRecords, listTaskerSegments, type TaskerListRecord } from "@/repositories/admin/taskers";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -26,12 +25,8 @@ const statusOptions = [
   { label: "At risk", value: "at_risk" },
 ] as const;
 
-const segmentOptions = [
-  { label: "All segments", value: "all" },
-  ...Array.from(new Set(rows.map((row) => row.tertiary))).map((value) => ({ label: value, value })),
-];
-
 export default function TaskersListPage() {
+  const rows = useMemo(() => listTaskerRecords(), []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [segment, setSegment] = useState("all");
@@ -45,34 +40,42 @@ export default function TaskersListPage() {
 
     return rows.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
-      const matchesSegment = segment === "all" ? true : row.tertiary === segment;
-      const haystack = [row.id, row.primary, row.secondary, row.tertiary, row.owner, row.status]
+      const matchesSegment = segment === "all" ? true : row.segment === segment;
+      const haystack = [row.id, row.name, row.context, row.segment, row.owner, row.status]
         .join(" ")
         .toLowerCase();
 
       return matchesStatus && matchesSegment && (!needle || haystack.includes(needle));
     });
-  }, [query, segment, status]);
+  }, [query, rows, segment, status]);
 
-  const columns = useMemo<ColumnDef<CrudRecord>[]>(
+  const segmentOptions = useMemo(
+    () => [
+      { label: "All segments", value: "all" },
+      ...listTaskerSegments().map((value) => ({ label: value, value })),
+    ],
+    [],
+  );
+
+  const columns = useMemo<ColumnDef<TaskerListRecord>[]>(
     () => [
       {
-        accessorKey: "primary",
+        accessorKey: "name",
         header: "Tasker lane",
         cell: ({ row }) => (
           <div>
-            <Text className="font-semibold text-gray-900">{row.original.primary}</Text>
+            <Text className="font-semibold text-gray-900">{row.original.name}</Text>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
           </div>
         ),
       },
-      { accessorKey: "secondary", header: "Context" },
-      { accessorKey: "tertiary", header: "Segment" },
+      { accessorKey: "context", header: "Context" },
+      { accessorKey: "segment", header: "Segment" },
       { accessorKey: "owner", header: "Owner" },
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <TaskerStatus status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
     ],
@@ -206,22 +209,5 @@ export default function TaskersListPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function TaskerStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
-  };
-
-  return (
-    <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>
-      {status.replace("_", " ")}
-    </span>
   );
 }

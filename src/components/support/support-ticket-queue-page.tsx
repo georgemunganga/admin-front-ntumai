@@ -15,25 +15,14 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
-import type { AdminCaseBase, AdminStatus } from "@/contracts/admin-domain";
+import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
+import { listSupportTicketCases, type SupportTicketCase as TicketCase, type SupportTicketLane } from "@/repositories/admin/support";
 
-type TicketLane = "billing" | "service" | "merchant";
 type DecisionAction = "assign" | "escalate" | "resolve";
 
-type TicketCase = AdminCaseBase & {
-  customerName: string;
-  lane: TicketLane;
-  city: string;
-  age: string;
-  contact: string;
-  subject: string;
-  summary: string;
-  tags: string[];
-};
-
-const laneLabels: Record<TicketLane, string> = {
+const laneLabels: Record<SupportTicketLane, string> = {
   billing: "Billing",
   service: "Service",
   merchant: "Merchant",
@@ -46,123 +35,6 @@ const tabs = [
   { value: "merchant", label: "Merchant" },
 ] as const;
 
-const seed: TicketCase[] = [
-  {
-    id: "TKT-4211",
-    customerName: "Loveness Phiri",
-    lane: "billing",
-    city: "Lusaka",
-    status: "review",
-    owner: "Finance support",
-    age: "9m",
-    contact: "+260 977 210 188",
-    subject: "Refund not reflected in wallet",
-    summary: "Customer canceled the order and the refund was approved, but the wallet balance still has not updated.",
-    tags: ["Wallet follow-up", "Refund trace"],
-    timeline: [
-      { label: "Ticket opened", detail: "Customer reported a missing wallet refund after order cancellation.", time: "09:28" },
-      { label: "Refund approved", detail: "Finance approval was already recorded in the refund queue.", time: "09:34" },
-      { label: "Ticket routed", detail: "Support should trace wallet posting before closure.", time: "09:39" },
-    ],
-    notes: ["Likely depends on wallet confirmation, not a new refund decision."],
-    links: [
-      { label: "Refund approvals", href: routes.sales.refunds },
-      { label: "Payment ops", href: routes.sales.payments },
-    ],
-  },
-  {
-    id: "TKT-4202",
-    customerName: "Chisomo Tembo",
-    lane: "service",
-    city: "Kitwe",
-    status: "monitoring",
-    owner: "Resolution pod",
-    age: "18m",
-    contact: "+260 969 004 512",
-    subject: "Delivery arrived after promised time",
-    summary: "Customer accepted the order but is asking for a service credit after the delivery arrived far outside the ETA window.",
-    tags: ["Late delivery", "Service recovery"],
-    timeline: [
-      { label: "Ticket opened", detail: "Customer raised late-delivery complaint after order completion.", time: "08:57" },
-      { label: "ETA reviewed", detail: "Ops data confirms a route delay in the final delivery corridor.", time: "09:05" },
-      { label: "Waiting action", detail: "Support should decide whether to close or route to disputes.", time: "09:12" },
-    ],
-    notes: ["May be closable with a goodwill note if no refund is requested."],
-    links: [
-      { label: "Tracking cases", href: routes.logistics.tracking },
-      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
-    ],
-  },
-  {
-    id: "TKT-4194",
-    customerName: "Agnes Mumba",
-    lane: "billing",
-    city: "Kabwe",
-    status: "at_risk",
-    owner: "Payments review",
-    age: "31m",
-    contact: "+260 963 118 044",
-    subject: "Duplicate charge after checkout retry",
-    summary: "Customer says checkout failed once but the card statement now shows two debits for the same order.",
-    tags: ["Duplicate charge", "Payments risk"],
-    timeline: [
-      { label: "Ticket opened", detail: "Duplicate-charge complaint entered the support queue.", time: "08:12" },
-      { label: "Payments link found", detail: "Similar case already exists in the payments queue.", time: "08:25" },
-      { label: "Risk flag raised", detail: "Support should not resolve until payments confirms the gateway trail.", time: "08:33" },
-    ],
-    notes: ["Should sync with payments before any support promise is sent."],
-    links: [
-      { label: "Payment ops", href: routes.sales.payments },
-      { label: "Refund approvals", href: routes.sales.refunds },
-    ],
-  },
-  {
-    id: "TKT-4186",
-    customerName: "Brian Zulu",
-    lane: "merchant",
-    city: "Ndola",
-    status: "queued",
-    owner: "Partner support",
-    age: "47m",
-    contact: "+260 971 301 228",
-    subject: "Merchant says item menu is unavailable",
-    summary: "A vendor is asking support why a new category is still hidden from the storefront after catalog approval.",
-    tags: ["Catalog issue", "Partner-facing"],
-    timeline: [
-      { label: "Ticket opened", detail: "Merchant support complaint created from vendor portal callback.", time: "07:36" },
-      { label: "Catalog context added", detail: "Marketplace state suggests a stale publish step.", time: "07:49" },
-      { label: "Queued for owner", detail: "Partner support should decide whether to solve or escalate to marketplace ops.", time: "07:57" },
-    ],
-    notes: ["Likely a quick escalation to marketplace rather than a prolonged support case."],
-    links: [
-      { label: "Vendors", href: routes.marketplace.vendors },
-      { label: "Categories", href: routes.marketplace.categories },
-    ],
-  },
-  {
-    id: "TKT-4179",
-    customerName: "Natasha Chinyama",
-    lane: "service",
-    city: "Lusaka",
-    status: "paused",
-    owner: "Trust support",
-    age: "1h 02m",
-    contact: "+260 978 441 200",
-    subject: "Abusive chat during delivery",
-    summary: "Customer and tasker both reported abusive language in chat, and the ticket is waiting on trust review before response.",
-    tags: ["Conduct review", "Trust dependency"],
-    timeline: [
-      { label: "Ticket opened", detail: "Conduct complaint was opened after delivery chat exchange.", time: "06:54" },
-      { label: "Trust linked", detail: "Support linked the case to an open trust review.", time: "07:01" },
-      { label: "Paused", detail: "No final support closure until trust returns an outcome.", time: "07:08" },
-    ],
-    notes: ["Keep paused until trust clears the conduct review."],
-    links: [
-      { label: "Escalations", href: routes.supportDesk.escalations },
-      { label: "Safety compliance", href: routes.risk.compliance },
-    ],
-  },
-];
 
 function TicketDecisionModal({
   item,
@@ -362,7 +234,7 @@ export default function SupportTicketQueuePage() {
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
   const [query, setQuery] = useState("");
-  const [cases, setCases] = useState(seed);
+  const [cases, setCases] = useState(() => listSupportTicketCases());
 
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
@@ -375,9 +247,9 @@ export default function SupportTicketQueuePage() {
   }, [cases, lane, owner, query]);
 
   const ownerOptions = useMemo(() => {
-    const values = Array.from(new Set(seed.map((item) => item.owner)));
+    const values = Array.from(new Set(cases.map((item) => item.owner)));
     return [{ label: "All owners", value: "all" }, ...values.map((value) => ({ label: value, value }))];
-  }, []);
+  }, [cases]);
 
   const stats = useMemo(() => {
     const open = filteredCases.length;

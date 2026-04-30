@@ -13,8 +13,10 @@ import {
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
-import { marketplaceVendors, type MarketplaceVendor } from "@/components/marketplace/vendor-data";
+import StatusBadge from "@/components/admin/status-badge";
+import type { MarketplaceVendor } from "@/components/marketplace/vendor-data";
 import { routes } from "@/config/routes";
+import { listMarketplaceVendors, listVendorSegments } from "@/repositories/admin/vendors";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -25,12 +27,8 @@ const statusOptions = [
   { label: "At risk", value: "at_risk" },
 ] as const;
 
-const segmentOptions = [
-  { label: "All segments", value: "all" },
-  ...Array.from(new Set(marketplaceVendors.map((row) => row.segment))).map((value) => ({ label: value, value })),
-];
-
 export default function VendorsListPage() {
+  const vendors = useMemo(() => listMarketplaceVendors(), []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [segment, setSegment] = useState("all");
@@ -42,7 +40,7 @@ export default function VendorsListPage() {
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
 
-    return marketplaceVendors.filter((row) => {
+    return vendors.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
       const matchesSegment = segment === "all" ? true : row.segment === segment;
       const haystack = [row.id, row.name, row.context, row.segment, row.owner, row.status]
@@ -51,7 +49,15 @@ export default function VendorsListPage() {
 
       return matchesStatus && matchesSegment && (!needle || haystack.includes(needle));
     });
-  }, [query, segment, status]);
+  }, [query, segment, status, vendors]);
+
+  const segmentOptions = useMemo(
+    () => [
+      { label: "All segments", value: "all" },
+      ...listVendorSegments().map((value) => ({ label: value, value })),
+    ],
+    [],
+  );
 
   const columns = useMemo<ColumnDef<MarketplaceVendor>[]>(
     () => [
@@ -73,7 +79,7 @@ export default function VendorsListPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <VendorStatus status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       { accessorKey: "updatedAt", header: "Updated" },
       {
@@ -223,22 +229,5 @@ export default function VendorsListPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function VendorStatus({ status }: { status: string }) {
-  const tones: Record<string, string> = {
-    live: "bg-primary/10 text-primary",
-    stable: "bg-emerald-50 text-emerald-700",
-    review: "bg-amber-50 text-amber-700",
-    monitoring: "bg-sky-50 text-sky-700",
-    queued: "bg-gray-100 text-gray-700",
-    at_risk: "bg-red-50 text-red-700",
-  };
-
-  return (
-    <span className={`inline-flex rounded-2xl px-3 py-1 text-xs font-semibold ${tones[status] ?? tones.queued}`}>
-      {status.replace("_", " ")}
-    </span>
   );
 }

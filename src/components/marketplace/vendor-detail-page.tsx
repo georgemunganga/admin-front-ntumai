@@ -13,10 +13,10 @@ import {
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
-import { getMarketplaceVendor } from "@/components/marketplace/vendor-data";
+import { getMarketplaceVendorBySlug } from "@/repositories/admin/vendors";
 
 export default function VendorDetailPage({ slug }: { slug: string }) {
-  const vendor = getMarketplaceVendor(slug);
+  const vendor = getMarketplaceVendorBySlug(slug);
 
   if (!vendor) notFound();
 
