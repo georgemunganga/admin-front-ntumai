@@ -11,6 +11,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -109,7 +110,7 @@ const seed: RefundCase[] = [
     notes: ["Good candidate for fast approval if no duplicate credit exists."],
     links: [
       { label: "Support tickets", href: routes.supportDesk.tickets },
-      { label: "Customers", href: routes.crm.customers },
+      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
     ],
   },
   {

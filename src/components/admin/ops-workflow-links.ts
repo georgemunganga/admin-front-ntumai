@@ -30,3 +30,11 @@ export const vendorDetailHrefByName: Record<string, string> = {
   "CityCare Pharmacy": routes.marketplace.vendorDetails("VND-2394"),
   "HomeBox Supplies": routes.marketplace.vendorDetails("VND-2388"),
 };
+
+export const customerDetailHrefByName: Record<string, string> = {
+  "Loveness Phiri": routes.crm.customerDetails("CUS-876"),
+  "Chisomo Tembo": routes.crm.customerDetails("CUS-875"),
+  "Agnes Mumba": routes.crm.customerDetails("CUS-874"),
+  "Brian Zulu": routes.crm.customerDetails("CUS-873"),
+  "Natasha Chinyama": routes.crm.customerDetails("CUS-872"),
+};

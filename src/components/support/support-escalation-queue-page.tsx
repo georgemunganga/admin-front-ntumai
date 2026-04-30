@@ -11,7 +11,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
-import { vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
+import { customerDetailHrefByName, vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -100,7 +100,7 @@ const seed: EscalationCase[] = [
     ],
     notes: ["Likely a same-day recovery case if handled tightly."],
     links: [
-      { label: "Customers", href: routes.crm.customers },
+      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
       { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
     ],
   },

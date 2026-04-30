@@ -11,6 +11,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -85,6 +86,7 @@ const seed: DisputeCase[] = [
     ],
     notes: ["Likely partial refund, not a full write-off."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Loveness Phiri"] },
       { label: "Refund approvals", href: routes.sales.refunds },
       { label: "Tracking cases", href: routes.logistics.tracking },
     ],
@@ -111,6 +113,7 @@ const seed: DisputeCase[] = [
     ],
     notes: ["This may end as a courtesy credit, not a merchant refund."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
       { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
       { label: "Tracking cases", href: routes.logistics.tracking },
     ],
@@ -137,6 +140,7 @@ const seed: DisputeCase[] = [
     ],
     notes: ["Do not auto-refund until payments confirms the duplicate movement."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Agnes Mumba"] },
       { label: "Payment ops", href: routes.sales.payments },
       { label: "Refund approvals", href: routes.sales.refunds },
     ],
@@ -162,6 +166,7 @@ const seed: DisputeCase[] = [
     ],
     notes: ["Should move quickly once policy confirms category handling."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Brian Zulu"] },
       { label: "Safety compliance", href: routes.risk.compliance },
       { label: "Refund approvals", href: routes.sales.refunds },
     ],
@@ -188,6 +193,7 @@ const seed: DisputeCase[] = [
     ],
     notes: ["No refund or credit should be promised before trust clears the conduct review."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Natasha Chinyama"] },
       { label: "Escalations", href: routes.supportDesk.escalations },
       { label: "Safety compliance", href: routes.risk.compliance },
     ],

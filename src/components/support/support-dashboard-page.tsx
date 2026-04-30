@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Badge, Button, Table, Text, Title } from "rizzui";
 import { PiArrowUpRightBold } from "react-icons/pi";
-import { vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
+import { customerDetailHrefByName, vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -27,8 +27,8 @@ const problemTypes = [
 ];
 
 const topCustomers = [
-  { name: "Loveness Phiri", city: "Lusaka", tickets: 12, lane: "Refund recovery", href: routes.crm.customers },
-  { name: "Chisomo Tembo", city: "Kitwe", tickets: 9, lane: "Service recovery", href: routes.crm.customers },
+  { name: "Loveness Phiri", city: "Lusaka", tickets: 12, lane: "Refund recovery", href: customerDetailHrefByName["Loveness Phiri"] },
+  { name: "Chisomo Tembo", city: "Kitwe", tickets: 9, lane: "Service recovery", href: customerDetailHrefByName["Chisomo Tembo"] },
   { name: "Green Basket Market", city: "Kitwe", tickets: 7, lane: "Merchant support", href: vendorDetailHrefByName["Green Basket Market"] },
 ];
 

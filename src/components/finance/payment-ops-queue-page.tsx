@@ -11,6 +11,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -83,6 +84,7 @@ const seed: PaymentCase[] = [
     ],
     notes: ["Likely a clean retry or fallback release case."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Loveness Phiri"] },
       { label: "Refund approvals", href: routes.sales.refunds },
       { label: "Support inbox", href: routes.supportDesk.inbox },
     ],
@@ -108,6 +110,7 @@ const seed: PaymentCase[] = [
     ],
     notes: ["Needs a finance decision before support promises any customer recovery."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Chisomo Tembo"] },
       { label: "Disputes", href: routes.supportDesk.disputes },
       { label: "Orders", href: routes.sales.orders },
     ],
@@ -133,6 +136,7 @@ const seed: PaymentCase[] = [
     ],
     notes: ["Do not close until payment-source parity is confirmed."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Agnes Mumba"] },
       { label: "Refund approvals", href: routes.sales.refunds },
       { label: "Support tickets", href: routes.supportDesk.tickets },
     ],
@@ -157,6 +161,7 @@ const seed: PaymentCase[] = [
     ],
     notes: ["Should only rerun after the old pending event is definitively dead."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Brian Zulu"] },
       { label: "Refund approvals", href: routes.sales.refunds },
       { label: "Support inbox", href: routes.supportDesk.inbox },
     ],
@@ -182,6 +187,7 @@ const seed: PaymentCase[] = [
     ],
     notes: ["Needs audit completion, not just payment closure."],
     links: [
+      { label: "Customer profile", href: customerDetailHrefByName["Natasha Chinyama"] },
       { label: "Activity logs", href: routes.platform.activityLogs },
       { label: "Support escalations", href: routes.supportDesk.escalations },
     ],
