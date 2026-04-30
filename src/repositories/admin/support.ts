@@ -149,6 +149,90 @@ type SupportInboxDetailPayload = {
   };
 };
 
+type SupportEscalationApiItem = {
+  id: string;
+  lane?: "trust" | "vip" | "partner";
+  role?: string | null;
+  title: string;
+  description: string;
+  category?: string | null;
+  severity?: string | null;
+  status?: string | null;
+  strikeCount?: number | null;
+  suspensionState?: string | null;
+  occurredAt?: string;
+  reviewedAt?: string | null;
+  resolutionNotes?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  user?: {
+    id?: string | null;
+    fullName?: string | null;
+    email?: string | null;
+    city?: string | null;
+    address?: string | null;
+  } | null;
+  latestAppeal?: {
+    id: string;
+    status?: string | null;
+    message?: string | null;
+    createdAt?: string;
+    reviewedAt?: string | null;
+    reviewNotes?: string | null;
+  } | null;
+};
+
+type SupportEscalationsPayload = {
+  items: SupportEscalationApiItem[];
+};
+
+type SupportDisputeApiItem = {
+  id: string;
+  category?: string | null;
+  subject: string;
+  description: string;
+  status?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  customer?: {
+    id?: string | null;
+    fullName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    city?: string | null;
+  } | null;
+  order?: {
+    id?: string | null;
+    trackingId?: string | null;
+    status?: string | null;
+    totalAmount?: number | null;
+  } | null;
+  payment?: {
+    id?: string | null;
+    status?: string | null;
+    amount?: number | null;
+    reference?: string | null;
+    method?: string | null;
+  } | null;
+  store?: {
+    id?: string | null;
+    name?: string | null;
+  } | null;
+  shipment?: {
+    id?: string | null;
+    status?: string | null;
+  } | null;
+  tasker?: {
+    id?: string | null;
+    fullName?: string | null;
+    email?: string | null;
+  } | null;
+};
+
+type SupportDisputesPayload = {
+  items: SupportDisputeApiItem[];
+};
+
 const supportTicketCases: SupportTicketCase[] = [
   {
     id: "TKT-4211",
@@ -670,6 +754,24 @@ export function useSupportTicketCases() {
   });
 }
 
+export function useSupportEscalationCases() {
+  const fallback = useMemo(() => listSupportEscalationCases(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/support/escalations?limit=100",
+    fallback,
+    map: mapSupportEscalationPayload,
+  });
+}
+
+export function useSupportDisputeCases() {
+  const fallback = useMemo(() => listSupportDisputeCases(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/support/disputes?limit=100",
+    fallback,
+    map: mapSupportDisputePayload,
+  });
+}
+
 export function useSupportInboxMessages() {
   const fallback = useMemo(() => listSupportInboxMessages(), []);
   return useAdminResource({
@@ -754,6 +856,119 @@ function mapSupportTicketPayload(payload: unknown): SupportTicketCase[] {
   });
 }
 
+function mapSupportEscalationPayload(payload: unknown): SupportEscalationCase[] {
+  const items = (payload as SupportEscalationsPayload)?.items ?? [];
+  return items.map((item) => {
+    const lane = mapEscalationLane(item);
+    const accountName = item.user?.fullName ?? item.user?.email ?? item.title;
+    const city = item.user?.city ?? "Unknown";
+    const customerHref = item.user?.id ? routes.crm.customerDetails(item.user.id) : routes.crm.customers;
+    const vendorHref = vendorDetailHrefByName[accountName] ?? routes.marketplace.vendors;
+    const impact = buildEscalationImpact(lane, item);
+    const notes = [
+      item.resolutionNotes?.trim() || "Live escalation loaded from the Nest admin endpoint.",
+      item.latestAppeal?.message?.trim() ? `Latest appeal: ${item.latestAppeal.message.trim()}` : null,
+    ].filter(Boolean) as string[];
+
+    return {
+      id: item.id,
+      accountName,
+      lane,
+      city,
+      status: mapEscalationStatus(item.status, item.suspensionState),
+      owner: lane === "trust" ? "Trust support" : lane === "partner" ? "Partner escalation desk" : "VIP recovery",
+      age: formatAge(item.updatedAt ?? item.occurredAt ?? item.createdAt),
+      summary: item.description,
+      impact,
+      tags: [
+        normalizeToken(item.category ?? lane),
+        normalizeToken(item.severity ?? "review"),
+        item.suspensionState && item.suspensionState !== "clear" ? normalizeToken(item.suspensionState) : null,
+      ].filter(Boolean) as string[],
+      timeline: buildEscalationTimeline(item),
+      notes,
+      links: buildSupportEscalationLinks(lane, customerHref, vendorHref),
+      refs: item.user?.id
+        ? lane === "partner"
+          ? { vendorId: item.user.id, supportCaseId: item.id }
+          : { customerId: item.user.id, supportCaseId: item.id }
+        : { supportCaseId: item.id },
+      workflow: {
+        actor: item.role?.toLowerCase() === "vendor" ? "vendor" : item.role?.toLowerCase() === "driver" ? "tasker" : "customer",
+        source: lane === "partner" ? "onboarding_review" : "support_recovery",
+        state:
+          item.status === "resolved"
+            ? "resolved"
+            : item.status === "appealed"
+              ? "escalated"
+              : item.suspensionState === "suspended"
+                ? "blocked"
+                : "under_review",
+        ownerTeam: lane === "partner" ? "marketplace_ops" : "support",
+        summary: impact,
+      },
+    };
+  });
+}
+
+function mapSupportDisputePayload(payload: unknown): SupportDisputeCase[] {
+  const items = (payload as SupportDisputesPayload)?.items ?? [];
+  return items.map((item) => {
+    const lane = mapDisputeLane(item.category);
+    const customerName = item.customer?.fullName ?? item.customer?.email ?? "Unknown customer";
+    const merchantName = item.store?.name ?? "Ntumai merchant";
+    const customerHref = item.customer?.id ? routes.crm.customerDetails(item.customer.id) : routes.crm.customers;
+
+    return {
+      id: item.id,
+      ticket: item.order?.trackingId ?? item.subject,
+      lane,
+      customerName,
+      taskerName: item.tasker?.fullName ?? "Dispatch follow-up",
+      merchantName,
+      city: item.customer?.city ?? "Unknown",
+      status: mapSupportTicketStatus(item.status),
+      amount: formatCurrency(item.payment?.amount ?? item.order?.totalAmount ?? 0),
+      owner: lane === "payment" ? "Payments review" : lane === "refund" ? "Support finance" : "Resolution pod",
+      age: formatAge(item.updatedAt ?? item.createdAt),
+      issue: item.description,
+      sourceSummary: buildDisputeSourceSummary(lane, item),
+      riskFlags: buildDisputeRiskFlags(lane, item),
+      timeline: buildDisputeTimeline(lane, item),
+      notes: [
+        "Live dispute case loaded from the Nest admin endpoint.",
+        lane === "payment"
+          ? "Validate payment movement before promising any wallet or card recovery."
+          : lane === "delivery"
+            ? "Review order, shipment, and tasker context before closing."
+            : "Coordinate support and finance if a partial recovery is likely.",
+      ],
+      links: buildSupportDisputeLinks(lane, customerHref, merchantName, item.shipment?.id ?? null),
+      refs: {
+        customerId: item.customer?.id ?? undefined,
+        taskerId: item.tasker?.id ?? undefined,
+        vendorId: item.store?.id ?? undefined,
+        orderId: item.order?.id ?? undefined,
+        shipmentId: item.shipment?.id ?? undefined,
+        supportCaseId: item.id,
+        paymentCaseId: item.payment?.id ?? undefined,
+      },
+      workflow: {
+        actor: "customer",
+        source: lane === "payment" ? "refund_dispute" : "support_recovery",
+        state:
+          item.status === "RESOLVED"
+            ? "resolved"
+            : item.status === "IN_PROGRESS"
+              ? "in_progress"
+              : "under_review",
+        ownerTeam: lane === "payment" ? "finance" : "support",
+        summary: item.description,
+      },
+    };
+  });
+}
+
 function mapSupportTicketLane(category?: string | null): SupportTicketLane {
   switch (category) {
     case "PAYMENT":
@@ -779,6 +994,192 @@ function mapSupportTicketStatus(status?: string | null) {
     default:
       return "queued";
   }
+}
+
+function mapEscalationLane(item: SupportEscalationApiItem): SupportEscalationLane {
+  if (item.lane) return item.lane;
+
+  const role = item.role?.toLowerCase() ?? "";
+  const category = item.category?.toLowerCase() ?? "";
+  const severity = item.severity?.toLowerCase() ?? "";
+  const suspension = item.suspensionState?.toLowerCase() ?? "";
+
+  if (role === "vendor") return "partner";
+  if (
+    suspension === "suspended" ||
+    ["critical", "high"].includes(severity) ||
+    ["fraud", "abuse", "conduct", "safety", "compliance"].some((token) => category.includes(token))
+  ) {
+    return "trust";
+  }
+
+  return "vip";
+}
+
+function mapEscalationStatus(status?: string | null, suspensionState?: string | null) {
+  const normalized = status?.toLowerCase() ?? "";
+  if (suspensionState?.toLowerCase() === "suspended") return "paused";
+  if (normalized === "open" || normalized === "under_review") return "review";
+  if (normalized === "appealed") return "monitoring";
+  if (normalized === "resolved" || normalized === "closed") return "stable";
+  return "queued";
+}
+
+function buildEscalationImpact(lane: SupportEscalationLane, item: SupportEscalationApiItem) {
+  if (lane === "partner") {
+    return "Partner support, marketplace, and logistics should read the same escalation before any merchant promise is made.";
+  }
+
+  if (lane === "trust") {
+    return item.suspensionState?.toLowerCase() === "suspended"
+      ? "Account action is already affecting the mobile user, so support should wait for trust direction before closing."
+      : "Support cannot close the case until trust decides whether safety or conduct action is needed.";
+  }
+
+  return "Support should coordinate recovery tightly because the affected mobile user is at high churn or repeat-failure risk.";
+}
+
+function buildEscalationTimeline(item: SupportEscalationApiItem) {
+  return [
+    {
+      label: "Escalation opened",
+      detail: item.title,
+      time: formatTime(item.occurredAt ?? item.createdAt),
+    },
+    {
+      label: "Latest staff review",
+      detail: item.description,
+      time: formatTime(item.reviewedAt ?? item.updatedAt ?? item.createdAt),
+    },
+    item.latestAppeal
+      ? {
+          label: "Appeal submitted",
+          detail: item.latestAppeal.message?.trim() || "The affected mobile user submitted a follow-up appeal for staff review.",
+          time: formatTime(item.latestAppeal.createdAt),
+        }
+      : null,
+  ].filter(Boolean) as SupportEscalationCase["timeline"];
+}
+
+function buildSupportEscalationLinks(
+  lane: SupportEscalationLane,
+  customerHref: string,
+  vendorHref: string,
+) {
+  if (lane === "partner") {
+    return [
+      { label: "Vendor record", href: vendorHref },
+      { label: "Shipments", href: routes.logistics.shipments },
+      { label: "Safety compliance", href: routes.risk.compliance },
+    ];
+  }
+
+  if (lane === "trust") {
+    return [
+      { label: "Safety compliance", href: routes.risk.compliance },
+      { label: "Disputes", href: routes.supportDesk.disputes },
+      { label: "Customer profile", href: customerHref },
+    ];
+  }
+
+  return [
+    { label: "Customer profile", href: customerHref },
+    { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
+    { label: "Support inbox", href: routes.supportDesk.inbox },
+  ];
+}
+
+function mapDisputeLane(category?: string | null): SupportDisputeLane {
+  switch (category) {
+    case "PAYMENT":
+      return "payment";
+    case "DELIVERY":
+      return "delivery";
+    default:
+      return "refund";
+  }
+}
+
+function buildDisputeSourceSummary(lane: SupportDisputeLane, item: SupportDisputeApiItem) {
+  const orderRef = item.order?.trackingId ? `order ${item.order.trackingId}` : "the linked mobile-app order";
+  if (lane === "payment") {
+    return `Payment-linked dispute on ${orderRef} that needs gateway, wallet, or retry validation before recovery.`;
+  }
+  if (lane === "delivery") {
+    return `Delivery dispute on ${orderRef} that needs shipment, route, and handoff evidence review.`;
+  }
+  return `Refund review on ${orderRef} that needs item, order, and merchant evidence before release.`;
+}
+
+function buildDisputeRiskFlags(lane: SupportDisputeLane, item: SupportDisputeApiItem) {
+  const flags = [normalizeToken(item.category ?? lane)];
+  if (lane === "payment") flags.push("Payments discrepancy");
+  if (lane === "delivery") flags.push("Delivery trace");
+  if (lane === "refund") flags.push("Refund decision");
+  if (item.payment?.status) flags.push(normalizeToken(item.payment.status));
+  return flags;
+}
+
+function buildDisputeTimeline(lane: SupportDisputeLane, item: SupportDisputeApiItem) {
+  return [
+    {
+      label: lane === "payment" ? "Payment complaint opened" : lane === "delivery" ? "Dispute escalated" : "Refund review opened",
+      detail: item.subject,
+      time: formatTime(item.createdAt),
+    },
+    {
+      label: "Latest staff update",
+      detail: item.description,
+      time: formatTime(item.updatedAt ?? item.createdAt),
+    },
+    item.payment?.reference
+      ? {
+          label: "Payment reference linked",
+          detail: `Finance can trace this case through payment reference ${item.payment.reference}.`,
+          time: formatTime(item.updatedAt ?? item.createdAt),
+        }
+      : null,
+  ].filter(Boolean) as SupportDisputeCase["timeline"];
+}
+
+function buildSupportDisputeLinks(
+  lane: SupportDisputeLane,
+  customerHref: string,
+  merchantName: string,
+  shipmentId: string | null,
+) {
+  const trackingHref = shipmentId ? routes.logistics.trackingDetails(shipmentId) : routes.logistics.tracking;
+  const vendorHref = vendorDetailHrefByName[merchantName] ?? routes.marketplace.vendors;
+
+  if (lane === "payment") {
+    return [
+      { label: "Customer profile", href: customerHref },
+      { label: "Payment ops", href: routes.sales.payments },
+      { label: "Refund approvals", href: routes.sales.refunds },
+    ];
+  }
+
+  if (lane === "delivery") {
+    return [
+      { label: "Customer profile", href: customerHref },
+      { label: "Manual dispatch", href: routes.dispatch.manualDispatch },
+      { label: "Tracking cases", href: trackingHref },
+    ];
+  }
+
+  return [
+    { label: "Customer profile", href: customerHref },
+    { label: "Refund approvals", href: routes.sales.refunds },
+    { label: "Vendor record", href: vendorHref },
+  ];
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("en-ZM", {
+    style: "currency",
+    currency: "ZMW",
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 function buildSupportTicketLinks(lane: SupportTicketLane, customerHref: string) {
