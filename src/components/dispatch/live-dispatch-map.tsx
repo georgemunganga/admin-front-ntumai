@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAdminLiveDispatch } from "@/repositories/admin/dispatch";
 import { Loader } from "@googlemaps/js-api-loader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Badge, Button, Input, Select, Text, Title } from "rizzui";
@@ -31,6 +30,7 @@ import {
   type MapEntity,
   type MarkerTone,
 } from "@/components/dispatch/live-map.data";
+import type { LiveDispatchEntity } from "@/repositories/admin/dispatch";
 import { routes } from "@/config/routes";
 
 const GOOGLE_MAPS_API_KEY =
@@ -141,7 +141,15 @@ function markerIcon(kind: MarkerTone, vehicleType?: MapEntity["vehicleType"]): g
   };
 }
 
-export default function LiveDispatchMap() {
+export default function LiveDispatchMap({
+  liveEntities = [],
+  refreshedAt,
+  onRefresh,
+}: {
+  liveEntities?: LiveDispatchEntity[];
+  refreshedAt?: number | null;
+  onRefresh?: () => void;
+}) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -159,9 +167,6 @@ export default function LiveDispatchMap() {
   const [query, setQuery] = useState("");
   const [liveFollow, setLiveFollow] = useState(true);
   const [mergedEntities, setMergedEntities] = useState<MapEntity[]>(dispatchEntities);
-
-  // Live dispatch data from backend
-  const { entities: liveEntities } = useAdminLiveDispatch();
 
   // Merge live backend taskers into the seed entities
   // Live taskers replace seed taskers by ID; vendors and alerts are preserved
@@ -475,13 +480,15 @@ export default function LiveDispatchMap() {
           <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1 text-primary">
             Lusaka live
           </Badge>
+          {refreshedAt ? (
+            <Badge variant="flat" className="rounded-2xl bg-white px-3 py-1 text-gray-700">
+              Synced {formatSyncAge(refreshedAt)}
+            </Badge>
+          ) : null}
           <Button
             variant="outline"
             className="h-10 rounded-2xl px-3"
-            onClick={() => {
-              const firstEntity = filteredEntities[0] ?? mergedEntities[0] ?? dispatchEntities[0];
-              if (firstEntity) focusEntity(firstEntity, true);
-            }}
+            onClick={() => onRefresh?.()}
           >
             <PiArrowClockwiseBold className="h-4 w-4" />
           </Button>
@@ -702,6 +709,14 @@ export default function LiveDispatchMap() {
                   </Button>
                 </Link>
               ) : null}
+              {selectedEntity.orderId ? (
+                <Link href={`${routes.dispatch.manualDispatch}?orderId=${encodeURIComponent(selectedEntity.orderId)}`}>
+                  <Button size="sm" variant="outline" className="rounded-2xl px-3">
+                    <PiArrowClockwiseBold className="me-1.5 h-4 w-4" />
+                    Reassign
+                  </Button>
+                </Link>
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -734,6 +749,14 @@ function heartbeatLabel(seconds: number) {
   if (seconds <= 10) return `Heartbeat live ${seconds}s ago`;
   if (seconds <= 30) return `Heartbeat warm ${seconds}s ago`;
   return `Heartbeat stale ${seconds}s ago`;
+}
+
+function formatSyncAge(value: number) {
+  const diffSec = Math.max(1, Math.round((Date.now() - value) / 1000));
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const minutes = Math.floor(diffSec / 60);
+  const seconds = diffSec % 60;
+  return seconds ? `${minutes}m ${seconds}s ago` : `${minutes}m ago`;
 }
 
 function LegendRow({

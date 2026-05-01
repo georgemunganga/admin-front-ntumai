@@ -28,7 +28,13 @@ const LiveDispatchMap = dynamic(
 );
 
 export default function DispatchLiveMapPage() {
-  const { entities: liveEntities, loading, error } = useAdminLiveDispatch();
+  const {
+    entities: liveEntities,
+    loading,
+    error,
+    refreshedAt,
+    refresh,
+  } = useAdminLiveDispatch();
   const staticVendors = dispatchEntities.filter((entity) => entity.kind === "vendor").length;
   const staticAlerts = dispatchEntities.filter((entity) => entity.kind === "alert").length;
   const supervisionRows = liveEntities.map((entity) => ({
@@ -73,7 +79,11 @@ export default function DispatchLiveMapPage() {
           />
         </div>
 
-        <LiveDispatchMap />
+        <LiveDispatchMap
+          liveEntities={liveEntities}
+          refreshedAt={refreshedAt}
+          onRefresh={refresh}
+        />
 
         <ShellCard
           title="Live supervision feed"

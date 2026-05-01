@@ -16,6 +16,8 @@ export type AdminResourceState<T> = {
   isLoading: boolean;
   isLive: boolean;
   error: string | null;
+  refreshedAt: number | null;
+  refresh: () => void;
 };
 
 export function getAdminApiBaseUrl() {
@@ -137,18 +139,31 @@ export function useAdminResource<T>({
   fallback,
   map,
   enabled = true,
+  refreshMs,
 }: {
   path: string;
   fallback: T;
   map: (payload: unknown) => T;
   enabled?: boolean;
+  refreshMs?: number;
 }): AdminResourceState<T> {
+  const [refreshNonce, setRefreshNonce] = useState(0);
   const [state, setState] = useState<AdminResourceState<T>>({
     data: fallback,
     isLoading: enabled && Boolean(getAdminApiToken()),
     isLive: false,
     error: null,
+    refreshedAt: null,
+    refresh: () => setRefreshNonce((value) => value + 1),
   });
+
+  useEffect(() => {
+    if (!enabled || !refreshMs) return;
+    const interval = window.setInterval(() => {
+      setRefreshNonce((value) => value + 1);
+    }, refreshMs);
+    return () => window.clearInterval(interval);
+  }, [enabled, refreshMs]);
 
   useEffect(() => {
     let active = true;
@@ -159,6 +174,8 @@ export function useAdminResource<T>({
         isLoading: false,
         isLive: false,
         error: null,
+        refreshedAt: null,
+        refresh: () => setRefreshNonce((value) => value + 1),
       });
       return;
     }
@@ -170,6 +187,8 @@ export function useAdminResource<T>({
         isLoading: false,
         isLive: false,
         error: null,
+        refreshedAt: null,
+        refresh: () => setRefreshNonce((value) => value + 1),
       });
       return;
     }
@@ -189,6 +208,8 @@ export function useAdminResource<T>({
             isLoading: false,
             isLive: false,
             error: null,
+            refreshedAt: null,
+            refresh: () => setRefreshNonce((value) => value + 1),
           });
           return;
         }
@@ -198,6 +219,8 @@ export function useAdminResource<T>({
           isLoading: false,
           isLive: true,
           error: null,
+          refreshedAt: Date.now(),
+          refresh: () => setRefreshNonce((value) => value + 1),
         });
       })
       .catch((error) => {
@@ -207,13 +230,15 @@ export function useAdminResource<T>({
           isLoading: false,
           isLive: false,
           error: error instanceof Error ? error.message : "Failed to load live admin data",
+          refreshedAt: null,
+          refresh: () => setRefreshNonce((value) => value + 1),
         });
       });
 
     return () => {
       active = false;
     };
-  }, [enabled, fallback, map, path]);
+  }, [enabled, fallback, map, path, refreshNonce]);
 
   return state;
 }

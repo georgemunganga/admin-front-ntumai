@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ColumnDef,
   PaginationState,
@@ -311,6 +312,7 @@ const overrideOptions = [
 ];
 
 export default function DispatchManualDispatchPage() {
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState(manualDispatchSeed);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -321,6 +323,12 @@ export default function DispatchManualDispatchPage() {
     pageIndex: 0,
     pageSize: 8,
   });
+  const prefilledOrderId = searchParams.get("orderId")?.trim() ?? "";
+
+  useEffect(() => {
+    if (!prefilledOrderId) return;
+    setQuery(prefilledOrderId);
+  }, [prefilledOrderId]);
 
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();

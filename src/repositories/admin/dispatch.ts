@@ -90,17 +90,21 @@ export function useAdminDispatchExceptions() {
 }
 
 export function useAdminLiveDispatch() {
-  const { data, isLoading, error } = useAdminResource<LiveDispatchResponse>({
+  const { data, isLoading, isLive, error, refreshedAt, refresh } = useAdminResource<LiveDispatchResponse>({
     path: "/api/v1/admin/dispatch/live",
     fallback: { entities: [], total: 0 },
     map: (payload) => payload as LiveDispatchResponse,
+    refreshMs: 15000,
   });
 
   return {
     entities: data.entities,
     total: data.total,
     loading: isLoading,
+    isLive,
     error,
+    refreshedAt,
+    refresh,
   };
 }
 
