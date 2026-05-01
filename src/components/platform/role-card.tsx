@@ -7,16 +7,45 @@ import { cn } from "@/utils/class-names";
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import EditRoleModal from "@/components/platform/edit-role-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
+import { useAuth } from "@/components/auth/auth-provider";
+import {
+  deletePlatformRole,
+  type PlatformRoleCard,
+} from "@/repositories/admin/platform-access";
 
-interface RoleCardProps {
-  name: string;
-  color?: string;
+interface RoleCardProps extends PlatformRoleCard {
   className?: string;
-  users: string[];
+  onRefresh: () => void;
 }
 
-export default function RoleCard({ name, color, users, className }: RoleCardProps) {
+export default function RoleCard({
+  id,
+  name,
+  color,
+  users,
+  permissions,
+  isSystem,
+  memberCount,
+  className,
+  onRefresh,
+}: RoleCardProps) {
   const { openModal } = useModal();
+  const { canWrite, canDelete } = useAuth();
+
+  async function handleDeleteRole() {
+    if (!canDelete || isSystem) return;
+    const confirmed = window.confirm(`Delete the "${name}" role?`);
+    if (!confirmed) return;
+
+    try {
+      await deletePlatformRole(id);
+      onRefresh();
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Failed to delete the role.",
+      );
+    }
+  }
 
   return (
     <div className={cn("rounded-lg border border-muted p-6", className)}>
@@ -44,9 +73,44 @@ export default function RoleCard({ name, color, users, className }: RoleCardProp
             </ActionIcon>
           </Dropdown.Trigger>
           <Dropdown.Menu className="!z-0">
-            <Dropdown.Item onClick={() => openModal({ view: <CreateUserModal />, customSize: 600 })}>Add User</Dropdown.Item>
-            <Dropdown.Item>Rename</Dropdown.Item>
-            <Dropdown.Item>Remove Role</Dropdown.Item>
+            {canWrite ? (
+              <Dropdown.Item
+                onClick={() =>
+                  openModal({
+                    view: (
+                      <CreateUserModal
+                        roles={[{ id, name, color, users, permissions, memberCount, isSystem }]}
+                        roleId={id}
+                        onSuccess={onRefresh}
+                      />
+                    ),
+                    customSize: 600,
+                  })
+                }
+              >
+                Add User
+              </Dropdown.Item>
+            ) : null}
+            {canWrite ? (
+              <Dropdown.Item
+                onClick={() =>
+                  openModal({
+                    view: (
+                      <EditRoleModal
+                        role={{ id, name, color, permissions, isSystem }}
+                        onSuccess={onRefresh}
+                      />
+                    ),
+                    customSize: 700,
+                  })
+                }
+              >
+                Edit Role
+              </Dropdown.Item>
+            ) : null}
+            {canDelete && !isSystem ? (
+              <Dropdown.Item onClick={handleDeleteRole}>Remove Role</Dropdown.Item>
+            ) : null}
           </Dropdown.Menu>
         </Dropdown>
       </header>
@@ -59,16 +123,28 @@ export default function RoleCard({ name, color, users, className }: RoleCardProp
             </figure>
           ))}
         </div>
-        <span>Total {users.length} users</span>
+        <span>Total {memberCount ?? users.length} users</span>
       </div>
 
-      <Button
-        variant="outline"
-        className="items-center gap-1 text-gray-800 @lg:w-full lg:mt-6"
-        onClick={() => openModal({ view: <EditRoleModal />, customSize: 700 })}
-      >
-        Edit Role
-      </Button>
+      {canWrite ? (
+        <Button
+          variant="outline"
+          className="items-center gap-1 text-gray-800 @lg:w-full lg:mt-6"
+          onClick={() =>
+            openModal({
+              view: (
+                <EditRoleModal
+                  role={{ id, name, color, permissions, isSystem }}
+                  onSuccess={onRefresh}
+                />
+              ),
+              customSize: 700,
+            })
+          }
+        >
+          Edit Role
+        </Button>
+      ) : null}
     </div>
   );
 }

@@ -38,6 +38,7 @@ type PlatformRoleApiItem = {
   color?: string;
   permissions?: string[];
   isSystem?: boolean;
+  memberCount?: number;
 };
 
 type PlatformUserApiItem = {
@@ -223,9 +224,9 @@ function mapPlatformRolesPayload(payload: unknown): PlatformRoleCard[] {
     id: item.id,
     name: item.name,
     color: item.color || rolesList[index % rolesList.length]?.color || "#2465FF",
-    users: roleAvatars,
+    users: roleAvatars.slice(0, Math.max(1, Math.min(item.memberCount ?? 0, roleAvatars.length))),
     permissions: item.permissions ?? [],
-    memberCount: roleUsers.filter((user) => user.role === item.name).length,
+    memberCount: item.memberCount ?? roleUsers.filter((user) => user.role === item.name).length,
     isSystem: item.isSystem,
   }));
 }

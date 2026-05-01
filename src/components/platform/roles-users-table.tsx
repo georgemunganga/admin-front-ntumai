@@ -5,30 +5,33 @@ import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui
 import { PiEnvelopeBold, PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
-import { ROLES } from "@/config/constants";
 import { useAuth } from "@/components/auth/auth-provider";
 import {
-  listPlatformRoleUsers,
+  deletePlatformAccessUser,
+  type PlatformAccessUser,
+  type PlatformRoleCard,
   listPlatformUserStatuses,
   sendStaffInvite,
 } from "@/repositories/admin/platform-access";
 
-const roleOptions = [{ label: "All roles", value: "all" }].concat(
-  Object.values(ROLES).map((role) => ({ label: role, value: role })),
-);
-
 function StatusPill({ value }: { value: string }) {
-  if (value === "Active") return <span className="text-green-dark">● {value}</span>;
-  if (value === "Deactivated") return <span className="text-red-dark">● {value}</span>;
+  const normalized = value.toLowerCase();
+  if (normalized === "accepted" || normalized === "active") {
+    return <span className="text-green-dark">● {value}</span>;
+  }
+  if (normalized === "rejected" || normalized === "deactivated") {
+    return <span className="text-red-dark">● {value}</span>;
+  }
   return <span className="text-orange-dark">● {value}</span>;
 }
 
 function InviteButton({ userId, status }: { userId?: string; status: string }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const normalizedStatus = status.toLowerCase();
 
   // Only show for Pending users that have a real userId (live backend record)
-  if (status !== "Pending" || !userId) return null;
+  if (normalizedStatus !== "pending" || !userId) return null;
 
   async function handleInvite() {
     setSending(true);
@@ -57,13 +60,27 @@ function InviteButton({ userId, status }: { userId?: string; status: string }) {
   );
 }
 
-export default function RolesUsersTable() {
+export default function RolesUsersTable({
+  users,
+  roles,
+  onRefresh,
+}: {
+  users: PlatformAccessUser[];
+  roles: PlatformRoleCard[];
+  onRefresh: () => void;
+}) {
   const { openModal } = useModal();
   const { canWrite, canDelete } = useAuth();
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
-  const users = useMemo(() => listPlatformRoleUsers(), []);
+  const roleOptions = useMemo(
+    () =>
+      [{ label: "All roles", value: "all" }].concat(
+        roles.map((item) => ({ label: item.name, value: item.name })),
+      ),
+    [roles],
+  );
   const statusOptions = useMemo(
     () => [{ label: "All statuses", value: "all" }].concat(listPlatformUserStatuses().map((value) => ({ label: value, value }))),
     [],
@@ -81,6 +98,21 @@ export default function RolesUsersTable() {
   }, [query, role, status, users]);
 
   const isFiltered = query.length > 0 || role !== "all" || status !== "all";
+
+  async function handleDeleteUser(inviteId: string) {
+    if (!canDelete) return;
+    const confirmed = window.confirm("Delete this staff invite?");
+    if (!confirmed) return;
+
+    try {
+      await deletePlatformAccessUser(inviteId);
+      onRefresh();
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Failed to delete the staff invite.",
+      );
+    }
+  }
 
   return (
     <div className="mt-14">
@@ -131,7 +163,12 @@ export default function RolesUsersTable() {
             <div className="order-2 ms-4 @2xl:order-3 @2xl:ms-0 @4xl:order-4 @4xl:shrink-0">
               <Button
                 className="mt-0 rounded-2xl bg-primary text-white hover:bg-primary/90"
-                onClick={() => openModal({ view: <CreateUserModal />, customSize: 600 })}
+                onClick={() =>
+                  openModal({
+                    view: <CreateUserModal roles={roles} onSuccess={onRefresh} />,
+                    customSize: 600,
+                  })
+                }
               >
                 <PiPlusBold className="me-1.5 h-4 w-4" />
                 Add New User
@@ -191,7 +228,15 @@ export default function RolesUsersTable() {
                 <Table.Cell className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     {canWrite ? <InviteButton userId={row.userId} status={row.status} /> : null}
-                    {canDelete ? <Button variant="outline" size="sm">Delete</Button> : null}
+                    {canDelete ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteUser(String(row.userId ?? row.id))}
+                      >
+                        Delete
+                      </Button>
+                    ) : null}
                   </div>
                 </Table.Cell>
               </Table.Row>

@@ -1,18 +1,20 @@
 "use client";
 
 import RoleCard from "@/components/platform/role-card";
-import { listPlatformRoles } from "@/repositories/admin/platform-access";
+import type { PlatformRoleCard } from "@/repositories/admin/platform-access";
 import { cn } from "@/utils/class-names";
 
 export default function RolesGrid({
+  roles,
+  onRefresh,
   className,
   gridClassName,
 }: {
+  roles: PlatformRoleCard[];
+  onRefresh: () => void;
   className?: string;
   gridClassName?: string;
 }) {
-  const roles = listPlatformRoles();
-
   return (
     <div className={cn("@container", className)}>
       <div
@@ -22,7 +24,7 @@ export default function RolesGrid({
         )}
       >
         {roles.map((role) => (
-          <RoleCard key={role.name} {...role} />
+          <RoleCard key={role.id} {...role} onRefresh={onRefresh} />
         ))}
       </div>
     </div>
