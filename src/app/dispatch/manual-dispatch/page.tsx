@@ -24,14 +24,12 @@ import {
   manualDispatchTrackingHrefByBooking,
 } from "@/components/admin/ops-workflow-links";
 import DataSourceState from "@/components/admin/data-source-state";
-import type { SalesOrder } from "@/components/sales/order-data";
-import { useSalesOrders } from "@/repositories/admin/orders";
 import {
   assignDispatchJob,
   reassignDispatchJob,
-  useAdminLiveDispatch,
+  useAdminManualDispatchQueue,
   useAdminDispatchCandidates,
-  type LiveDispatchEntity,
+  type ManualDispatchQueueItem,
   type DispatchCandidate,
 } from "@/repositories/admin/dispatch";
 import PageHeader from "@/components/admin/page-header";
@@ -39,21 +37,7 @@ import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
 
-type ManualDispatchItem = {
-  id: string;
-  booking: string;
-  trackingId: string;
-  rider: string;
-  corridor: string;
-  overrideType: string;
-  owner: string;
-  status: "live" | "stable" | "review" | "monitoring" | "queued" | "at_risk";
-  priority: "critical" | "priority" | "standard";
-  etaRisk: string;
-  supply: string;
-  updatedAt: string;
-  assignedTasker?: string;
-};
+type ManualDispatchItem = ManualDispatchQueueItem;
 
 type NearbyTasker = {
   id: string;
@@ -65,95 +49,6 @@ type NearbyTasker = {
   zone: string;
   availability: string;
 };
-
-const manualDispatchSeed: ManualDispatchItem[] = [
-  {
-    id: "MD-2104",
-    booking: "ORD-50318",
-    trackingId: "TRK-50318",
-    rider: "Natasha Phiri",
-    corridor: "Lusaka CBD to Kabulonga",
-    overrideType: "Manual reassignment",
-    owner: "Ops control",
-    status: "live",
-    priority: "priority",
-    etaRisk: "Contained",
-    supply: "Backup driver locked",
-    updatedAt: "2 min ago",
-    assignedTasker: "Alick Mumba",
-  },
-  {
-    id: "MD-2111",
-    booking: "ORD-50344",
-    trackingId: "TRK-50344",
-    rider: "QuickBite Kitchens",
-    corridor: "Longacres merchant lane",
-    overrideType: "Priority merchant protection",
-    owner: "Merchant ops",
-    status: "review",
-    priority: "critical",
-    etaRisk: "High",
-    supply: "Preferred rider requested",
-    updatedAt: "6 min ago",
-  },
-  {
-    id: "MD-2120",
-    booking: "ORD-50379",
-    trackingId: "TRK-50379",
-    rider: "Brian Tembo",
-    corridor: "Airport corridor",
-    overrideType: "Auto-match recovery",
-    owner: "Dispatch pod",
-    status: "monitoring",
-    priority: "priority",
-    etaRisk: "Rising",
-    supply: "Open pool fallback",
-    updatedAt: "11 min ago",
-  },
-  {
-    id: "MD-2127",
-    booking: "ORD-50403",
-    trackingId: "TRK-50403",
-    rider: "Ciela Corporate",
-    corridor: "B2B office shuttle",
-    overrideType: "Batch override",
-    owner: "B2B dispatch",
-    status: "stable",
-    priority: "priority",
-    etaRisk: "Low",
-    supply: "Reserved van",
-    updatedAt: "18 min ago",
-    assignedTasker: "Titus Kunda",
-  },
-  {
-    id: "MD-2133",
-    booking: "ORD-50426",
-    trackingId: "TRK-50426",
-    rider: "Mercy Chola",
-    corridor: "Woodlands express lane",
-    overrideType: "Force-cancel review",
-    owner: "Resolution desk",
-    status: "at_risk",
-    priority: "critical",
-    etaRisk: "Severe",
-    supply: "No fit supply",
-    updatedAt: "24 min ago",
-  },
-  {
-    id: "MD-2140",
-    booking: "ORD-50448",
-    trackingId: "TRK-50448",
-    rider: "Green Harvest Team",
-    corridor: "Mass Media corridor",
-    overrideType: "VIP customer protection",
-    owner: "Realtime desk",
-    status: "queued",
-    priority: "standard",
-    etaRisk: "Medium",
-    supply: "Awaiting override approval",
-    updatedAt: "31 min ago",
-  },
-];
 
 const nearbyTaskersByDispatchId: Record<string, NearbyTasker[]> = {
   "MD-2104": [
@@ -337,19 +232,14 @@ export default function DispatchManualDispatchPage() {
   });
   const prefilledOrderId = searchParams.get("orderId")?.trim() ?? "";
   const prefilledAssignmentId = searchParams.get("assignmentId")?.trim() ?? "";
-  const isReassignFlow = Boolean(prefilledAssignmentId);
   const {
-    data: orderRecords,
-    isLoading: ordersLoading,
-    isLive: ordersLive,
-    error: ordersError,
-  } = useSalesOrders();
-  const {
-    entities: liveEntities,
-    loading: liveLoading,
-    isLive: dispatchLive,
-    error: dispatchError,
-  } = useAdminLiveDispatch();
+    items: queueItems,
+    loading: queueLoading,
+    isLive: queueLive,
+    error: queueError,
+  } = useAdminManualDispatchQueue();
+  const currentAssignmentId = prefilledAssignmentId || assigningItem?.assignmentId || "";
+  const isReassignFlow = Boolean(currentAssignmentId);
 
   useEffect(() => {
     const focusTerms = [prefilledOrderId, prefilledAssignmentId].filter(Boolean);
@@ -358,18 +248,11 @@ export default function DispatchManualDispatchPage() {
   }, [prefilledAssignmentId, prefilledOrderId]);
 
   const rows = useMemo(() => {
-    const liveByOrderId = new Map<string, LiveDispatchEntity>();
-    liveEntities.forEach((entity) => {
-      if (entity.orderId) liveByOrderId.set(entity.orderId, entity);
+    return queueItems.map((item) => {
+      const patch = localAssignments[item.id];
+      return patch ? { ...item, ...patch } : item;
     });
-
-    return orderRecords.map((order) => {
-      const liveEntity = liveByOrderId.get(order.id);
-      const base = toManualDispatchItem(order, liveEntity);
-      const patch = localAssignments[base.id];
-      return patch ? { ...base, ...patch } : base;
-    });
-  }, [liveEntities, localAssignments, orderRecords]);
+  }, [localAssignments, queueItems]);
 
   const dynamicOverrideOptions = useMemo(
     () => [
@@ -390,7 +273,7 @@ export default function DispatchManualDispatchPage() {
       if (prefilledOrderId && (row.booking === prefilledOrderId || row.id === prefilledOrderId)) {
         return true;
       }
-      if (prefilledAssignmentId && row.id === prefilledAssignmentId) {
+      if (prefilledAssignmentId && row.assignmentId === prefilledAssignmentId) {
         return true;
       }
       return false;
@@ -412,6 +295,7 @@ export default function DispatchManualDispatchPage() {
       const matchesType = overrideType === "all" ? true : row.overrideType === overrideType;
       const haystack = [
         row.id,
+        row.assignmentId,
         row.booking,
         row.rider,
         row.corridor,
@@ -434,7 +318,7 @@ export default function DispatchManualDispatchPage() {
     error: taskerOptionsError,
   } = useAdminDispatchCandidates({
     orderId: assigningItem?.id,
-    assignmentId: prefilledAssignmentId || undefined,
+    assignmentId: currentAssignmentId || undefined,
     fallback: assigningItem ? mapFallbackCandidates(fallbackTaskerOptions) : [],
   });
   const taskerOptions = useMemo(
@@ -582,9 +466,9 @@ export default function DispatchManualDispatchPage() {
                   Order {prefilledOrderId}
                 </Badge>
               ) : null}
-              {prefilledAssignmentId ? (
+              {currentAssignmentId ? (
                 <Badge variant="flat" className="rounded-2xl bg-white px-3 py-1.5 text-gray-700">
-                  Assignment {prefilledAssignmentId}
+                  Assignment {currentAssignmentId}
                 </Badge>
               ) : null}
               {assigningItem ? (
@@ -644,9 +528,9 @@ export default function DispatchManualDispatchPage() {
             </Badge>
           </div>
           <DataSourceState
-            isLoading={ordersLoading || liveLoading}
-            isLive={ordersLive || dispatchLive}
-            error={ordersError || dispatchError}
+            isLoading={queueLoading}
+            isLive={queueLive}
+            error={queueError}
           />
         </div>
 
@@ -748,8 +632,8 @@ export default function DispatchManualDispatchPage() {
               <ModalMeta label="Corridor" value={assigningItem.corridor} />
               <ModalMeta label="Override type" value={assigningItem.overrideType} />
               <ModalMeta label="Supply state" value={assigningItem.supply} />
-              {prefilledAssignmentId ? (
-                <ModalMeta label="Assignment" value={prefilledAssignmentId} />
+              {currentAssignmentId ? (
+                <ModalMeta label="Assignment" value={currentAssignmentId} />
               ) : null}
             </div>
 
@@ -850,15 +734,15 @@ export default function DispatchManualDispatchPage() {
                     setAssigningItem(null);
                     setSelectedTaskerId(null);
                     // Live API call (non-blocking, optimistic update already applied)
-                    if (prefilledAssignmentId) {
-                      reassignDispatchJob(prefilledAssignmentId, {
+                    if (currentAssignmentId) {
+                      reassignDispatchJob(currentAssignmentId, {
                         newDriverId: selectedTasker.id,
                         reason: "Manual reassignment from live dispatch map",
                       }).catch(() => {/* silent — optimistic update preserved */});
                       return;
                     }
                     assignDispatchJob({
-                      orderId: assigningItem.booking,
+                      orderId: assigningItem.id,
                       driverId: selectedTasker.id,
                       note: `Manual assignment by admin`,
                     }).catch(() => {/* silent — optimistic update preserved */});
@@ -893,67 +777,6 @@ function TaskerStat({ label, value }: { label: string; value: string }) {
       <Text className="mt-1 font-medium text-gray-900">{value}</Text>
     </div>
   );
-}
-
-function toManualDispatchItem(
-  order: SalesOrder,
-  liveEntity?: LiveDispatchEntity,
-): ManualDispatchItem {
-  return {
-    id: order.id,
-    booking: order.orderNumber,
-    trackingId: order.trackingId,
-    rider: order.customer,
-    corridor: order.deliveryAddress,
-    overrideType: deriveOverrideType(order, liveEntity),
-    owner: liveEntity ? "Live dispatch" : "Ops queue",
-    status: mapManualDispatchStatus(order.status),
-    priority: derivePriority(order.status),
-    etaRisk: deriveEtaRisk(order.status),
-    supply: liveEntity ? `${liveEntity.label} active` : "Open dispatch pool",
-    updatedAt: order.updatedAt,
-    assignedTasker: liveEntity?.label,
-  };
-}
-
-function mapManualDispatchStatus(status: SalesOrder["status"]): ManualDispatchItem["status"] {
-  switch (status) {
-    case "live":
-      return "live";
-    case "stable":
-      return "stable";
-    case "monitoring":
-      return "monitoring";
-    case "review":
-      return "review";
-    case "at_risk":
-      return "at_risk";
-    default:
-      return "queued";
-  }
-}
-
-function derivePriority(status: SalesOrder["status"]): ManualDispatchItem["priority"] {
-  if (status === "at_risk") return "critical";
-  if (status === "live" || status === "review" || status === "monitoring") return "priority";
-  return "standard";
-}
-
-function deriveEtaRisk(status: SalesOrder["status"]) {
-  if (status === "at_risk") return "Severe";
-  if (status === "review") return "High";
-  if (status === "monitoring") return "Rising";
-  if (status === "live") return "Contained";
-  return "Low";
-}
-
-function deriveOverrideType(order: SalesOrder, liveEntity?: LiveDispatchEntity) {
-  if (liveEntity?.assignmentId) return "Manual reassignment";
-  if (order.status === "at_risk") return "Recovery override";
-  if (order.status === "review") return "Merchant delay review";
-  if (order.status === "monitoring") return "Route watch";
-  if (order.status === "queued") return "Release queue";
-  return "Manual assignment";
 }
 
 function getNearbyTaskerOptions(item: ManualDispatchItem): NearbyTasker[] {

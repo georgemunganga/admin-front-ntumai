@@ -42,6 +42,23 @@ export type DispatchException = {
   links: Array<{ label: string; href: string }>;
 };
 
+export type ManualDispatchQueueItem = {
+  id: string;
+  assignmentId: string | null;
+  booking: string;
+  trackingId: string;
+  rider: string;
+  corridor: string;
+  overrideType: string;
+  owner: string;
+  status: "live" | "stable" | "review" | "monitoring" | "queued" | "at_risk";
+  priority: "critical" | "priority" | "standard";
+  etaRisk: string;
+  supply: string;
+  updatedAt: string;
+  assignedTasker?: string | null;
+};
+
 export type LiveDispatchEntity = {
   id: string;
   type: "tasker";
@@ -92,6 +109,11 @@ type DispatchCandidatesResponse = {
   total: number;
 };
 
+type ManualDispatchQueueResponse = {
+  items: ManualDispatchQueueItem[];
+  total: number;
+};
+
 export function useAdminDispatchExceptions() {
   const { data, isLoading, error } = useAdminResource<DispatchExceptionsResponse>({
     path: "/api/v1/admin/dispatch/exceptions",
@@ -103,6 +125,22 @@ export function useAdminDispatchExceptions() {
     exceptions: data.items,
     total: data.total,
     loading: isLoading,
+    error,
+  };
+}
+
+export function useAdminManualDispatchQueue() {
+  const { data, isLoading, isLive, error } = useAdminResource<ManualDispatchQueueResponse>({
+    path: "/api/v1/admin/dispatch/manual",
+    fallback: { items: [], total: 0 },
+    map: (payload) => payload as ManualDispatchQueueResponse,
+  });
+
+  return {
+    items: data.items,
+    total: data.total,
+    loading: isLoading,
+    isLive,
     error,
   };
 }
