@@ -23,7 +23,15 @@ import {
   manualDispatchOrderHrefByBooking,
   manualDispatchTrackingHrefByBooking,
 } from "@/components/admin/ops-workflow-links";
-import { assignDispatchJob, reassignDispatchJob } from "@/repositories/admin/dispatch";
+import DataSourceState from "@/components/admin/data-source-state";
+import type { SalesOrder } from "@/components/sales/order-data";
+import { useSalesOrders } from "@/repositories/admin/orders";
+import {
+  assignDispatchJob,
+  reassignDispatchJob,
+  useAdminLiveDispatch,
+  type LiveDispatchEntity,
+} from "@/repositories/admin/dispatch";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
@@ -32,6 +40,7 @@ import { routes } from "@/config/routes";
 type ManualDispatchItem = {
   id: string;
   booking: string;
+  trackingId: string;
   rider: string;
   corridor: string;
   overrideType: string;
@@ -59,6 +68,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   {
     id: "MD-2104",
     booking: "ORD-50318",
+    trackingId: "TRK-50318",
     rider: "Natasha Phiri",
     corridor: "Lusaka CBD to Kabulonga",
     overrideType: "Manual reassignment",
@@ -73,6 +83,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   {
     id: "MD-2111",
     booking: "ORD-50344",
+    trackingId: "TRK-50344",
     rider: "QuickBite Kitchens",
     corridor: "Longacres merchant lane",
     overrideType: "Priority merchant protection",
@@ -86,6 +97,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   {
     id: "MD-2120",
     booking: "ORD-50379",
+    trackingId: "TRK-50379",
     rider: "Brian Tembo",
     corridor: "Airport corridor",
     overrideType: "Auto-match recovery",
@@ -99,6 +111,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   {
     id: "MD-2127",
     booking: "ORD-50403",
+    trackingId: "TRK-50403",
     rider: "Ciela Corporate",
     corridor: "B2B office shuttle",
     overrideType: "Batch override",
@@ -113,6 +126,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   {
     id: "MD-2133",
     booking: "ORD-50426",
+    trackingId: "TRK-50426",
     rider: "Mercy Chola",
     corridor: "Woodlands express lane",
     overrideType: "Force-cancel review",
@@ -126,6 +140,7 @@ const manualDispatchSeed: ManualDispatchItem[] = [
   {
     id: "MD-2140",
     booking: "ORD-50448",
+    trackingId: "TRK-50448",
     rider: "Green Harvest Team",
     corridor: "Mass Media corridor",
     overrideType: "VIP customer protection",
@@ -313,13 +328,15 @@ const overrideOptions = [
 
 export default function DispatchManualDispatchPage() {
   const searchParams = useSearchParams();
-  const [rows, setRows] = useState(manualDispatchSeed);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [overrideType, setOverrideType] = useState("all");
   const [assigningItem, setAssigningItem] = useState<ManualDispatchItem | null>(null);
   const [selectedTaskerId, setSelectedTaskerId] = useState<string | null>(null);
   const [prefillHandled, setPrefillHandled] = useState(false);
+  const [localAssignments, setLocalAssignments] = useState<
+    Record<string, Pick<ManualDispatchItem, "assignedTasker" | "supply" | "updatedAt" | "status">>
+  >({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 8,
@@ -327,12 +344,49 @@ export default function DispatchManualDispatchPage() {
   const prefilledOrderId = searchParams.get("orderId")?.trim() ?? "";
   const prefilledAssignmentId = searchParams.get("assignmentId")?.trim() ?? "";
   const isReassignFlow = Boolean(prefilledAssignmentId);
+  const {
+    data: orderRecords,
+    isLoading: ordersLoading,
+    isLive: ordersLive,
+    error: ordersError,
+  } = useSalesOrders();
+  const {
+    entities: liveEntities,
+    loading: liveLoading,
+    isLive: dispatchLive,
+    error: dispatchError,
+  } = useAdminLiveDispatch();
 
   useEffect(() => {
     const focusTerms = [prefilledOrderId, prefilledAssignmentId].filter(Boolean);
     if (!focusTerms.length) return;
     setQuery(focusTerms.join(" "));
   }, [prefilledAssignmentId, prefilledOrderId]);
+
+  const rows = useMemo(() => {
+    const liveByOrderId = new Map<string, LiveDispatchEntity>();
+    liveEntities.forEach((entity) => {
+      if (entity.orderId) liveByOrderId.set(entity.orderId, entity);
+    });
+
+    return orderRecords.map((order) => {
+      const liveEntity = liveByOrderId.get(order.id);
+      const base = toManualDispatchItem(order, liveEntity);
+      const patch = localAssignments[base.id];
+      return patch ? { ...base, ...patch } : base;
+    });
+  }, [liveEntities, localAssignments, orderRecords]);
+
+  const dynamicOverrideOptions = useMemo(
+    () => [
+      { label: "All override types", value: "all" },
+      ...Array.from(new Set(rows.map((row) => row.overrideType))).map((value) => ({
+        label: value,
+        value,
+      })),
+    ],
+    [rows],
+  );
 
   useEffect(() => {
     if (prefillHandled) return;
@@ -378,7 +432,7 @@ export default function DispatchManualDispatchPage() {
     });
   }, [overrideType, query, rows, status]);
 
-  const taskerOptions = assigningItem ? nearbyTaskersByDispatchId[assigningItem.id] ?? [] : [];
+  const taskerOptions = assigningItem ? getNearbyTaskerOptions(assigningItem) : [];
 
   const columns = useMemo<ColumnDef<ManualDispatchItem>[]>(
     () => [
@@ -425,8 +479,14 @@ export default function DispatchManualDispatchPage() {
         id: "actions",
         header: "",
         cell: ({ row }) => {
-          const trackingHref = manualDispatchTrackingHrefByBooking[row.original.booking] ?? routes.logistics.tracking;
-          const orderHref = manualDispatchOrderHrefByBooking[row.original.booking];
+          const trackingHref =
+            row.original.trackingId
+              ? routes.logistics.trackingDetails(row.original.trackingId)
+              : manualDispatchTrackingHrefByBooking[row.original.booking] ?? routes.logistics.tracking;
+          const orderHref =
+            row.original.id
+              ? routes.sales.orderDetails(row.original.id)
+              : manualDispatchOrderHrefByBooking[row.original.booking];
 
           return (
             <div className="flex flex-wrap justify-end gap-4">
@@ -542,7 +602,7 @@ export default function DispatchManualDispatchPage() {
             inputClassName="h-10"
           />
           <Select
-            options={overrideOptions as any}
+            options={dynamicOverrideOptions as any}
             value={overrideType}
             onChange={(option: any) => setOverrideType(option?.value ?? "all")}
             selectClassName="rounded-2xl"
@@ -567,12 +627,19 @@ export default function DispatchManualDispatchPage() {
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-3">
-          <Text className="text-sm text-gray-500">
-            {filteredRows.length} manual dispatch overrides
-          </Text>
-          <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-            Dispatch controlled
-          </Badge>
+          <div className="flex flex-wrap items-center gap-3">
+            <Text className="text-sm text-gray-500">
+              {filteredRows.length} manual dispatch orders
+            </Text>
+            <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
+              Dispatch controlled
+            </Badge>
+          </div>
+          <DataSourceState
+            isLoading={ordersLoading || liveLoading}
+            isLive={ordersLive || dispatchLive}
+            error={ordersError || dispatchError}
+          />
         </div>
 
         <div className="custom-scrollbar overflow-x-auto">
@@ -750,19 +817,15 @@ export default function DispatchManualDispatchPage() {
                     const selectedTasker = taskerOptions.find((tasker) => tasker.id === selectedTaskerId);
                     if (!selectedTasker || !assigningItem) return;
                     // Optimistic UI update
-                    setRows((currentRows) =>
-                      currentRows.map((row) =>
-                        row.id === assigningItem.id
-                          ? {
-                              ...row,
-                              assignedTasker: selectedTasker.name,
-                              supply: `${selectedTasker.vehicle} assigned`,
-                              updatedAt: "Just now",
-                              status: "live",
-                            }
-                          : row,
-                      ),
-                    );
+                    setLocalAssignments((current) => ({
+                      ...current,
+                      [assigningItem.id]: {
+                        assignedTasker: selectedTasker.name,
+                        supply: `${selectedTasker.vehicle} assigned`,
+                        updatedAt: "Just now",
+                        status: "live",
+                      },
+                    }));
                     setAssigningItem(null);
                     setSelectedTaskerId(null);
                     // Live API call (non-blocking, optimistic update already applied)
@@ -809,4 +872,112 @@ function TaskerStat({ label, value }: { label: string; value: string }) {
       <Text className="mt-1 font-medium text-gray-900">{value}</Text>
     </div>
   );
+}
+
+function toManualDispatchItem(
+  order: SalesOrder,
+  liveEntity?: LiveDispatchEntity,
+): ManualDispatchItem {
+  return {
+    id: order.id,
+    booking: order.orderNumber,
+    trackingId: order.trackingId,
+    rider: order.customer,
+    corridor: order.deliveryAddress,
+    overrideType: deriveOverrideType(order, liveEntity),
+    owner: liveEntity ? "Live dispatch" : "Ops queue",
+    status: mapManualDispatchStatus(order.status),
+    priority: derivePriority(order.status),
+    etaRisk: deriveEtaRisk(order.status),
+    supply: liveEntity ? `${liveEntity.label} active` : "Open dispatch pool",
+    updatedAt: order.updatedAt,
+    assignedTasker: liveEntity?.label,
+  };
+}
+
+function mapManualDispatchStatus(status: SalesOrder["status"]): ManualDispatchItem["status"] {
+  switch (status) {
+    case "live":
+      return "live";
+    case "stable":
+      return "stable";
+    case "monitoring":
+      return "monitoring";
+    case "review":
+      return "review";
+    case "at_risk":
+      return "at_risk";
+    default:
+      return "queued";
+  }
+}
+
+function derivePriority(status: SalesOrder["status"]): ManualDispatchItem["priority"] {
+  if (status === "at_risk") return "critical";
+  if (status === "live" || status === "review" || status === "monitoring") return "priority";
+  return "standard";
+}
+
+function deriveEtaRisk(status: SalesOrder["status"]) {
+  if (status === "at_risk") return "Severe";
+  if (status === "review") return "High";
+  if (status === "monitoring") return "Rising";
+  if (status === "live") return "Contained";
+  return "Low";
+}
+
+function deriveOverrideType(order: SalesOrder, liveEntity?: LiveDispatchEntity) {
+  if (liveEntity?.assignmentId) return "Manual reassignment";
+  if (order.status === "at_risk") return "Recovery override";
+  if (order.status === "review") return "Merchant delay review";
+  if (order.status === "monitoring") return "Route watch";
+  if (order.status === "queued") return "Release queue";
+  return "Manual assignment";
+}
+
+function getNearbyTaskerOptions(item: ManualDispatchItem): NearbyTasker[] {
+  const seeded = nearbyTaskersByDispatchId[item.id];
+  if (seeded?.length) return seeded;
+
+  const zone = deriveZoneFromCorridor(item.corridor);
+  return [
+    {
+      id: `${item.id}-tsk-1`,
+      name: "Nearest tasker",
+      vehicle: item.status === "live" ? "Motorbike" : "Bicycle",
+      distance: "0.9 km away",
+      eta: "5 min to pickup",
+      rating: "4.8",
+      zone,
+      availability: "Ready now",
+    },
+    {
+      id: `${item.id}-tsk-2`,
+      name: "Backup tasker",
+      vehicle: "Motorbike",
+      distance: "1.7 km away",
+      eta: "8 min to pickup",
+      rating: "4.7",
+      zone,
+      availability: "On standby",
+    },
+    {
+      id: `${item.id}-tsk-3`,
+      name: "Overflow tasker",
+      vehicle: "Van",
+      distance: "3.1 km away",
+      eta: "13 min to pickup",
+      rating: "4.6",
+      zone,
+      availability: "Can cover bulky loads",
+    },
+  ];
+}
+
+function deriveZoneFromCorridor(corridor: string) {
+  if (corridor.toLowerCase().includes("airport")) return "Airport";
+  if (corridor.toLowerCase().includes("woodlands")) return "Woodlands";
+  if (corridor.toLowerCase().includes("rhodes")) return "Rhodes Park";
+  if (corridor.toLowerCase().includes("roma")) return "Roma";
+  return "CBD";
 }
