@@ -22,6 +22,7 @@ import {
   manualDispatchOrderHrefByBooking,
   manualDispatchTrackingHrefByBooking,
 } from "@/components/admin/ops-workflow-links";
+import { assignDispatchJob } from "@/repositories/admin/dispatch";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
@@ -672,10 +673,10 @@ export default function DispatchManualDispatchPage() {
                 <Button
                   className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
                   disabled={!selectedTaskerId}
-                  onClick={() => {
+                  onClick={async () => {
                     const selectedTasker = taskerOptions.find((tasker) => tasker.id === selectedTaskerId);
                     if (!selectedTasker || !assigningItem) return;
-
+                    // Optimistic UI update
                     setRows((currentRows) =>
                       currentRows.map((row) =>
                         row.id === assigningItem.id
@@ -691,6 +692,12 @@ export default function DispatchManualDispatchPage() {
                     );
                     setAssigningItem(null);
                     setSelectedTaskerId(null);
+                    // Live API call (non-blocking, optimistic update already applied)
+                    assignDispatchJob({
+                      orderId: assigningItem.id,
+                      driverId: selectedTasker.id,
+                      note: `Manual assignment by admin`,
+                    }).catch(() => {/* silent — optimistic update preserved */});
                   }}
                 >
                   Confirm assignment

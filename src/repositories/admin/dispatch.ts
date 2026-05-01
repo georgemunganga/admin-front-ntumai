@@ -117,3 +117,50 @@ export function useAdminLiveDispatch() {
     error,
   };
 }
+
+// ─── Mutations ────────────────────────────────────────────────────────────────
+
+import { postAdminData, patchAdminData } from "@/repositories/admin/admin-api";
+
+/**
+ * assignDispatchJob
+ *
+ * Manually assigns an order to a tasker via the backend.
+ * Called when the admin confirms a tasker selection in the manual dispatch modal.
+ */
+export async function assignDispatchJob(payload: {
+  orderId: string;
+  driverId: string;
+  note?: string;
+}): Promise<{ assignmentId: string; status: string } | null> {
+  try {
+    const res = await postAdminData<{ assignmentId: string; status: string }>(
+      "admin/dispatch/assign",
+      payload
+    );
+    return res ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * reassignDispatchJob
+ *
+ * Reassigns an active delivery assignment to a different tasker.
+ * Marks the previous assignment as FAILED and creates a new ASSIGNED one.
+ */
+export async function reassignDispatchJob(
+  assignmentId: string,
+  payload: { newDriverId: string; reason?: string }
+): Promise<{ newAssignmentId: string; status: string } | null> {
+  try {
+    const res = await patchAdminData<{ newAssignmentId: string; status: string }>(
+      `admin/dispatch/reassign/${assignmentId}`,
+      payload
+    );
+    return res ?? null;
+  } catch {
+    return null;
+  }
+}
