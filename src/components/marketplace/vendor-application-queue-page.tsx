@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
   PiArrowClockwiseBold,
@@ -10,15 +10,20 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
-import { applyVendorKycDecision } from "@/repositories/admin/vendors";
+import {
+  applyVendorKycDecision,
+  type VendorListRecord,
+  useAdminVendors,
+} from "@/repositories/admin/vendors";
 
-type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
+type ReviewStatus = "review" | "queued" | "monitoring" | "stable" | "live" | "paused" | "at_risk";
 type BusinessType = "restaurant" | "grocery" | "pharmacy" | "retail" | "services";
 type ReviewStage = "intake" | "kyc" | "store_setup" | "catalog_ready" | "final_launch" | "resubmission";
 type DecisionAction = "approve" | "changes" | "reject";
@@ -248,6 +253,111 @@ const seed: VendorApplication[] = [
     ],
   },
 ];
+
+function mapVendorRecordToApplication(item: VendorListRecord): VendorApplication {
+  const stage: ReviewStage =
+    item.kycStatus === "pending_review"
+      ? "kyc"
+      : item.storeName && (item.productCount ?? 0) > 0
+        ? "catalog_ready"
+        : item.storeName
+          ? "store_setup"
+          : "intake";
+
+  return {
+    id: item.id,
+    businessName: item.storeName || item.name,
+    ownerName: item.name,
+    city: item.city || "Unknown",
+    businessType: "retail",
+    stage,
+    status: item.status,
+    owner:
+      stage === "kyc"
+        ? "Compliance desk"
+        : stage === "catalog_ready"
+          ? "Catalog ops"
+          : stage === "store_setup"
+            ? "Provisioning desk"
+            : "Marketplace intake",
+    age: item.updatedAt,
+    submittedAt: item.updatedAt,
+    phone: item.phone || "No phone on record",
+    issue:
+      stage === "kyc"
+        ? "Vendor KYC documents are pending review before launch can continue."
+        : stage === "catalog_ready"
+          ? "Vendor store exists and needs final catalog quality and launch readiness review."
+          : stage === "store_setup"
+            ? "Vendor passed intake, but store provisioning and operating configuration are still incomplete."
+            : "Vendor application is waiting for initial intake and business review.",
+    blockers:
+      stage === "kyc"
+        ? ["KYC review pending"]
+        : stage === "catalog_ready"
+          ? ["Catalog readiness check pending"]
+          : stage === "store_setup"
+            ? ["Store setup incomplete"]
+            : ["Intake review pending"],
+    tags: [
+      item.storeType,
+      ...(item.kycStatus ? [`KYC ${item.kycStatus.replace(/_/g, " ")}`] : []),
+      ...(item.storeName ? ["Store provisioned"] : ["Store pending"]),
+    ],
+    checkpoints: [
+      {
+        label: "Business KYC",
+        status:
+          item.kycStatus === "approved"
+            ? "live"
+            : item.kycStatus === "rejected"
+              ? "paused"
+              : "review",
+        detail: item.kycStatus
+          ? `Current KYC state: ${item.kycStatus.replace(/_/g, " ")}.`
+          : "KYC state has not been submitted yet.",
+      },
+      {
+        label: "Store profile",
+        status: item.storeName ? "live" : "queued",
+        detail: item.storeName
+          ? `${item.storeName} is provisioned for marketplace operations.`
+          : "Store provisioning has not completed yet.",
+      },
+      {
+        label: "Catalog readiness",
+        status: (item.productCount ?? 0) > 0 ? "review" : "queued",
+        detail:
+          (item.productCount ?? 0) > 0
+            ? `${item.productCount} product records exist and need launch-quality review.`
+            : "No live product catalog has been attached yet.",
+      },
+      {
+        label: "Payout alignment",
+        status: item.payoutSchedule.includes("No payouts") ? "queued" : "monitoring",
+        detail: item.payoutSchedule,
+      },
+    ],
+    timeline: [
+      {
+        label: "Vendor record loaded",
+        detail: "Application was derived from the live admin vendor feed.",
+        time: item.updatedAt,
+      },
+      {
+        label: "Current workflow state",
+        detail: item.context,
+        time: item.updatedAt,
+      },
+    ],
+    notes: [item.description],
+    links: [
+      { label: "Vendor record", href: routes.marketplace.vendorDetails(item.slug) },
+      { label: "Products", href: routes.marketplace.products },
+      { label: "Payouts", href: routes.sales.payouts },
+    ],
+  };
+}
 
 function VendorDecisionModal({
   item,
@@ -484,10 +594,16 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function VendorApplicationQueuePage() {
   const { openDrawer } = useDrawer();
+  const { data: liveVendors, isLoading, isLive, error } = useAdminVendors();
   const [applications, setApplications] = useState(seed);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("all");
   const [query, setQuery] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("all");
+
+  useEffect(() => {
+    if (!isLive || !liveVendors.length) return;
+    setApplications(liveVendors.map(mapVendorRecordToApplication));
+  }, [isLive, liveVendors]);
 
   const visibleApplications = useMemo(() => {
     return applications.filter((item) => {
@@ -648,6 +764,9 @@ export default function VendorApplicationQueuePage() {
       </div>
 
       <ShellCard title="Merchant onboarding queue" description="Triage launch readiness, compliance blockers, and provisioning gaps.">
+        <div className="mb-4 flex justify-end">
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
+        </div>
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input
@@ -666,9 +785,19 @@ export default function VendorApplicationQueuePage() {
               selectClassName="h-11 rounded-2xl"
             />
           </div>
-          <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={() => setApplications(seed)}>
+          <Button
+            variant="outline"
+            className="h-11 rounded-2xl px-4"
+            onClick={() =>
+              setApplications(
+                isLive && liveVendors.length
+                  ? liveVendors.map(mapVendorRecordToApplication)
+                  : seed,
+              )
+            }
+          >
             <PiArrowClockwiseBold className="me-2 h-4 w-4" />
-            Reset demo state
+            {isLive ? "Reload live queue" : "Reset demo state"}
           </Button>
         </div>
 

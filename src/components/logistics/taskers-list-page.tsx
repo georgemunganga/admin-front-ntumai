@@ -35,7 +35,7 @@ export default function TaskersListPage() {
   });
 
   // Live data — falls back to fixture when API is unavailable
-  const { data: rows = [], loading, error } = useAdminTaskers({ search: query });
+  const { data: rows = [], isLoading, error } = useAdminTaskers({ search: query });
 
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -155,7 +155,7 @@ export default function TaskersListPage() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Text className="text-sm text-gray-500">{filteredRows.length} taskers</Text>
-            {loading && <PiSpinnerBold className="h-4 w-4 animate-spin text-primary" />}
+            {isLoading && <PiSpinnerBold className="h-4 w-4 animate-spin text-primary" />}
             {error && <Text className="text-xs text-amber-500">Showing cached data</Text>}
           </div>
           <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">

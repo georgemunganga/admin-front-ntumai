@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
   PiArrowClockwiseBold,
@@ -9,6 +9,7 @@ import {
   PiMagnifyingGlassBold,
   PiWarningCircleBold,
 } from "react-icons/pi";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -16,12 +17,17 @@ import StatusBadge from "@/components/admin/status-badge";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
-import { applyTaskerKycDecision } from "@/repositories/admin/taskers";
+import {
+  applyTaskerKycDecision,
+  type TaskerListRecord,
+  useAdminTaskers,
+} from "@/repositories/admin/taskers";
 
 type ApplicationStatus =
   | "review"
   | "queued"
   | "monitoring"
+  | "stable"
   | "live"
   | "paused"
   | "at_risk";
@@ -250,6 +256,122 @@ const applicationsSeed: TaskerApplication[] = [
     ],
   },
 ];
+
+function mapTaskerRecordToApplication(item: TaskerListRecord): TaskerApplication {
+  const mode: TaskerApplication["mode"] = item.context.toLowerCase().includes("truck")
+    ? "truck"
+    : item.context.toLowerCase().includes("bicycle") || item.segment.toLowerCase().includes("bicycle")
+      ? "bicycle"
+      : item.context.toLowerCase().includes("bike") ||
+          item.context.toLowerCase().includes("driver") ||
+          item.segment.toLowerCase().includes("active")
+        ? "motorbike"
+        : "walking";
+
+  const stage: ReviewStage =
+    item.kycStatus === "rejected" || item.activationStatus === "suspended"
+      ? "resubmission"
+      : item.kycStatus === "approved" && item.activationStatus === "active"
+        ? "final_approval"
+        : item.kycStatus === "approved"
+          ? "road_readiness"
+          : item.kycStatus === "pending_review"
+            ? "documents_check"
+            : "initial_review";
+
+  const blockers =
+    stage === "documents_check"
+      ? ["KYC review pending"]
+      : stage === "road_readiness"
+        ? ["Activation readiness review pending"]
+        : stage === "final_approval"
+          ? ["Already activated"]
+          : stage === "resubmission"
+            ? ["Follow-up review required"]
+            : ["Initial intake pending"];
+
+  return {
+    id: item.id,
+    applicant: item.name,
+    city: "Unknown",
+    mode,
+    stage,
+    status: item.status,
+    submittedAt: item.updatedAt,
+    age: item.updatedAt,
+    owner:
+      stage === "documents_check"
+        ? "Compliance queue"
+        : stage === "road_readiness"
+          ? "Fleet readiness"
+          : stage === "final_approval"
+            ? "Fleet activated"
+            : stage === "resubmission"
+              ? "Risk review"
+              : "Onboarding queue",
+    score:
+      item.status === "live"
+        ? 96
+        : item.status === "review"
+          ? 76
+          : item.status === "at_risk"
+            ? 44
+            : 68,
+    phone: item.phone || "No phone on record",
+    blockers,
+    tags: [
+      item.segment,
+      ...(item.kycStatus ? [`KYC ${item.kycStatus.replace(/_/g, " ")}`] : []),
+      ...(item.activationStatus ? [`Activation ${item.activationStatus}`] : []),
+    ],
+    documents: [
+      {
+        label: "Identity and onboarding pack",
+        state:
+          item.kycStatus === "approved"
+            ? "approved"
+            : item.kycStatus === "rejected"
+              ? "rejected"
+              : item.kycStatus === "pending_review"
+                ? "pending"
+                : "missing",
+        note: item.context,
+      },
+      {
+        label: "Activation readiness",
+        state:
+          item.activationStatus === "active"
+            ? "approved"
+            : item.activationStatus === "suspended"
+              ? "rejected"
+              : item.activationStatus === "inactive"
+                ? "pending"
+                : "missing",
+        note:
+          item.activationStatus === "active"
+            ? "Tasker is already activated in the fleet registry."
+            : "Fleet team should confirm readiness before activation.",
+      },
+    ],
+    timeline: [
+      {
+        label: "Tasker record loaded",
+        detail: "Application state was derived from the live admin tasker feed.",
+        time: item.updatedAt,
+      },
+      {
+        label: "Current workflow state",
+        detail: item.context,
+        time: item.updatedAt,
+      },
+    ],
+    notes: [item.context],
+    links: [
+      { label: "Taskers", href: routes.logistics.taskers },
+      { label: "Tasker documents", href: routes.fleet.driverDocuments },
+    ],
+  };
+}
 
 function getStageCount(applications: TaskerApplication[], stage: ReviewStage) {
   return applications.filter((item) => item.stage === stage).length;
@@ -512,10 +634,16 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function TaskerApplicationQueuePage() {
   const { openDrawer } = useDrawer();
+  const { data: liveTaskers, isLoading, isLive, error } = useAdminTaskers();
   const [applications, setApplications] = useState(applicationsSeed);
   const [activeTab, setActiveTab] = useState<(typeof stageTabs)[number]["value"]>("all");
   const [query, setQuery] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("all");
+
+  useEffect(() => {
+    if (!isLive || !liveTaskers.length) return;
+    setApplications(liveTaskers.map(mapTaskerRecordToApplication));
+  }, [isLive, liveTaskers]);
 
   const visibleApplications = useMemo(() => {
     return applications.filter((application) => {
@@ -683,6 +811,9 @@ export default function TaskerApplicationQueuePage() {
       </div>
 
       <ShellCard title="Review queue" description="Move candidates forward, return them for changes, or hold risky applications.">
+        <div className="mb-4 flex justify-end">
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
+        </div>
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <Input
@@ -701,9 +832,15 @@ export default function TaskerApplicationQueuePage() {
               selectClassName="h-11 rounded-2xl"
             />
           </div>
-          <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={() => setApplications(applicationsSeed)}>
+          <Button
+            variant="outline"
+            className="h-11 rounded-2xl px-4"
+            onClick={() =>
+              setApplications(isLive && liveTaskers.length ? liveTaskers.map(mapTaskerRecordToApplication) : applicationsSeed)
+            }
+          >
             <PiArrowClockwiseBold className="me-2 h-4 w-4" />
-            Reset demo state
+            {isLive ? "Reload live queue" : "Reset demo state"}
           </Button>
         </div>
 

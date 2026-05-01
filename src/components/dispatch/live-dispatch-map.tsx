@@ -41,6 +41,15 @@ const toneClasses: Record<MarkerTone, string> = {
   alert: "bg-red-50 text-red-700",
 };
 
+function normalizeZone(city?: string | null): MapEntity["zone"] {
+  const value = city?.toLowerCase() ?? "";
+  if (value.includes("roma")) return "Roma";
+  if (value.includes("woodlands")) return "Woodlands";
+  if (value.includes("airport")) return "Airport";
+  if (value.includes("rhodes")) return "Rhodes Park";
+  return "CBD";
+}
+
 
 function markerSvg(kind: MarkerTone) {
   if (kind === "tasker") {
@@ -149,7 +158,7 @@ export default function LiveDispatchMap() {
       lng: 28.2833 + (Math.random() - 0.5) * 0.08,
       status: entity.status,
       detail: `${entity.orderRef} · ${entity.customer} → ${entity.vendor}`,
-      zone: entity.city,
+      zone: normalizeZone(entity.city),
       orderId: entity.orderId,
     }));
 

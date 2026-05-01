@@ -2,9 +2,6 @@
 
 import { useAdminResource } from "@/repositories/admin/admin-api";
 
-/**
- * Shape returned by GET /api/v1/admin/summary
- */
 export type AdminSummaryData = {
   users: number;
   stores: number;
@@ -17,14 +14,6 @@ export type AdminSummaryData = {
   };
 };
 
-type SummaryApiResponse = {
-  success: boolean;
-  data: AdminSummaryData;
-};
-
-/**
- * Fallback fixture — used when the backend is unreachable (dev / offline)
- */
 const summaryFixture: AdminSummaryData = {
   users: 0,
   stores: 0,
@@ -34,27 +23,22 @@ const summaryFixture: AdminSummaryData = {
   pendingKyc: { vendors: 0, taskers: 0 },
 };
 
-/**
- * Live hook — calls GET /api/v1/admin/summary
- * Returns the summary data, loading state, and whether the data is live.
- */
 export function useAdminSummary(): {
   data: AdminSummaryData;
   isLoading: boolean;
   isLive: boolean;
   error: string | null;
 } {
-  const { data, isLoading, error } = useAdminResource<SummaryApiResponse>(
-    "/api/v1/admin/summary",
-  );
-
-  const summary = data?.data ?? summaryFixture;
-  const isLive = !!data?.data;
+  const { data, isLoading, isLive, error } = useAdminResource<AdminSummaryData>({
+    path: "/api/v1/admin/summary",
+    fallback: summaryFixture,
+    map: (payload) => payload as AdminSummaryData,
+  });
 
   return {
-    data: summary,
+    data,
     isLoading,
     isLive,
-    error: error ?? null,
+    error,
   };
 }

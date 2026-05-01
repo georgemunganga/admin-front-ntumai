@@ -1,7 +1,6 @@
 "use client";
-import { useAdminResource, patchAdminData } from "@/repositories/admin/admin-api";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { useAdminResource, patchAdminData } from "@/repositories/admin/admin-api";
 
 export type BookingStatus =
   | "pending"
@@ -47,8 +46,6 @@ type AdminBookingsPayload = {
   limit: number;
 };
 
-// ─── Seed / Fixture fallback ──────────────────────────────────────────────────
-
 const BOOKING_SEED: AdminBookingSummary[] = [
   {
     id: "BK-001",
@@ -69,7 +66,7 @@ const BOOKING_SEED: AdminBookingSummary[] = [
     status: "searching",
     vehicleType: "bicycle",
     customer: { name: "Bob Mwale", phone: "+260971000002", userId: "u2" },
-    pickup: { address: "Manda Hill, Lusaka", lat: -15.4100, lng: 28.3100 },
+    pickup: { address: "Manda Hill, Lusaka", lat: -15.41, lng: 28.31 },
     dropoffCount: 2,
     rider: null,
     canUserEdit: true,
@@ -82,7 +79,7 @@ const BOOKING_SEED: AdminBookingSummary[] = [
     status: "delivered",
     vehicleType: "car",
     customer: { name: "Carol Tembo", phone: "+260971000003", userId: "u3" },
-    pickup: { address: "Woodlands, Lusaka", lat: -15.3900, lng: 28.3200 },
+    pickup: { address: "Woodlands, Lusaka", lat: -15.39, lng: 28.32 },
     dropoffCount: 1,
     rider: { name: "Peter Zulu", phone: "+260971000088" },
     canUserEdit: false,
@@ -91,12 +88,6 @@ const BOOKING_SEED: AdminBookingSummary[] = [
   },
 ];
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-
-/**
- * useAdminBookings — live hook for listing delivery bookings from the mobile app.
- * Falls back to seed data if the API is unavailable.
- */
 export function useAdminBookings(params?: {
   status?: string;
   vehicleType?: string;
@@ -111,32 +102,40 @@ export function useAdminBookings(params?: {
   if (params?.page) query.set("page", String(params.page));
   if (params?.limit) query.set("limit", String(params.limit));
 
-  const { data, isLoading, error } = useAdminResource<AdminBookingsPayload>(
-    `/api/v1/admin/bookings?${query.toString()}`
-  );
+  const fallback: AdminBookingsPayload = {
+    entities: BOOKING_SEED,
+    total: BOOKING_SEED.length,
+    page: params?.page ?? 1,
+    limit: params?.limit ?? 20,
+  };
 
-  const bookings: AdminBookingSummary[] =
-    data?.entities ?? (error ? BOOKING_SEED : []);
-  const total = data?.total ?? (error ? BOOKING_SEED.length : 0);
+  const { data, isLoading, isLive, error } = useAdminResource<AdminBookingsPayload>({
+    path: `/api/v1/admin/bookings?${query.toString()}`,
+    fallback,
+    map: (payload) => payload as AdminBookingsPayload,
+  });
 
-  return { bookings, total, isLoading, error, isFixture: !data && !!error };
+  return {
+    bookings: data.entities,
+    total: data.total,
+    isLoading,
+    error,
+    isFixture: !isLive,
+  };
 }
 
-/**
- * useAdminBookingDetail — live hook for a single booking's full detail.
- */
 export function useAdminBookingDetail(bookingId: string) {
-  const { data, isLoading, error } = useAdminResource<AdminBookingSummary>(
-    bookingId ? `/api/v1/admin/bookings/${bookingId}` : null
-  );
-  return { booking: data ?? null, isLoading, error };
+  const fallback = BOOKING_SEED.find((booking) => booking.id === bookingId) ?? null;
+  const { data, isLoading, error } = useAdminResource<AdminBookingSummary | null>({
+    path: `/api/v1/admin/bookings/${bookingId}`,
+    fallback,
+    map: (payload) => payload as AdminBookingSummary,
+    enabled: Boolean(bookingId),
+  });
+
+  return { booking: data, isLoading, error };
 }
 
-// ─── Mutations ────────────────────────────────────────────────────────────────
-
-/**
- * updateAdminBookingStatus — cancel or force-complete a delivery booking.
- */
 export async function updateAdminBookingStatus(
   bookingId: string,
   action: "cancelled" | "delivered",

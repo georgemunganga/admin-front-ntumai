@@ -1,19 +1,9 @@
 /**
- * dispatch.ts
- *
  * Repository: Admin Dispatch
  * Domain: Logistics / Dispatch Operations
- *
- * Provides live hooks for:
- *  - Dispatch exception queue (orders with no tasker, pickup delays, handoff failures)
- *  - Live dispatch map (active delivery assignments)
- *
- * Falls back to fixture/seed data when the backend is unavailable.
  */
 
-import { useAdminResource } from "@/repositories/admin/admin-api";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
+import { patchAdminData, postAdminData, useAdminResource } from "@/repositories/admin/admin-api";
 
 export type DispatchExceptionType =
   | "no_tasker_available"
@@ -66,68 +56,46 @@ export type LiveDispatchEntity = {
   updatedAt: string;
 };
 
-// ─── API Response Types ───────────────────────────────────────────────────────
-
 type DispatchExceptionsResponse = {
-  success: boolean;
-  data: { items: DispatchException[]; total: number };
+  items: DispatchException[];
+  total: number;
 };
 
 type LiveDispatchResponse = {
-  success: boolean;
-  data: { entities: LiveDispatchEntity[]; total: number };
+  entities: LiveDispatchEntity[];
+  total: number;
 };
 
-// ─── Hooks ───────────────────────────────────────────────────────────────────
-
-/**
- * useAdminDispatchExceptions
- *
- * Fetches active dispatch exceptions from the backend.
- * Returns orders with no tasker assigned, pickup delays, and handoff failures.
- */
 export function useAdminDispatchExceptions() {
-  const { data, loading, error } =
-    useAdminResource<DispatchExceptionsResponse>(
-      "admin/dispatch/exceptions"
-    );
+  const { data, isLoading, error } = useAdminResource<DispatchExceptionsResponse>({
+    path: "/api/v1/admin/dispatch/exceptions",
+    fallback: { items: [], total: 0 },
+    map: (payload) => payload as DispatchExceptionsResponse,
+  });
 
   return {
-    exceptions: data?.data?.items ?? null,
-    total: data?.data?.total ?? 0,
-    loading,
+    exceptions: data.items,
+    total: data.total,
+    loading: isLoading,
     error,
   };
 }
 
-/**
- * useAdminLiveDispatch
- *
- * Fetches all active delivery assignments for the live dispatch map.
- * Includes tasker name, order reference, customer, vendor, and location.
- */
 export function useAdminLiveDispatch() {
-  const { data, loading, error } =
-    useAdminResource<LiveDispatchResponse>("admin/dispatch/live");
+  const { data, isLoading, error } = useAdminResource<LiveDispatchResponse>({
+    path: "/api/v1/admin/dispatch/live",
+    fallback: { entities: [], total: 0 },
+    map: (payload) => payload as LiveDispatchResponse,
+  });
 
   return {
-    entities: data?.data?.entities ?? null,
-    total: data?.data?.total ?? 0,
-    loading,
+    entities: data.entities,
+    total: data.total,
+    loading: isLoading,
     error,
   };
 }
 
-// ─── Mutations ────────────────────────────────────────────────────────────────
-
-import { postAdminData, patchAdminData } from "@/repositories/admin/admin-api";
-
-/**
- * assignDispatchJob
- *
- * Manually assigns an order to a tasker via the backend.
- * Called when the admin confirms a tasker selection in the manual dispatch modal.
- */
 export async function assignDispatchJob(payload: {
   orderId: string;
   driverId: string;
@@ -135,8 +103,8 @@ export async function assignDispatchJob(payload: {
 }): Promise<{ assignmentId: string; status: string } | null> {
   try {
     const res = await postAdminData<{ assignmentId: string; status: string }>(
-      "admin/dispatch/assign",
-      payload
+      "/api/v1/admin/dispatch/assign",
+      payload,
     );
     return res ?? null;
   } catch {
@@ -144,20 +112,14 @@ export async function assignDispatchJob(payload: {
   }
 }
 
-/**
- * reassignDispatchJob
- *
- * Reassigns an active delivery assignment to a different tasker.
- * Marks the previous assignment as FAILED and creates a new ASSIGNED one.
- */
 export async function reassignDispatchJob(
   assignmentId: string,
   payload: { newDriverId: string; reason?: string }
 ): Promise<{ newAssignmentId: string; status: string } | null> {
   try {
     const res = await patchAdminData<{ newAssignmentId: string; status: string }>(
-      `admin/dispatch/reassign/${assignmentId}`,
-      payload
+      `/api/v1/admin/dispatch/reassign/${assignmentId}`,
+      payload,
     );
     return res ?? null;
   } catch {
