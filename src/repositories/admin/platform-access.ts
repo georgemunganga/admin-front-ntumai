@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import type { AdminWorkflowContext } from "@/contracts/admin-domain";
+import { deleteAdminData, patchAdminData, postAdminData, useAdminResource } from "@/repositories/admin/admin-api";
 import {
   permissions,
   roleUsers,
@@ -9,15 +11,55 @@ import {
   type RoleUser,
 } from "@/components/platform/roles-permissions-data";
 
-export type PlatformPermission = (typeof permissions)[number];
+export type PlatformPermission = (typeof permissions)[number] | string;
 export type PlatformUserStatus = (typeof statuses)[number];
-export type PlatformRoleCard = (typeof rolesList)[number];
+
+export type PlatformRoleCard = {
+  id: string;
+  name: string;
+  color?: string;
+  users: string[];
+  permissions: string[];
+  memberCount?: number;
+  isSystem?: boolean;
+};
 
 export type PlatformAccessUser = RoleUser & {
+  userId?: string;
   activeRole: "Customer" | "Tasker" | "Vendor" | "Staff";
   accessScope: string;
   workflow: AdminWorkflowContext;
+  staffRoleId?: string;
 };
+
+type PlatformRoleApiItem = {
+  id: string;
+  name: string;
+  color?: string;
+  permissions?: string[];
+  isSystem?: boolean;
+};
+
+type PlatformUserApiItem = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  staffRoleId?: string;
+  createdAt: string;
+  permissions: string[];
+  status: PlatformUserStatus;
+  activeRole: "Staff";
+  accessScope: string;
+  workflow: AdminWorkflowContext;
+};
+
+const roleAvatars = [
+  "/avatars/avatar-1.webp",
+  "/avatars/avatar-2.webp",
+  "/avatars/avatar-3.webp",
+  "/avatars/avatar-4.webp",
+];
 
 const accessContextByUserId: Record<number, Omit<PlatformAccessUser, keyof RoleUser>> = {
   1001: {
@@ -84,7 +126,15 @@ function toPlatformAccessUser(user: RoleUser): PlatformAccessUser {
 }
 
 export function listPlatformRoles(): PlatformRoleCard[] {
-  return rolesList;
+  return rolesList.map((role) => ({
+    id: role.name.toLowerCase().replace(/\s+/g, "-"),
+    name: role.name,
+    color: role.color,
+    users: role.users,
+    permissions: [...permissions],
+    memberCount: role.users.length,
+    isSystem: true,
+  }));
 }
 
 export function listPlatformRoleUsers(): PlatformAccessUser[] {
@@ -97,4 +147,105 @@ export function listPlatformPermissions(): PlatformPermission[] {
 
 export function listPlatformUserStatuses(): PlatformUserStatus[] {
   return [...statuses];
+}
+
+export function usePlatformAccessRoles() {
+  const fallback = useMemo(() => listPlatformRoles(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/access/roles",
+    fallback,
+    map: mapPlatformRolesPayload,
+  });
+}
+
+export function usePlatformAccessUsers() {
+  const fallback = useMemo(() => listPlatformRoleUsers(), []);
+  return useAdminResource({
+    path: "/api/v1/admin/access/users?limit=100",
+    fallback,
+    map: mapPlatformUsersPayload,
+  });
+}
+
+export async function createPlatformRole(input: {
+  name: string;
+  color?: string;
+  permissions?: string[];
+}) {
+  return postAdminData<{ item: PlatformRoleApiItem }>("/api/v1/admin/access/roles", input);
+}
+
+export async function updatePlatformRole(
+  id: string,
+  input: { name?: string; color?: string; permissions?: string[] },
+) {
+  return patchAdminData<{ item: PlatformRoleApiItem }>(`/api/v1/admin/access/roles/${id}`, input);
+}
+
+export async function deletePlatformRole(id: string) {
+  return deleteAdminData<{ id: string }>(`/api/v1/admin/access/roles/${id}`);
+}
+
+export async function createPlatformAccessUser(input: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  staffRoleId?: string;
+  status?: PlatformUserStatus;
+  accessScope?: string;
+}) {
+  return postAdminData<{ item: PlatformUserApiItem }>("/api/v1/admin/access/users", input);
+}
+
+export async function updatePlatformAccessUser(
+  id: string,
+  input: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    staffRoleId?: string;
+    status?: PlatformUserStatus;
+    accessScope?: string;
+  },
+) {
+  return patchAdminData<{ item: PlatformUserApiItem }>(`/api/v1/admin/access/users/${id}`, input);
+}
+
+export async function deletePlatformAccessUser(id: string) {
+  return deleteAdminData<{ item: PlatformUserApiItem }>(`/api/v1/admin/access/users/${id}`);
+}
+
+function mapPlatformRolesPayload(payload: unknown): PlatformRoleCard[] {
+  const items = ((payload as { items?: PlatformRoleApiItem[] })?.items ?? []);
+  if (!items.length) return listPlatformRoles();
+
+  return items.map((item, index) => ({
+    id: item.id,
+    name: item.name,
+    color: item.color || rolesList[index % rolesList.length]?.color || "#2465FF",
+    users: roleAvatars,
+    permissions: item.permissions ?? [],
+    memberCount: roleUsers.filter((user) => user.role === item.name).length,
+    isSystem: item.isSystem,
+  }));
+}
+
+function mapPlatformUsersPayload(payload: unknown): PlatformAccessUser[] {
+  const items = ((payload as { items?: PlatformUserApiItem[] })?.items ?? []);
+  if (!items.length) return listPlatformRoleUsers();
+
+  return items.map((item) => ({
+    id: parseInt(String(item.id).slice(-6), 16) || Math.floor(Math.random() * 100000),
+    userId: item.id,
+    fullName: item.fullName,
+    email: item.email,
+    role: item.role,
+    createdAt: item.createdAt,
+    permissions: item.permissions,
+    status: item.status,
+    activeRole: item.activeRole,
+    accessScope: item.accessScope,
+    workflow: item.workflow,
+    staffRoleId: item.staffRoleId,
+  }));
 }

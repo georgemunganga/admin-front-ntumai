@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AdminSessionUser } from "@/repositories/admin/admin-session";
 import { readStoredAdminSession } from "@/repositories/admin/admin-session";
+import { refreshAdminSession } from "@/repositories/admin/admin-auth";
 
 const DEFAULT_API_BASE_URL = "https://api.ntumai.com";
 
@@ -24,11 +24,22 @@ export function getAdminApiBaseUrl() {
 
 export function getAdminApiToken() {
   const session = readStoredAdminSession();
-  return session?.apiToken?.trim() || null;
+  return session?.accessToken?.trim() || null;
+}
+
+async function getValidAdminApiToken() {
+  let session = readStoredAdminSession();
+  if (!session?.accessToken) return null;
+
+  if (session.tokenExpiresAt && session.tokenExpiresAt <= Date.now() + 30_000) {
+    session = await refreshAdminSession(session);
+  }
+
+  return session?.accessToken?.trim() || null;
 }
 
 export async function fetchAdminData<T>(path: string): Promise<T | null> {
-  const token = getAdminApiToken();
+  const token = await getValidAdminApiToken();
   if (!token) return null;
 
   const response = await fetch(`${getAdminApiBaseUrl()}${path}`, {
@@ -52,7 +63,7 @@ export async function postAdminData<T>(
   path: string,
   body: Record<string, unknown>,
 ): Promise<T | null> {
-  const token = getAdminApiToken();
+  const token = await getValidAdminApiToken();
   if (!token) return null;
 
   const response = await fetch(`${getAdminApiBaseUrl()}${path}`, {
@@ -78,7 +89,7 @@ export async function patchAdminData<T>(
   path: string,
   body: Record<string, unknown>,
 ): Promise<T | null> {
-  const token = getAdminApiToken();
+  const token = await getValidAdminApiToken();
   if (!token) return null;
 
   const response = await fetch(`${getAdminApiBaseUrl()}${path}`, {
@@ -90,6 +101,27 @@ export async function patchAdminData<T>(
     },
     cache: "no-store",
     body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Admin API request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as AdminEnvelope<T>;
+  return payload.data ?? null;
+}
+
+export async function deleteAdminData<T>(path: string): Promise<T | null> {
+  const token = await getValidAdminApiToken();
+  if (!token) return null;
+
+  const response = await fetch(`${getAdminApiBaseUrl()}${path}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+    cache: "no-store",
   });
 
   if (!response.ok) {

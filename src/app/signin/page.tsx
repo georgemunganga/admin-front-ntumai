@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Checkbox, Input, Password, Text, Title } from "rizzui";
+import { Button, Checkbox, Input, Text, Title } from "rizzui";
 import { useMedia } from "@/hooks/use-media";
 import { useAuth } from "@/components/auth/auth-provider";
 import AuthWrapperSplit from "@/components/auth/auth-wrapper-split";
@@ -14,7 +14,7 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isMedium = useMedia("(max-width: 1200px)", false);
-  const { signIn, getLastPath } = useAuth();
+  const { startSignIn, completeSignIn, getLastPath } = useAuth();
 
   const next = useMemo(
     () => searchParams.get("next") || getLastPath() || "/",
@@ -22,16 +22,34 @@ export default function SignInPage() {
   );
 
   const [email, setEmail] = useState("admin@ntumai.com");
-  const [password, setPassword] = useState("password123");
-  const [apiToken, setApiToken] = useState("");
+  const [sessionId, setSessionId] = useState("");
+  const [otp, setOtp] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
-    signIn({ email, password, apiToken });
-    router.replace(next);
+    setError(null);
+    setMessage(null);
+
+    try {
+      if (!sessionId) {
+        const response = await startSignIn({ email });
+        setSessionId(response.sessionId);
+        setMessage("A one-time sign-in code has been sent to your email.");
+        return;
+      }
+
+      await completeSignIn({ sessionId, otp });
+      router.replace(next);
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : "Failed to sign you in.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -90,28 +108,20 @@ export default function SignInPage() {
           className="[&>label>span]:font-medium"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          disabled={Boolean(sessionId)}
         />
-        <Password
-          label="Password"
-          placeholder="Enter your password"
-          size={isMedium ? "lg" : "xl"}
-          className="[&>label>span]:font-medium"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        <Input
-          label="Admin API Token"
-          placeholder="Optional bearer token for live staff records"
-          size={isMedium ? "lg" : "xl"}
-          className="[&>label>span]:font-medium"
-          value={apiToken}
-          onChange={(event) => setApiToken(event.target.value)}
-        />
-        <Text className="-mt-2 text-xs leading-6 text-gray-500">
-          Leave this blank to keep using local preview data. Add a valid admin
-          bearer token to load live customer, order, and shipment records from
-          the Nest API.
-        </Text>
+        {sessionId ? (
+          <Input
+            label="One-Time Code"
+            placeholder="Enter the 6-digit code"
+            size={isMedium ? "lg" : "xl"}
+            className="[&>label>span]:font-medium"
+            value={otp}
+            onChange={(event) => setOtp(event.target.value)}
+          />
+        ) : null}
+        {message ? <Text className="-mt-2 text-xs leading-6 text-emerald-700">{message}</Text> : null}
+        {error ? <Text className="-mt-2 text-xs leading-6 text-rose-600">{error}</Text> : null}
         <div className="flex items-center justify-between pb-1">
           <Checkbox
             checked={rememberMe}
@@ -133,8 +143,23 @@ export default function SignInPage() {
           size={isMedium ? "lg" : "xl"}
           isLoading={isSubmitting}
         >
-          Sign In
+          {sessionId ? "Verify and Sign In" : "Send Sign-In Code"}
         </Button>
+        {sessionId ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-2xl"
+            onClick={() => {
+              setSessionId("");
+              setOtp("");
+              setMessage(null);
+              setError(null);
+            }}
+          >
+            Use a different email
+          </Button>
+        ) : null}
       </form>
     </AuthWrapperSplit>
   );

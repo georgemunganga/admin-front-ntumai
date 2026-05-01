@@ -1,8 +1,13 @@
 export type AdminSessionUser = {
+  id?: string;
   name: string;
   email: string;
   role: string;
-  apiToken?: string;
+  activeRole?: string;
+  roles?: string[];
+  accessToken?: string;
+  refreshToken?: string;
+  tokenExpiresAt?: number;
 };
 
 export const ADMIN_SESSION_KEY = "ntumai-admin-session";
@@ -19,4 +24,14 @@ export function readStoredAdminSession(): AdminSessionUser | null {
     window.localStorage.removeItem(ADMIN_SESSION_KEY);
     return null;
   }
+}
+
+export function writeStoredAdminSession(session: AdminSessionUser) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+}
+
+export function clearStoredAdminSession() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(ADMIN_SESSION_KEY);
 }

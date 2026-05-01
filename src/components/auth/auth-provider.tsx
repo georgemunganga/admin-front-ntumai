@@ -9,16 +9,23 @@ import {
 } from "react";
 import {
   ADMIN_LAST_PATH_KEY,
-  ADMIN_SESSION_KEY,
   readStoredAdminSession,
   type AdminSessionUser,
+  clearStoredAdminSession,
 } from "@/repositories/admin/admin-session";
+import {
+  loadCurrentAdminUser,
+  logoutAdminSession,
+  startAdminOtp,
+  verifyAdminOtp,
+} from "@/repositories/admin/admin-auth";
 
 type AuthContextValue = {
   isAuthenticated: boolean;
   isReady: boolean;
   user: AdminSessionUser | null;
-  signIn: (payload: { email: string; password: string; apiToken?: string }) => string;
+  startSignIn: (payload: { email: string }) => Promise<{ sessionId: string; expiresIn: number }>;
+  completeSignIn: (payload: { sessionId: string; otp: string }) => Promise<string>;
   signOut: () => void;
   setLastPath: (path: string) => void;
   getLastPath: () => string;
@@ -31,8 +38,23 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setUser(readStoredAdminSession());
-    setIsReady(true);
+    const session = readStoredAdminSession();
+    setUser(session);
+    if (!session?.accessToken) {
+      setIsReady(true);
+      return;
+    }
+
+    loadCurrentAdminUser(session)
+      .then((nextSession) => {
+        if (nextSession) {
+          setUser(nextSession);
+          return;
+        }
+        clearStoredAdminSession();
+        setUser(null);
+      })
+      .finally(() => setIsReady(true));
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -40,14 +62,15 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       isAuthenticated: Boolean(user),
       isReady,
       user,
-      signIn: ({ email, apiToken }) => {
-        const sessionUser = {
-          name: "Ntumai Admin",
-          email,
-          role: "Operations",
-          apiToken: apiToken?.trim() || undefined,
+      startSignIn: async ({ email }) => {
+        const response = await startAdminOtp(email);
+        return {
+          sessionId: response.sessionId,
+          expiresIn: response.expiresIn,
         };
-        window.localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionUser));
+      },
+      completeSignIn: async ({ sessionId, otp }) => {
+        const sessionUser = await verifyAdminOtp(sessionId, otp);
         setUser(sessionUser);
         return (
           window.localStorage.getItem(ADMIN_LAST_PATH_KEY) ||
@@ -56,7 +79,7 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
         );
       },
       signOut: () => {
-        window.localStorage.removeItem(ADMIN_SESSION_KEY);
+        logoutAdminSession(user);
         setUser(null);
       },
       setLastPath: (path: string) => {
