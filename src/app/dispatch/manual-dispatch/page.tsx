@@ -319,6 +319,7 @@ export default function DispatchManualDispatchPage() {
   const [overrideType, setOverrideType] = useState("all");
   const [assigningItem, setAssigningItem] = useState<ManualDispatchItem | null>(null);
   const [selectedTaskerId, setSelectedTaskerId] = useState<string | null>(null);
+  const [prefillHandled, setPrefillHandled] = useState(false);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 8,
@@ -331,6 +332,28 @@ export default function DispatchManualDispatchPage() {
     if (!focusTerms.length) return;
     setQuery(focusTerms.join(" "));
   }, [prefilledAssignmentId, prefilledOrderId]);
+
+  useEffect(() => {
+    if (prefillHandled) return;
+    if (!prefilledOrderId && !prefilledAssignmentId) return;
+
+    const matchedRow = rows.find((row) => {
+      if (prefilledOrderId && (row.booking === prefilledOrderId || row.id === prefilledOrderId)) {
+        return true;
+      }
+      if (prefilledAssignmentId && row.id === prefilledAssignmentId) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matchedRow) {
+      setAssigningItem(matchedRow);
+      setSelectedTaskerId(null);
+    }
+
+    setPrefillHandled(true);
+  }, [prefillHandled, prefilledAssignmentId, prefilledOrderId, rows]);
 
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -495,6 +518,15 @@ export default function DispatchManualDispatchPage() {
                   Assignment {prefilledAssignmentId}
                 </Badge>
               ) : null}
+              {assigningItem ? (
+                <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
+                  Matching override opened
+                </Badge>
+              ) : (
+                <Badge variant="flat" className="rounded-2xl bg-secondary/10 px-3 py-1.5 text-secondary">
+                  Review queue focused
+                </Badge>
+              )}
             </div>
           </div>
         ) : null}
@@ -729,7 +761,7 @@ export default function DispatchManualDispatchPage() {
                     setSelectedTaskerId(null);
                     // Live API call (non-blocking, optimistic update already applied)
                     assignDispatchJob({
-                      orderId: assigningItem.id,
+                      orderId: assigningItem.booking,
                       driverId: selectedTasker.id,
                       note: `Manual assignment by admin`,
                     }).catch(() => {/* silent — optimistic update preserved */});
