@@ -130,7 +130,7 @@ export function useAdminDispatchExceptions() {
 }
 
 export function useAdminManualDispatchQueue() {
-  const { data, isLoading, isLive, error } = useAdminResource<ManualDispatchQueueResponse>({
+  const { data, isLoading, isLive, error, refresh } = useAdminResource<ManualDispatchQueueResponse>({
     path: "/api/v1/admin/dispatch/manual",
     fallback: { items: [], total: 0 },
     map: (payload) => payload as ManualDispatchQueueResponse,
@@ -142,6 +142,7 @@ export function useAdminManualDispatchQueue() {
     loading: isLoading,
     isLive,
     error,
+    refresh,
   };
 }
 
@@ -198,6 +199,22 @@ export async function assignDispatchJob(payload: {
   try {
     const res = await postAdminData<{ assignmentId: string; status: string }>(
       "/api/v1/admin/dispatch/assign",
+      payload,
+    );
+    return res ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function upsertManualDispatchOverride(payload: {
+  orderId: string;
+  assignmentId?: string;
+  note?: string;
+}) {
+  try {
+    const res = await postAdminData<{ item: ManualDispatchQueueItem }>(
+      "/api/v1/admin/dispatch/manual",
       payload,
     );
     return res ?? null;

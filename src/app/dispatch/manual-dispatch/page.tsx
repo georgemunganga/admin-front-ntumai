@@ -29,6 +29,7 @@ import {
   reassignDispatchJob,
   useAdminManualDispatchQueue,
   useAdminDispatchCandidates,
+  upsertManualDispatchOverride,
   type ManualDispatchQueueItem,
   type DispatchCandidate,
 } from "@/repositories/admin/dispatch";
@@ -237,6 +238,7 @@ export default function DispatchManualDispatchPage() {
     loading: queueLoading,
     isLive: queueLive,
     error: queueError,
+    refresh: refreshQueue,
   } = useAdminManualDispatchQueue();
   const currentAssignmentId = prefilledAssignmentId || assigningItem?.assignmentId || "";
   const isReassignFlow = Boolean(currentAssignmentId);
@@ -282,10 +284,28 @@ export default function DispatchManualDispatchPage() {
     if (matchedRow) {
       setAssigningItem(matchedRow);
       setSelectedTaskerId(null);
+      setPrefillHandled(true);
+      return;
     }
 
-    setPrefillHandled(true);
-  }, [prefillHandled, prefilledAssignmentId, prefilledOrderId, rows]);
+    if (!queueLoading && prefilledOrderId) {
+      setPrefillHandled(true);
+      upsertManualDispatchOverride({
+        orderId: prefilledOrderId,
+        assignmentId: prefilledAssignmentId || undefined,
+        note: "Created from live dispatch handoff",
+      }).then(() => {
+        refreshQueue();
+      });
+    }
+  }, [
+    prefillHandled,
+    prefilledAssignmentId,
+    prefilledOrderId,
+    queueLoading,
+    refreshQueue,
+    rows,
+  ]);
 
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
