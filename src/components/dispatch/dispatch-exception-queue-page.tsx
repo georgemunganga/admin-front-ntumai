@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
 import {
   PiArrowClockwiseBold,
@@ -17,6 +17,7 @@ import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
+import { useAdminDispatchExceptions } from "@/repositories/admin/dispatch";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type ExceptionType =
@@ -412,7 +413,14 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function DispatchExceptionQueuePage() {
   const { openDrawer } = useDrawer();
+  const { exceptions: liveExceptions, loading: exceptionsLoading } = useAdminDispatchExceptions();
   const [exceptions, setExceptions] = useState(seed);
+
+  useEffect(() => {
+    if (!exceptionsLoading && liveExceptions && liveExceptions.length > 0) {
+      setExceptions(liveExceptions as typeof seed);
+    }
+  }, [liveExceptions, exceptionsLoading]);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("all");
   const [query, setQuery] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("all");

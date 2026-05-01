@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
-import { PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
+import { PiEnvelopeBold, PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
 import { ROLES } from "@/config/constants";
 import {
   listPlatformRoleUsers,
   listPlatformUserStatuses,
+  sendStaffInvite,
 } from "@/repositories/admin/platform-access";
 
 const roleOptions = [{ label: "All roles", value: "all" }].concat(
@@ -19,6 +20,40 @@ function StatusPill({ value }: { value: string }) {
   if (value === "Active") return <span className="text-green-dark">● {value}</span>;
   if (value === "Deactivated") return <span className="text-red-dark">● {value}</span>;
   return <span className="text-orange-dark">● {value}</span>;
+}
+
+function InviteButton({ userId, status }: { userId?: string; status: string }) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  // Only show for Pending users that have a real userId (live backend record)
+  if (status !== "Pending" || !userId) return null;
+
+  async function handleInvite() {
+    setSending(true);
+    const result = await sendStaffInvite(userId!);
+    setSending(false);
+    if (result.success) setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <span className="text-xs font-medium text-green-dark">Invite sent</span>
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={sending}
+      onClick={handleInvite}
+      className="rounded-2xl"
+    >
+      <PiEnvelopeBold className="me-1.5 size-3.5" />
+      {sending ? "Sending…" : "Resend invite"}
+    </Button>
+  );
 }
 
 export default function RolesUsersTable() {
@@ -150,7 +185,10 @@ export default function RolesUsersTable() {
                   <StatusPill value={row.status} />
                 </Table.Cell>
                 <Table.Cell className="text-right">
-                  <Button variant="outline" size="sm">Delete</Button>
+                  <div className="flex items-center justify-end gap-2">
+                    <InviteButton userId={row.userId} status={row.status} />
+                    <Button variant="outline" size="sm">Delete</Button>
+                  </div>
                 </Table.Cell>
               </Table.Row>
             ))}

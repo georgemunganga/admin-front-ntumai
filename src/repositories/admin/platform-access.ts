@@ -249,3 +249,22 @@ function mapPlatformUsersPayload(payload: unknown): PlatformAccessUser[] {
     staffRoleId: item.staffRoleId,
   }));
 }
+
+/**
+ * Send (or resend) a staff invite email — calls POST /api/v1/admin/access/users/:id/invite
+ */
+export async function sendStaffInvite(
+  userId: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await postAdminData<{ success: boolean }>(
+      `/api/v1/admin/access/users/${userId}/invite`,
+      {},
+    );
+    return { success: true };
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Failed to send invite";
+    return { success: false, error: message };
+  }
+}

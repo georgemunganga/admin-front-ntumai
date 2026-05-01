@@ -2,12 +2,45 @@
 
 import { Badge, Text, Title } from "rizzui";
 import { PiTrendDownBold, PiTrendUpBold } from "react-icons/pi";
-import { crmStats } from "@/components/dashboard/dashboard-data";
+import { useAdminSummary } from "@/repositories/admin/analytics";
 
 export default function DashboardCrmStats() {
+  const { data, isLoading, isLive } = useAdminSummary();
+
+  // Build stat cards from live summary data
+  const stats = [
+    {
+      title: "Total orders",
+      value: isLoading ? "—" : data.orders.toLocaleString(),
+      badge: isLive ? "Live" : "Cached",
+      increased: true,
+    },
+    {
+      title: "Total users",
+      value: isLoading ? "—" : data.users.toLocaleString(),
+      badge: isLive ? "Live" : "Cached",
+      increased: true,
+    },
+    {
+      title: "Support backlog",
+      value: isLoading ? "—" : data.supportTicketsOpen.toLocaleString(),
+      badge: isLive ? "Live" : "Cached",
+      increased: data.supportTicketsOpen === 0,
+    },
+    {
+      title: "Pending KYC",
+      value: isLoading
+        ? "—"
+        : (data.pendingKyc.vendors + data.pendingKyc.taskers).toLocaleString(),
+      badge: isLive ? "Live" : "Cached",
+      increased:
+        data.pendingKyc.vendors + data.pendingKyc.taskers === 0,
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @4xl:grid-cols-4 3xl:gap-8">
-      {crmStats.map((stat) => (
+      {stats.map((stat) => (
         <div
           key={stat.title}
           className="space-y-3 rounded-[24px] border border-gray-200 bg-white p-6 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.35)]"
@@ -21,20 +54,21 @@ export default function DashboardCrmStats() {
                 color: stat.increased ? "#22973F" : "#EE6D3D",
               }}
             >
-              <span className="pe-1">{stat.percentage}%</span>
+              {stat.badge}
               {stat.increased ? (
-                <PiTrendUpBold className="size-3" />
+                <PiTrendUpBold className="ms-1 size-3" />
               ) : (
-                <PiTrendDownBold className="size-3" />
+                <PiTrendDownBold className="ms-1 size-3" />
               )}
             </Badge>
           </div>
           <Title className="text-3xl font-normal leading-none">
             {stat.value}
           </Title>
-          <div className="text-gray-500">
-            vs last cycle:{" "}
-            <strong className="text-gray-900">{stat.lastMonth}</strong>
+          <div className="text-sm text-gray-500">
+            {isLive
+              ? "Live data from platform"
+              : "Showing cached data"}
           </div>
         </div>
       ))}
