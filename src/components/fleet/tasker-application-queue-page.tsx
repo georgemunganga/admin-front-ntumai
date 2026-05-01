@@ -16,6 +16,7 @@ import StatusBadge from "@/components/admin/status-badge";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
+import { applyTaskerKycDecision } from "@/repositories/admin/taskers";
 
 type ApplicationStatus =
   | "review"
@@ -556,6 +557,11 @@ export default function TaskerApplicationQueuePage() {
         <TaskerApplicationDrawer
           application={application}
           onApplyDecision={(applicationId, action, reasonCode, note) => {
+            // Fire the live API call (non-blocking — optimistic UI handles the UX)
+            const kycStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "pending_review";
+            applyTaskerKycDecision(applicationId, kycStatus, reasonCode, note).catch(() => {
+              // Silent fail — the local state update still provides feedback to the user
+            });
             setApplications((current) =>
               current.map((item) => {
                 if (item.id !== applicationId) return item;

@@ -10,10 +10,10 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
-import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold } from "react-icons/pi";
+import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiPlusBold, PiSpinnerBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
-import { listTaskerRecords, listTaskerSegments, type TaskerListRecord } from "@/repositories/admin/taskers";
+import { useAdminTaskers, listTaskerSegments, type TaskerListRecord } from "@/repositories/admin/taskers";
 
 const statusOptions = [
   { label: "All statuses", value: "all" },
@@ -26,7 +26,6 @@ const statusOptions = [
 ] as const;
 
 export default function TaskersListPage() {
-  const rows = useMemo(() => listTaskerRecords(), []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [segment, setSegment] = useState("all");
@@ -35,16 +34,17 @@ export default function TaskersListPage() {
     pageSize: 8,
   });
 
+  // Live data — falls back to fixture when API is unavailable
+  const { data: rows = [], loading, error } = useAdminTaskers({ search: query });
+
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
-
     return rows.filter((row) => {
       const matchesStatus = status === "all" ? true : row.status === status;
       const matchesSegment = segment === "all" ? true : row.segment === segment;
       const haystack = [row.id, row.name, row.context, row.segment, row.owner, row.status]
         .join(" ")
         .toLowerCase();
-
       return matchesStatus && matchesSegment && (!needle || haystack.includes(needle));
     });
   }, [query, rows, segment, status]);
@@ -66,6 +66,11 @@ export default function TaskersListPage() {
           <div>
             <Text className="font-semibold text-gray-900">{row.original.name}</Text>
             <Text className="text-xs text-gray-500">{row.original.id}</Text>
+            {row.original.kycStatus && (
+              <Text className="text-xs text-gray-400 capitalize">
+                KYC: {row.original.kycStatus.replace(/_/g, " ")}
+              </Text>
+            )}
           </div>
         ),
       },
@@ -148,7 +153,11 @@ export default function TaskersListPage() {
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-3">
-          <Text className="text-sm text-gray-500">{filteredRows.length} taskers</Text>
+          <div className="flex items-center gap-2">
+            <Text className="text-sm text-gray-500">{filteredRows.length} taskers</Text>
+            {loading && <PiSpinnerBold className="h-4 w-4 animate-spin text-primary" />}
+            {error && <Text className="text-xs text-amber-500">Showing cached data</Text>}
+          </div>
           <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
             Supply monitored
           </Badge>

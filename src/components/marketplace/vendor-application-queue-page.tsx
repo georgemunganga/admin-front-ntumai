@@ -16,6 +16,7 @@ import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
+import { applyVendorKycDecision } from "@/repositories/admin/vendors";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type BusinessType = "restaurant" | "grocery" | "pharmacy" | "retail" | "services";
@@ -529,6 +530,11 @@ export default function VendorApplicationQueuePage() {
         <VendorApplicationDrawer
           item={item}
           onApplyDecision={(id, action, reasonCode, note) => {
+            // Fire the live API call (non-blocking — optimistic UI handles the UX)
+            const kycStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "pending_review";
+            applyVendorKycDecision(id, kycStatus, reasonCode, note).catch(() => {
+              // Silent fail — the local state update still provides feedback to the user
+            });
             setApplications((current) =>
               current.map((entry) => {
                 if (entry.id !== id) return entry;

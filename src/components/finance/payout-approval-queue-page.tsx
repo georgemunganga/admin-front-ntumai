@@ -14,6 +14,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
+import { applyAdminPayoutDecision } from "@/repositories/admin/finance";
 
 type ReviewStatus = "review" | "queued" | "monitoring" | "live" | "paused" | "at_risk";
 type PayoutTarget = "tasker" | "vendor";
@@ -405,6 +406,11 @@ export default function PayoutApprovalQueuePage() {
         <PayoutDrawer
           item={item}
           onApplyDecision={(id, action, reasonCode, note) => {
+            // Fire the live API call (non-blocking — optimistic UI handles the UX)
+            const decisionValue = action === "approve" ? "approve" : action === "reject" ? "reject" : "hold";
+            applyAdminPayoutDecision(id, decisionValue, note || reasonCode).catch(() => {
+              // Silent fail — the local state update still provides feedback to the user
+            });
             setCases((current) =>
               current.map((entry) => {
                 if (entry.id !== id) return entry;
