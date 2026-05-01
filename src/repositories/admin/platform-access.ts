@@ -7,12 +7,16 @@ import {
   permissions,
   roleUsers,
   rolesList,
-  statuses,
-  type RoleUser,
 } from "@/components/platform/roles-permissions-data";
 
 export type PlatformPermission = (typeof permissions)[number] | string;
-export type PlatformUserStatus = (typeof statuses)[number];
+export type PlatformUserStatus =
+  | "Pending"
+  | "Accepted"
+  | "Expired"
+  | "Revoked"
+  | "Active"
+  | "Deactivated";
 
 export type PlatformRoleCard = {
   id: string;
@@ -24,7 +28,14 @@ export type PlatformRoleCard = {
   isSystem?: boolean;
 };
 
-export type PlatformAccessUser = RoleUser & {
+export type PlatformAccessUser = {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  permissions: string[];
+  status: PlatformUserStatus;
   userId?: string;
   activeRole: "Customer" | "Tasker" | "Vendor" | "Staff";
   accessScope: string;
@@ -62,7 +73,10 @@ const roleAvatars = [
   "/avatars/avatar-4.webp",
 ];
 
-const accessContextByUserId: Record<number, Omit<PlatformAccessUser, keyof RoleUser>> = {
+const accessContextByUserId: Record<
+  number,
+  Pick<PlatformAccessUser, "activeRole" | "accessScope" | "workflow">
+> = {
   1001: {
     activeRole: "Staff",
     accessScope: "Owns platform-wide staff controls and emergency approval actions.",
@@ -109,7 +123,9 @@ const accessContextByUserId: Record<number, Omit<PlatformAccessUser, keyof RoleU
   },
 };
 
-function toPlatformAccessUser(user: RoleUser): PlatformAccessUser {
+function toPlatformAccessUser(
+  user: (typeof roleUsers)[number],
+): PlatformAccessUser {
   return {
     ...user,
     ...(accessContextByUserId[user.id] ?? {
@@ -147,7 +163,7 @@ export function listPlatformPermissions(): PlatformPermission[] {
 }
 
 export function listPlatformUserStatuses(): PlatformUserStatus[] {
-  return [...statuses];
+  return ["Pending", "Accepted", "Expired", "Revoked"];
 }
 
 export function usePlatformAccessRoles() {
@@ -192,7 +208,7 @@ export async function createPlatformAccessUser(input: {
   lastName: string;
   email: string;
   staffRoleId?: string;
-  status?: PlatformUserStatus;
+  status?: string;
   accessScope?: string;
 }) {
   return postAdminData<{ item: PlatformUserApiItem }>("/api/v1/admin/access/users", input);
@@ -205,7 +221,7 @@ export async function updatePlatformAccessUser(
     lastName?: string;
     email?: string;
     staffRoleId?: string;
-    status?: PlatformUserStatus;
+    status?: string;
     accessScope?: string;
   },
 ) {
@@ -243,12 +259,20 @@ function mapPlatformUsersPayload(payload: unknown): PlatformAccessUser[] {
     role: item.role,
     createdAt: item.createdAt,
     permissions: item.permissions,
-    status: item.status,
+    status: normalizePlatformUserStatus(item.status),
     activeRole: item.activeRole,
     accessScope: item.accessScope,
     workflow: item.workflow,
     staffRoleId: item.staffRoleId,
   }));
+}
+
+function normalizePlatformUserStatus(status: string): PlatformUserStatus {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (normalized === "accepted" || normalized === "active") return "Accepted";
+  if (normalized === "expired") return "Expired";
+  if (normalized === "revoked" || normalized === "deactivated") return "Revoked";
+  return "Pending";
 }
 
 /**

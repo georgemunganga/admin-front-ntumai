@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { Avatar, Badge, Button, Input, Select, Table, Text, Title } from "rizzui";
-import { PiEnvelopeBold, PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
+import { PiEnvelopeBold, PiMagnifyingGlassBold, PiPencilSimpleBold, PiPlusBold, PiTrashDuotone } from "react-icons/pi";
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
+import EditUserModal from "@/components/platform/edit-user-modal";
 import { useAuth } from "@/components/auth/auth-provider";
 import {
   deletePlatformAccessUser,
@@ -19,7 +20,7 @@ function StatusPill({ value }: { value: string }) {
   if (normalized === "accepted" || normalized === "active") {
     return <span className="text-green-dark">● {value}</span>;
   }
-  if (normalized === "rejected" || normalized === "deactivated") {
+  if (normalized === "rejected" || normalized === "deactivated" || normalized === "revoked") {
     return <span className="text-red-dark">● {value}</span>;
   }
   return <span className="text-orange-dark">● {value}</span>;
@@ -228,6 +229,27 @@ export default function RolesUsersTable({
                 <Table.Cell className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     {canWrite ? <InviteButton userId={row.userId} status={row.status} /> : null}
+                    {canWrite ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          openModal({
+                            view: (
+                              <EditUserModal
+                                user={row}
+                                roles={roles}
+                                onSuccess={onRefresh}
+                              />
+                            ),
+                            customSize: 600,
+                          })
+                        }
+                      >
+                        <PiPencilSimpleBold className="me-1.5 size-3.5" />
+                        Edit
+                      </Button>
+                    ) : null}
                     {canDelete ? (
                       <Button
                         variant="outline"
