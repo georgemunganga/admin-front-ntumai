@@ -30,7 +30,9 @@ import {
   assignDispatchJob,
   reassignDispatchJob,
   useAdminLiveDispatch,
+  useAdminDispatchCandidates,
   type LiveDispatchEntity,
+  type DispatchCandidate,
 } from "@/repositories/admin/dispatch";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
@@ -318,14 +320,6 @@ const statusOptions = [
   { label: "At risk", value: "at_risk" },
 ] as const;
 
-const overrideOptions = [
-  { label: "All override types", value: "all" },
-  ...Array.from(new Set(manualDispatchSeed.map((row) => row.overrideType))).map((value) => ({
-    label: value,
-    value,
-  })),
-];
-
 export default function DispatchManualDispatchPage() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -432,7 +426,21 @@ export default function DispatchManualDispatchPage() {
     });
   }, [overrideType, query, rows, status]);
 
-  const taskerOptions = assigningItem ? getNearbyTaskerOptions(assigningItem) : [];
+  const fallbackTaskerOptions = assigningItem ? getNearbyTaskerOptions(assigningItem) : [];
+  const {
+    items: liveTaskerOptions,
+    loading: taskerOptionsLoading,
+    isLive: taskerOptionsLive,
+    error: taskerOptionsError,
+  } = useAdminDispatchCandidates({
+    orderId: assigningItem?.id,
+    assignmentId: prefilledAssignmentId || undefined,
+    fallback: assigningItem ? mapFallbackCandidates(fallbackTaskerOptions) : [],
+  });
+  const taskerOptions = useMemo(
+    () => liveTaskerOptions.map(mapDispatchCandidateToTaskerOption),
+    [liveTaskerOptions],
+  );
 
   const columns = useMemo<ColumnDef<ManualDispatchItem>[]>(
     () => [
@@ -745,6 +753,14 @@ export default function DispatchManualDispatchPage() {
               ) : null}
             </div>
 
+            <div className="mt-5 flex justify-end">
+              <DataSourceState
+                isLoading={taskerOptionsLoading}
+                isLive={taskerOptionsLive}
+                error={taskerOptionsError}
+              />
+            </div>
+
             <div className="mt-6 space-y-3">
               {taskerOptions.map((tasker) => {
                 const isSelected = selectedTaskerId === tasker.id;
@@ -792,6 +808,11 @@ export default function DispatchManualDispatchPage() {
                   </button>
                 );
               })}
+              {!taskerOptionsLoading && !taskerOptions.length ? (
+                <Text className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                  No nearby taskers are available for this dispatch right now.
+                </Text>
+              ) : null}
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-5">
@@ -980,4 +1001,32 @@ function deriveZoneFromCorridor(corridor: string) {
   if (corridor.toLowerCase().includes("rhodes")) return "Rhodes Park";
   if (corridor.toLowerCase().includes("roma")) return "Roma";
   return "CBD";
+}
+
+function mapDispatchCandidateToTaskerOption(candidate: DispatchCandidate): NearbyTasker {
+  return {
+    id: candidate.id,
+    name: candidate.name,
+    vehicle: candidate.vehicle,
+    distance: `${candidate.distanceKm.toFixed(1)} km away`,
+    eta: `${candidate.etaMin} min to pickup`,
+    rating: candidate.rating.toFixed(1),
+    zone: candidate.zone,
+    availability: candidate.availability,
+  };
+}
+
+function mapFallbackCandidates(taskers: NearbyTasker[]): DispatchCandidate[] {
+  return taskers.map((tasker, index) => ({
+    id: tasker.id,
+    name: tasker.name,
+    phone: null,
+    vehicle: tasker.vehicle,
+    distanceKm: Number.parseFloat(tasker.distance) || index + 1,
+    etaMin: Number.parseInt(tasker.eta, 10) || 5 + index * 2,
+    rating: Number.parseFloat(tasker.rating) || 4.8,
+    availability: tasker.availability,
+    zone: tasker.zone,
+    heartbeatAt: null,
+  }));
 }

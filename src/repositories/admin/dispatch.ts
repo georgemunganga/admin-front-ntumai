@@ -64,6 +64,19 @@ export type LiveDispatchEntity = {
   updatedAt: string;
 };
 
+export type DispatchCandidate = {
+  id: string;
+  name: string;
+  phone: string | null;
+  vehicle: string;
+  distanceKm: number;
+  etaMin: number;
+  rating: number;
+  availability: string;
+  zone: string;
+  heartbeatAt: string | null;
+};
+
 type DispatchExceptionsResponse = {
   items: DispatchException[];
   total: number;
@@ -71,6 +84,11 @@ type DispatchExceptionsResponse = {
 
 type LiveDispatchResponse = {
   entities: LiveDispatchEntity[];
+  total: number;
+};
+
+type DispatchCandidatesResponse = {
+  items: DispatchCandidate[];
   total: number;
 };
 
@@ -105,6 +123,32 @@ export function useAdminLiveDispatch() {
     error,
     refreshedAt,
     refresh,
+  };
+}
+
+export function useAdminDispatchCandidates(params?: {
+  orderId?: string;
+  assignmentId?: string;
+  fallback?: DispatchCandidate[];
+}) {
+  const query = new URLSearchParams();
+  if (params?.orderId) query.set("orderId", params.orderId);
+  if (params?.assignmentId) query.set("assignmentId", params.assignmentId);
+  const enabled = Boolean(params?.orderId);
+
+  const { data, isLoading, isLive, error } = useAdminResource<DispatchCandidatesResponse>({
+    path: `/api/v1/admin/dispatch/candidates?${query.toString()}`,
+    fallback: { items: params?.fallback ?? [], total: params?.fallback?.length ?? 0 },
+    map: (payload) => payload as DispatchCandidatesResponse,
+    enabled,
+  });
+
+  return {
+    items: data.items,
+    total: data.total,
+    loading: isLoading,
+    isLive,
+    error,
   };
 }
 
