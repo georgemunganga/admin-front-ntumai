@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { customerDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import type { AdminRiskCaseBase } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
-import { useAdminResource } from "@/repositories/admin/admin-api";
+import { useAdminResource, patchAdminData } from "@/repositories/admin/admin-api";
 
 export type PaymentLane = "retry" | "chargeback" | "reconciliation";
 export type RefundLane = "auto_policy" | "manual" | "partial";
@@ -628,4 +628,55 @@ function formatTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+// ─── P0 Mutations — Live Payouts (Track A Phase 3) ───────────────────────────
+
+export type LivePayoutRecord = {
+  id: string;
+  userId: string;
+  role: "TASKER" | "VENDOR";
+  amount: number;
+  currency: string;
+  destination: unknown;
+  status: "PENDING" | "PROCESSING" | "PAID" | "REJECTED" | "CANCELLED";
+  notes: string | null;
+  processedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string | null;
+    phone: string | null;
+  };
+};
+
+type LivePayoutsPayload = {
+  items: LivePayoutRecord[];
+  pagination: { total: number; page: number; limit: number };
+};
+
+export function useAdminPayouts(status?: string, role?: string) {
+  const params = new URLSearchParams({ limit: "50" });
+  if (status) params.set("status", status);
+  if (role) params.set("role", role);
+  const path = `/api/v1/admin/payouts?${params.toString()}`;
+  const fallback: LivePayoutRecord[] = [];
+  return useAdminResource<LivePayoutRecord[]>({
+    path,
+    fallback,
+    map: (payload) => (payload as LivePayoutsPayload)?.items ?? [],
+  });
+}
+
+export async function applyAdminPayoutDecision(
+  payoutId: string,
+  action: "approve" | "hold" | "reject",
+  note?: string,
+): Promise<{ id: string; status: string; action: string } | null> {
+  return patchAdminData<{ id: string; status: string; action: string }>(
+    `/api/v1/admin/payouts/${payoutId}`,
+    { action, ...(note ? { note } : {}) },
+  );
 }

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { customerProfiles, type CustomerProfile } from "@/components/crm/customer-data";
-import { useAdminResource } from "@/repositories/admin/admin-api";
+import { useAdminResource, postAdminData } from "@/repositories/admin/admin-api";
 
 export type CustomerListRecord = {
   id: string;
@@ -359,4 +359,30 @@ function formatDateTime(value?: string) {
 function capitalize(value?: string | null) {
   if (!value) return "Unknown";
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+// ─── P0 Mutations — KYC Decisions (Track A Phase 3) ─────────────────────────
+
+export async function applyAdminKycDecision(
+  userId: string,
+  role: "tasker" | "vendor",
+  kycStatus: "approved" | "rejected" | "suspended" | "pending_review",
+  reason?: string,
+  note?: string,
+): Promise<{
+  userId: string;
+  role: string;
+  kycStatus: string;
+  activationStatus: unknown;
+  decidedAt: string;
+} | null> {
+  return postAdminData(
+    `/api/v1/admin/users/${userId}/kyc`,
+    {
+      role,
+      kycStatus,
+      ...(reason ? { reason } : {}),
+      ...(note ? { note } : {}),
+    },
+  );
 }
