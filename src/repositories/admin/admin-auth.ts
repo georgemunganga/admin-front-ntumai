@@ -57,6 +57,8 @@ type AuthMePayload = {
     role?: string;
     activeRole?: string;
     roles?: string[];
+    /** Staff permissions returned from the backend StaffRole assignment */
+    permissions?: string[];
   };
 };
 
@@ -208,6 +210,8 @@ export async function loadCurrentAdminUser(session = readStoredAdminSession()) {
     role: user.role || session.role,
     activeRole: user.activeRole || session.activeRole,
     roles: user.roles || session.roles,
+    // Persist staff permissions returned by the backend StaffRole assignment
+    permissions: user.permissions ?? session.permissions ?? [],
   };
   writeStoredAdminSession(nextSession);
   return nextSession;
@@ -241,6 +245,7 @@ function toStoredSession(
     role: user.role || "admin",
     activeRole: user.activeRole || user.role || "admin",
     roles: user.roles || [user.role || "admin"],
+    permissions: [],
     accessToken,
     refreshToken,
     tokenExpiresAt: Date.now() + expiresIn * 1000,

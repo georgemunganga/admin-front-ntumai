@@ -5,6 +5,8 @@ export type AdminSessionUser = {
   role: string;
   activeRole?: string;
   roles?: string[];
+  /** Staff permissions assigned via StaffRole (e.g. ["Read", "Write", "Delete"]) */
+  permissions?: string[];
   accessToken?: string;
   refreshToken?: string;
   tokenExpiresAt?: number;
