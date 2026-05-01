@@ -1,12 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import DataTable from "@/components/admin/data-table";
 import StatusBadge from "@/components/admin/status-badge";
-import { dispatchLiveMapRows } from "@/components/admin/section-data";
+import { dispatchEntities } from "@/components/dispatch/live-map.data";
+import { useAdminLiveDispatch } from "@/repositories/admin/dispatch";
 import { Text } from "rizzui";
 
 const LiveDispatchMap = dynamic(
@@ -26,6 +28,16 @@ const LiveDispatchMap = dynamic(
 );
 
 export default function DispatchLiveMapPage() {
+  const { entities: liveEntities, loading, error } = useAdminLiveDispatch();
+  const staticVendors = dispatchEntities.filter((entity) => entity.kind === "vendor").length;
+  const staticAlerts = dispatchEntities.filter((entity) => entity.kind === "alert").length;
+  const supervisionRows = liveEntities.map((entity) => ({
+    primary: entity.label,
+    secondary: `${entity.orderRef} · ${entity.customer} → ${entity.vendor}`,
+    tertiary: entity.city,
+    status: <StatusBadge status={entity.status === "ASSIGNED" ? "live" : entity.status === "PICKED_UP" ? "monitoring" : "review"} />,
+  }));
+
   return (
     <div className="@container space-y-6">
       <PageHeader
@@ -40,21 +52,21 @@ export default function DispatchLiveMapPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <StatCard
             label="Taskers online"
-            value="326"
-            change="+18 reserve"
+            value={String(liveEntities.length)}
+            change={loading ? "Syncing live feed" : "Live registry"}
             tone="positive"
-            detail="Active taskers currently visible from the live map heartbeat."
+            detail="Active taskers currently visible from the live dispatch registry."
           />
           <StatCard
             label="Marketplace pins"
-            value="21"
-            change="6 rush lanes"
+            value={String(staticVendors)}
+            change="Marketplace watch"
             tone="warning"
             detail="Vendor locations currently contributing live order demand."
           />
           <StatCard
             label="Dispatch alerts"
-            value="4"
+            value={String(staticAlerts)}
             change="Needs eyes"
             tone="warning"
             detail="Trips with movement, ETA, or handoff signals needing staff attention."
@@ -65,22 +77,25 @@ export default function DispatchLiveMapPage() {
 
         <ShellCard
           title="Live supervision feed"
-          description="Working set from the current live map surface."
+          description="Working set from the current live dispatch registry."
         >
+          <div className="mb-4 flex justify-end">
+            <DataSourceState isLoading={loading} isLive={Boolean(liveEntities.length) && !error} error={error} />
+          </div>
           <DataTable
-            rows={dispatchLiveMapRows.map((row) => ({
-              primary: row.primary,
-              secondary: row.secondary,
-              tertiary: row.tertiary,
-              status: <StatusBadge status={row.status} />,
-            }))}
+            rows={supervisionRows}
             columns={[
-              { key: "primary", label: "Zone / Alert" },
+              { key: "primary", label: "Tasker" },
               { key: "secondary", label: "Context" },
-              { key: "tertiary", label: "Source" },
+              { key: "tertiary", label: "Zone" },
               { key: "status", label: "Status", className: "md:justify-self-end" },
             ]}
           />
+          {!loading && !supervisionRows.length ? (
+            <Text className="mt-4 text-sm text-gray-500">
+              No live dispatch entities are available yet.
+            </Text>
+          ) : null}
         </ShellCard>
       </div>
     </div>

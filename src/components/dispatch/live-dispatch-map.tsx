@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAdminLiveDispatch } from "@/repositories/admin/dispatch";
 import { Loader } from "@googlemaps/js-api-loader";
@@ -30,6 +31,7 @@ import {
   type MapEntity,
   type MarkerTone,
 } from "@/components/dispatch/live-map.data";
+import { routes } from "@/config/routes";
 
 const GOOGLE_MAPS_API_KEY =
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
@@ -127,6 +129,7 @@ export default function LiveDispatchMap() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const markerByIdRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const circlesRef = useRef<google.maps.Circle[]>([]);
@@ -165,19 +168,32 @@ export default function LiveDispatchMap() {
     setMergedEntities([...nonTaskerSeeds, ...liveTaskerEntities]);
   }, [liveEntities]);
 
-  const filteredEntities = useMemo(
-    () =>
-      mergedEntities.filter((entity) => {
+  const filteredEntities = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return mergedEntities.filter((entity) => {
         const kindMatch = kindFilter === "all" || entity.kind === kindFilter;
         const vehicleMatch =
           vehicleFilter === "all" ||
           (entity.kind === "tasker" && entity.vehicleType === vehicleFilter);
         const zoneMatch = zoneFilter === "all" || entity.zone === zoneFilter;
+        const searchMatch =
+          !needle ||
+          [
+            entity.name,
+            entity.detail,
+            entity.status,
+            entity.zone,
+            entity.orderId,
+            entity.trackingId,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(needle);
 
-        return kindMatch && vehicleMatch && zoneMatch;
-      }),
-    [kindFilter, vehicleFilter, zoneFilter, mergedEntities],
-  );
+        return kindMatch && vehicleMatch && zoneMatch && searchMatch;
+      });
+  }, [kindFilter, mergedEntities, query, vehicleFilter, zoneFilter]);
 
   const selectedEntity =
     filteredEntities.find((entity) => entity.id === selectedId) ??
@@ -228,6 +244,7 @@ export default function LiveDispatchMap() {
         mapInstanceRef.current = map;
         infoWindowRef.current = infoWindow;
 
+        markerByIdRef.current.clear();
         markersRef.current = filteredEntities.map((entity) => {
           const marker = new google.maps.Marker({
             map,
@@ -250,6 +267,7 @@ export default function LiveDispatchMap() {
             infoWindow.open({ anchor: marker, map });
           });
 
+          markerByIdRef.current.set(entity.id, marker);
           return marker;
         });
 
@@ -304,6 +322,7 @@ export default function LiveDispatchMap() {
       circlesRef.current = [];
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
+      markerByIdRef.current.clear();
       infoWindowRef.current?.close();
       infoWindowRef.current = null;
       mapInstanceRef.current = null;
@@ -394,7 +413,7 @@ export default function LiveDispatchMap() {
       }
     }
 
-    const marker = markersRef.current[dispatchEntities.findIndex((item) => item.id === entity.id)];
+    const marker = markerByIdRef.current.get(entity.id);
     if (marker && infoWindowRef.current) {
       infoWindowRef.current.setContent(
         `<div style="min-width:180px;padding:6px 4px;font-family:Ubuntu, sans-serif;">
@@ -425,7 +444,10 @@ export default function LiveDispatchMap() {
           <Button
             variant="outline"
             className="h-10 rounded-2xl px-3"
-            onClick={() => focusEntity(dispatchEntities[0])}
+            onClick={() => {
+              const firstEntity = filteredEntities[0] ?? mergedEntities[0] ?? dispatchEntities[0];
+              if (firstEntity) focusEntity(firstEntity, true);
+            }}
           >
             <PiArrowClockwiseBold className="h-4 w-4" />
           </Button>
@@ -503,11 +525,12 @@ export default function LiveDispatchMap() {
           variant="outline"
           className="h-10 rounded-2xl px-4"
           onClick={() => {
-            const found = dispatchEntities.find((entity) => {
+            const found = mergedEntities.find((entity) => {
               const q = query.trim().toLowerCase();
               if (!q) return false;
               return (
                 entity.name.toLowerCase().includes(q) ||
+                entity.detail.toLowerCase().includes(q) ||
                 entity.orderId?.toLowerCase().includes(q) ||
                 entity.trackingId?.toLowerCase().includes(q)
               );
@@ -618,18 +641,33 @@ export default function LiveDispatchMap() {
               ) : null}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button size="sm" className="rounded-2xl bg-primary px-3 text-white hover:bg-primary/90">
-                <PiEyeBold className="me-1.5 h-4 w-4" />
-                View tasker
-              </Button>
-              <Button size="sm" variant="outline" className="rounded-2xl px-3">
+              <Link href={routes.logistics.taskers}>
+                <Button size="sm" className="rounded-2xl bg-primary px-3 text-white hover:bg-primary/90">
+                  <PiEyeBold className="me-1.5 h-4 w-4" />
+                  View taskers
+                </Button>
+              </Link>
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-2xl px-3"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.open(`https://maps.google.com/?q=${selectedEntity.lat},${selectedEntity.lng}`, "_blank");
+                  }
+                }}
+              >
                 <PiPhoneCallBold className="me-1.5 h-4 w-4" />
-                Call
+                Open in maps
               </Button>
-              <Button size="sm" variant="outline" className="rounded-2xl px-3">
-                <PiStackPlusBold className="me-1.5 h-4 w-4" />
-                Open order
-              </Button>
+              {selectedEntity.orderId ? (
+                <Link href={routes.sales.orderDetails(selectedEntity.orderId)}>
+                  <Button size="sm" variant="outline" className="rounded-2xl px-3">
+                    <PiStackPlusBold className="me-1.5 h-4 w-4" />
+                    Open order
+                  </Button>
+                </Link>
+              ) : null}
             </div>
           </div>
         ) : null}
