@@ -43,6 +43,8 @@ export const routes = {
     customers: "/sales/customers",
     refunds: "/sales/refunds",
     payouts: "/sales/payouts",
+    bookings: "/sales/bookings",
+    bookingDetails: (id: string) => `/sales/bookings/${id}`,
   },
   logistics: {
     overview: "/logistics",

@@ -37,7 +37,7 @@ export const menuItems: MenuItem[] = [
     badge: "LIVE",
     dropdownItems: [
       { name: "Live Map", href: routes.dispatch.liveMap },
-      { name: "Bookings / Trips", href: routes.sales.orders },
+      { name: "Bookings / Trips", href: routes.sales.bookings },
       { name: "Scheduled Rides", href: routes.dispatch.scheduledRides },
       { name: "Manual Dispatch", href: routes.dispatch.manualDispatch },
     ],
@@ -78,6 +78,7 @@ export const menuItems: MenuItem[] = [
     dropdownItems: [
       { name: "Overview", href: routes.sales.overview },
       { name: "Orders", href: routes.sales.orders },
+      { name: "Bookings", href: routes.sales.bookings },
       { name: "Invoices", href: routes.sales.invoices },
       { name: "Payments", href: routes.sales.payments },
       { name: "Refunds", href: routes.sales.refunds },
