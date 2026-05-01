@@ -22,6 +22,7 @@ import {
 import { shipmentOrderHrefById } from "@/components/admin/ops-workflow-links";
 import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
+import GuardedLink from "@/components/auth/guarded-link";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import type { LogisticsShipment } from "@/components/logistics/shipment-data";
@@ -164,12 +165,12 @@ export default function ShipmentsListPage() {
                   </Button>
                 </Link>
               ) : null}
-              <Link href={routes.logistics.editShipment(row.original.id)}>
+              <GuardedLink href={routes.logistics.editShipment(row.original.id)} requirement="write">
                 <Button variant="text" className="h-auto p-0 text-primary">
                   Edit
                   <PiNotePencilBold className="ms-1 h-4 w-4" />
                 </Button>
-              </Link>
+              </GuardedLink>
             </div>
           );
         },
@@ -200,12 +201,12 @@ export default function ShipmentsListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Link href={routes.logistics.createShipment} className="w-full sm:w-auto">
+            <GuardedLink href={routes.logistics.createShipment} className="w-full sm:w-auto" requirement="write">
               <Button className="h-11 w-full rounded-2xl bg-primary px-4 text-white hover:bg-primary/90 sm:w-auto">
                 <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
                 Create Shipment
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         }
       />

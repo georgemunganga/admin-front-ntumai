@@ -12,6 +12,7 @@ import {
   PiTruckBold,
 } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import GuardedLink from "@/components/auth/guarded-link";
 import ShellCard from "@/components/admin/shell-card";
 import { getMarketplaceVendorBySlug } from "@/repositories/admin/vendors";
 
@@ -35,12 +36,12 @@ export default function VendorDetailPage({ slug }: { slug: string }) {
                 Back
               </Button>
             </Link>
-            <Link href={`/marketplace/vendors/${vendor.slug}/edit`}>
+            <GuardedLink href={`/marketplace/vendors/${vendor.slug}/edit`} requirement="write">
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
                 <PiNotePencilBold className="me-1.5 h-4 w-4" />
                 Edit Vendor
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         }
       />

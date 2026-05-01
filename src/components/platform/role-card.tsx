@@ -7,7 +7,7 @@ import { cn } from "@/utils/class-names";
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import EditRoleModal from "@/components/platform/edit-role-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
-import { useAuth } from "@/components/auth/auth-provider";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import {
   deletePlatformRole,
   type PlatformRoleCard,
@@ -30,10 +30,9 @@ export default function RoleCard({
   onRefresh,
 }: RoleCardProps) {
   const { openModal } = useModal();
-  const { canWrite, canDelete } = useAuth();
+  const { guardAction } = useAdminActionGuard();
 
   async function handleDeleteRole() {
-    if (!canDelete || isSystem) return;
     const confirmed = window.confirm(`Delete the "${name}" role?`);
     if (!confirmed) return;
 
@@ -73,9 +72,9 @@ export default function RoleCard({
             </ActionIcon>
           </Dropdown.Trigger>
           <Dropdown.Menu className="!z-0">
-            {canWrite ? (
-              <Dropdown.Item
-                onClick={() =>
+            <Dropdown.Item
+              onClick={() =>
+                guardAction("write", () =>
                   openModal({
                     view: (
                       <CreateUserModal
@@ -85,15 +84,15 @@ export default function RoleCard({
                       />
                     ),
                     customSize: 600,
-                  })
-                }
-              >
-                Add User
-              </Dropdown.Item>
-            ) : null}
-            {canWrite ? (
-              <Dropdown.Item
-                onClick={() =>
+                  }),
+                )
+              }
+            >
+              Add User
+            </Dropdown.Item>
+            <Dropdown.Item
+              onClick={() =>
+                guardAction("write", () =>
                   openModal({
                     view: (
                       <EditRoleModal
@@ -102,14 +101,18 @@ export default function RoleCard({
                       />
                     ),
                     customSize: 700,
-                  })
-                }
+                  }),
+                )
+              }
+            >
+              Edit Role
+            </Dropdown.Item>
+            {!isSystem ? (
+              <Dropdown.Item
+                onClick={() => guardAction("delete", () => handleDeleteRole())}
               >
-                Edit Role
+                Remove Role
               </Dropdown.Item>
-            ) : null}
-            {canDelete && !isSystem ? (
-              <Dropdown.Item onClick={handleDeleteRole}>Remove Role</Dropdown.Item>
             ) : null}
           </Dropdown.Menu>
         </Dropdown>
@@ -126,11 +129,11 @@ export default function RoleCard({
         <span>Total {memberCount ?? users.length} users</span>
       </div>
 
-      {canWrite ? (
-        <Button
-          variant="outline"
-          className="items-center gap-1 text-gray-800 @lg:w-full lg:mt-6"
-          onClick={() =>
+      <Button
+        variant="outline"
+        className="items-center gap-1 text-gray-800 @lg:w-full lg:mt-6"
+        onClick={() =>
+          guardAction("write", () =>
             openModal({
               view: (
                 <EditRoleModal
@@ -139,12 +142,12 @@ export default function RoleCard({
                 />
               ),
               customSize: 700,
-            })
-          }
-        >
-          Edit Role
-        </Button>
-      ) : null}
+            }),
+          )
+        }
+      >
+        Edit Role
+      </Button>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
+import GuardedLink from "@/components/auth/guarded-link";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import { useSalesOrder, updateAdminOrderStatus } from "@/repositories/admin/orders";
 
 const orderStatusSteps = [
@@ -26,6 +28,7 @@ type ActionType = "cancel" | "force_complete" | null;
 
 export default function OrderDetailPage({ id }: { id: string }) {
   const { data: order, isLoading, isLive, error } = useSalesOrder(id);
+  const { guardAction } = useAdminActionGuard();
   const [pendingAction, setPendingAction] = useState<ActionType>(null);
   const [reason, setReason] = useState("");
   const [isMutating, setIsMutating] = useState(false);
@@ -168,12 +171,12 @@ export default function OrderDetailPage({ id }: { id: string }) {
                 Back
               </Button>
             </Link>
-            <Link href={routes.sales.editOrder(order.slug)}>
+            <GuardedLink href={routes.sales.editOrder(order.slug)} requirement="write">
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
                 <PiNotePencilBold className="me-1.5 h-4 w-4" />
                 Edit Order
               </Button>
-            </Link>
+            </GuardedLink>
             <Link href={routes.supportDesk.inbox}>
               <Button variant="outline" className="h-11 rounded-2xl px-4">
                 Open Support
@@ -185,7 +188,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
                 <Button
                   variant="outline"
                   className="h-11 rounded-2xl border-red-300 px-4 text-red-600 hover:bg-red-50"
-                  onClick={() => setPendingAction("cancel")}
+                  onClick={() => guardAction("write", () => setPendingAction("cancel"))}
                 >
                   <PiXCircleBold className="me-1.5 h-4 w-4" />
                   Cancel Order
@@ -193,7 +196,7 @@ export default function OrderDetailPage({ id }: { id: string }) {
                 <Button
                   variant="outline"
                   className="h-11 rounded-2xl border-green-300 px-4 text-green-700 hover:bg-green-50"
-                  onClick={() => setPendingAction("force_complete")}
+                  onClick={() => guardAction("write", () => setPendingAction("force_complete"))}
                 >
                   <PiCheckCircleBold className="me-1.5 h-4 w-4" />
                   Force Complete

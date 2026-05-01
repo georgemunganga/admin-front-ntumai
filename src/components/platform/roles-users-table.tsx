@@ -7,6 +7,7 @@ import { useModal } from "@/app/shared/modal-views/use-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
 import EditUserModal from "@/components/platform/edit-user-modal";
 import { useAuth } from "@/components/auth/auth-provider";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import {
   deletePlatformAccessUser,
   type PlatformAccessUser,
@@ -26,7 +27,17 @@ function StatusPill({ value }: { value: string }) {
   return <span className="text-orange-dark">● {value}</span>;
 }
 
-function InviteButton({ userId, status }: { userId?: string; status: string }) {
+function InviteButton({
+  userId,
+  status,
+  canWrite,
+  onDenied,
+}: {
+  userId?: string;
+  status: string;
+  canWrite: boolean;
+  onDenied: () => void;
+}) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const normalizedStatus = status.toLowerCase();
@@ -35,6 +46,10 @@ function InviteButton({ userId, status }: { userId?: string; status: string }) {
   if (normalizedStatus !== "pending" || !userId) return null;
 
   async function handleInvite() {
+    if (!canWrite) {
+      onDenied();
+      return;
+    }
     setSending(true);
     const result = await sendStaffInvite(userId!);
     setSending(false);
@@ -71,7 +86,8 @@ export default function RolesUsersTable({
   onRefresh: () => void;
 }) {
   const { openModal } = useModal();
-  const { canWrite, canDelete } = useAuth();
+  const { canWrite } = useAuth();
+  const { guardAction } = useAdminActionGuard();
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
@@ -101,7 +117,6 @@ export default function RolesUsersTable({
   const isFiltered = query.length > 0 || role !== "all" || status !== "all";
 
   async function handleDeleteUser(inviteId: string) {
-    if (!canDelete) return;
     const confirmed = window.confirm("Delete this staff invite?");
     if (!confirmed) return;
 
@@ -160,22 +175,22 @@ export default function RolesUsersTable({
             prefix={<PiMagnifyingGlassBold className="size-4" />}
             className="order-3 h-9 w-full @2xl:order-2 @2xl:ms-auto @2xl:max-w-60 @4xl:order-3"
           />
-          {canWrite ? (
-            <div className="order-2 ms-4 @2xl:order-3 @2xl:ms-0 @4xl:order-4 @4xl:shrink-0">
-              <Button
-                className="mt-0 rounded-2xl bg-primary text-white hover:bg-primary/90"
-                onClick={() =>
+          <div className="order-2 ms-4 @2xl:order-3 @2xl:ms-0 @4xl:order-4 @4xl:shrink-0">
+            <Button
+              className="mt-0 rounded-2xl bg-primary text-white hover:bg-primary/90"
+              onClick={() =>
+                guardAction("write", () =>
                   openModal({
                     view: <CreateUserModal roles={roles} onSuccess={onRefresh} />,
                     customSize: 600,
-                  })
-                }
-              >
-                <PiPlusBold className="me-1.5 h-4 w-4" />
-                Add New User
-              </Button>
-            </div>
-          ) : null}
+                  }),
+                )
+              }
+            >
+              <PiPlusBold className="me-1.5 h-4 w-4" />
+              Add New User
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -228,12 +243,17 @@ export default function RolesUsersTable({
                 </Table.Cell>
                 <Table.Cell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    {canWrite ? <InviteButton userId={row.userId} status={row.status} /> : null}
-                    {canWrite ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
+                    <InviteButton
+                      userId={row.userId}
+                      status={row.status}
+                      canWrite={canWrite}
+                      onDenied={() => guardAction("write", () => undefined)}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        guardAction("write", () =>
                           openModal({
                             view: (
                               <EditUserModal
@@ -243,22 +263,24 @@ export default function RolesUsersTable({
                               />
                             ),
                             customSize: 600,
-                          })
-                        }
-                      >
-                        <PiPencilSimpleBold className="me-1.5 size-3.5" />
-                        Edit
-                      </Button>
-                    ) : null}
-                    {canDelete ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteUser(String(row.userId ?? row.id))}
-                      >
-                        Delete
-                      </Button>
-                    ) : null}
+                          }),
+                        )
+                      }
+                    >
+                      <PiPencilSimpleBold className="me-1.5 size-3.5" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        guardAction("delete", () =>
+                          handleDeleteUser(String(row.userId ?? row.id)),
+                        )
+                      }
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </Table.Cell>
               </Table.Row>

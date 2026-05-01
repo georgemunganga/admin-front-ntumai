@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge, Button, Text, Title } from "rizzui";
 import { PiArrowLeftBold, PiNotePencilBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import GuardedLink from "@/components/auth/guarded-link";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
 import { getSupportTemplateById } from "@/repositories/admin/support-templates";
@@ -28,12 +29,12 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
                 Back
               </Button>
             </Link>
-            <Link href={routes.supportDesk.editTemplate(template.id)}>
+            <GuardedLink href={routes.supportDesk.editTemplate(template.id)} requirement="write">
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
                 <PiNotePencilBold className="me-1.5 h-4 w-4" />
                 Edit Template
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         }
       />

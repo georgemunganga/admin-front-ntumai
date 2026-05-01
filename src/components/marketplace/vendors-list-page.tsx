@@ -13,6 +13,7 @@ import {
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold, PiSpinnerBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import GuardedLink from "@/components/auth/guarded-link";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import { useAdminVendors, listVendorSegments, type VendorListRecord } from "@/repositories/admin/vendors";
@@ -92,12 +93,12 @@ export default function VendorsListPage() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Link href={routes.marketplace.editVendor(row.original.slug)}>
+            <GuardedLink href={routes.marketplace.editVendor(row.original.slug)} requirement="write">
               <Button variant="text" className="h-auto p-0 text-primary">
                 Edit
                 <PiNotePencilBold className="ms-1 h-4 w-4" />
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         ),
       },
@@ -127,12 +128,12 @@ export default function VendorsListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Link href={routes.marketplace.createVendor}>
+            <GuardedLink href={routes.marketplace.createVendor} requirement="write">
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
                 <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
                 Add Vendor
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         }
       />

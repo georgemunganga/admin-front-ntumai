@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Badge, Button, Input, Select, Table, Text } from "rizzui";
 import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBold } from "react-icons/pi";
 import PageHeader from "@/components/admin/page-header";
+import GuardedLink from "@/components/auth/guarded-link";
 import StatCard from "@/components/admin/stat-card";
 import { routes } from "@/config/routes";
 import {
@@ -49,12 +50,12 @@ export default function SupportTemplatesListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-4 w-4" />
               Export
             </Button>
-            <Link href={routes.supportDesk.createTemplate}>
+            <GuardedLink href={routes.supportDesk.createTemplate} requirement="write">
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
                 <PiPlusBold className="me-1.5 h-4 w-4" />
                 Create Template
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         }
       />
@@ -133,12 +134,12 @@ export default function SupportTemplatesListPage() {
                 <Table.Cell>{item.owner}</Table.Cell>
                 <Table.Cell>{item.updatedAt}</Table.Cell>
                 <Table.Cell className="text-right">
-                  <Link href={routes.supportDesk.editTemplate(item.id)}>
+                  <GuardedLink href={routes.supportDesk.editTemplate(item.id)} requirement="write">
                     <Button size="sm" variant="outline" className="rounded-2xl px-3">
                       <PiNotePencilBold className="me-1.5 h-4 w-4" />
                       Edit
                     </Button>
-                  </Link>
+                  </GuardedLink>
                 </Table.Cell>
               </Table.Row>
             ))}

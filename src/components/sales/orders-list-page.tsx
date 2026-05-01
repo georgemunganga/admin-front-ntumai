@@ -15,6 +15,7 @@ import { PiDownloadSimpleBold, PiMagnifyingGlassBold, PiNotePencilBold, PiPlusBo
 import { orderTrackingHrefBySlug } from "@/components/admin/ops-workflow-links";
 import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
+import GuardedLink from "@/components/auth/guarded-link";
 import StatusBadge from "@/components/admin/status-badge";
 import { routes } from "@/config/routes";
 import type { SalesOrder } from "@/components/sales/order-data";
@@ -143,12 +144,12 @@ export default function OrdersListPage() {
                 Support
               </Button>
             </Link>
-            <Link href={routes.sales.editOrder(row.original.slug)}>
+            <GuardedLink href={routes.sales.editOrder(row.original.slug)} requirement="write">
               <Button variant="text" className="h-auto p-0 text-primary">
                 Edit
                 <PiNotePencilBold className="ms-1 h-4 w-4" />
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         ),
       },
@@ -178,12 +179,12 @@ export default function OrdersListPage() {
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
-            <Link href={routes.sales.createOrder}>
+            <GuardedLink href={routes.sales.createOrder} requirement="write">
               <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
                 <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
                 Create Order
               </Button>
-            </Link>
+            </GuardedLink>
           </div>
         }
       />
