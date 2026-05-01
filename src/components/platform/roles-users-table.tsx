@@ -6,6 +6,7 @@ import { PiEnvelopeBold, PiMagnifyingGlassBold, PiPlusBold, PiTrashDuotone } fro
 import { useModal } from "@/app/shared/modal-views/use-modal";
 import CreateUserModal from "@/components/platform/create-user-modal";
 import { ROLES } from "@/config/constants";
+import { useAuth } from "@/components/auth/auth-provider";
 import {
   listPlatformRoleUsers,
   listPlatformUserStatuses,
@@ -58,6 +59,7 @@ function InviteButton({ userId, status }: { userId?: string; status: string }) {
 
 export default function RolesUsersTable() {
   const { openModal } = useModal();
+  const { canWrite, canDelete } = useAuth();
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
@@ -125,15 +127,17 @@ export default function RolesUsersTable() {
             prefix={<PiMagnifyingGlassBold className="size-4" />}
             className="order-3 h-9 w-full @2xl:order-2 @2xl:ms-auto @2xl:max-w-60 @4xl:order-3"
           />
-          <div className="order-2 ms-4 @2xl:order-3 @2xl:ms-0 @4xl:order-4 @4xl:shrink-0">
-            <Button
-              className="mt-0 rounded-2xl bg-primary text-white hover:bg-primary/90"
-              onClick={() => openModal({ view: <CreateUserModal />, customSize: 600 })}
-            >
-              <PiPlusBold className="me-1.5 h-4 w-4" />
-              Add New User
-            </Button>
-          </div>
+          {canWrite ? (
+            <div className="order-2 ms-4 @2xl:order-3 @2xl:ms-0 @4xl:order-4 @4xl:shrink-0">
+              <Button
+                className="mt-0 rounded-2xl bg-primary text-white hover:bg-primary/90"
+                onClick={() => openModal({ view: <CreateUserModal />, customSize: 600 })}
+              >
+                <PiPlusBold className="me-1.5 h-4 w-4" />
+                Add New User
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -186,8 +190,8 @@ export default function RolesUsersTable() {
                 </Table.Cell>
                 <Table.Cell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <InviteButton userId={row.userId} status={row.status} />
-                    <Button variant="outline" size="sm">Delete</Button>
+                    {canWrite ? <InviteButton userId={row.userId} status={row.status} /> : null}
+                    {canDelete ? <Button variant="outline" size="sm">Delete</Button> : null}
                   </div>
                 </Table.Cell>
               </Table.Row>

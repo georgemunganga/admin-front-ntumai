@@ -14,7 +14,7 @@ import {
   PiTruckDuotone,
 } from "react-icons/pi";
 
-type MenuItem = {
+export type MenuItem = {
   name: string;
   href?: string;
   icon?: React.ReactNode;

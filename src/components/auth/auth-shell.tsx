@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import HydrogenLayout from "@/layouts/hydrogen/layout";
 import { useAuth } from "@/components/auth/auth-provider";
+import { canAccessAdminPath, isPublicAdminPath } from "@/repositories/admin/admin-permissions";
+import { routes } from "@/config/routes";
 
 function FullscreenLoader() {
   return (
@@ -32,25 +34,27 @@ function FullscreenLoader() {
 export default function AuthShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, isReady, setLastPath } = useAuth();
+  const { isAuthenticated, isReady, setLastPath, user } = useAuth();
 
-  const isSignInPage = pathname === "/signin";
   const nextPath =
     typeof window !== "undefined"
       ? `${pathname}${window.location.search}`
       : pathname;
+  const isSignInPage = pathname === routes.auth.signIn;
+  const isPublicPath = isPublicAdminPath(pathname);
+  const hasRouteAccess = canAccessAdminPath(nextPath, user);
 
   useEffect(() => {
     if (!isReady) return;
-    if (!isSignInPage) {
+    if (!isPublicPath && hasRouteAccess) {
       setLastPath(nextPath);
     }
-  }, [isReady, isSignInPage, nextPath, setLastPath]);
+  }, [hasRouteAccess, isPublicPath, isReady, nextPath, setLastPath]);
 
   useEffect(() => {
     if (!isReady) return;
 
-    if (!isAuthenticated && !isSignInPage) {
+    if (!isAuthenticated && !isPublicPath) {
       router.replace(`/signin?next=${encodeURIComponent(nextPath)}`);
       return;
     }
@@ -61,14 +65,23 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
           ? new URLSearchParams(window.location.search).get("next") || "/"
           : "/";
       router.replace(next);
+      return;
     }
-  }, [isAuthenticated, isReady, isSignInPage, nextPath, router]);
+
+    if (isAuthenticated && !isPublicPath && !hasRouteAccess) {
+      router.replace(`${routes.accessDenied}?next=${encodeURIComponent(nextPath)}`);
+    }
+  }, [hasRouteAccess, isAuthenticated, isPublicPath, isReady, isSignInPage, nextPath, router]);
 
   if (!isReady) return <FullscreenLoader />;
 
-  if (!isAuthenticated && !isSignInPage) return <FullscreenLoader />;
+  if (!isAuthenticated && !isPublicPath) return <FullscreenLoader />;
 
-  if (isSignInPage) return <>{children}</>;
+  if (isAuthenticated && !isPublicPath && !hasRouteAccess) {
+    return <FullscreenLoader />;
+  }
+
+  if (isPublicPath) return <>{children}</>;
 
   return <HydrogenLayout>{children}</HydrogenLayout>;
 }

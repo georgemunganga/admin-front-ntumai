@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { routes } from "@/config/routes";
+import { canAccessAdminPath } from "@/repositories/admin/admin-permissions";
 
 const menuItems = [
   {
@@ -23,7 +24,13 @@ const menuItems = [
   },
 ];
 
-function DropdownMenu({ onSignOut }: { onSignOut: () => void }) {
+function DropdownMenu({
+  onSignOut,
+  items,
+}: {
+  onSignOut: () => void;
+  items: typeof menuItems;
+}) {
   return (
     <div className="w-64 text-left rtl:text-right">
       <div className="flex items-center border-b border-gray-300 px-6 pb-5 pt-6">
@@ -39,7 +46,7 @@ function DropdownMenu({ onSignOut }: { onSignOut: () => void }) {
         </div>
       </div>
       <div className="grid px-3.5 py-3.5 font-medium text-gray-700">
-        {menuItems.map((item) => (
+        {items.map((item) => (
           <Link
             key={item.name}
             href={item.href}
@@ -74,7 +81,10 @@ export default function ProfileMenu({
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const visibleMenuItems = menuItems.filter((item) =>
+    canAccessAdminPath(item.href, user),
+  );
 
   useEffect(() => {
     setIsOpen(false);
@@ -113,7 +123,10 @@ export default function ProfileMenu({
       </Popover.Trigger>
 
       <Popover.Content className="z-[9999] p-0 dark:bg-gray-100 [&>svg]:dark:fill-gray-100">
-        <DropdownMenu onSignOut={handleSignOut} />
+        <DropdownMenu
+          onSignOut={handleSignOut}
+          items={visibleMenuItems}
+        />
       </Popover.Content>
     </Popover>
   );

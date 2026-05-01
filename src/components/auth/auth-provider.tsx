@@ -14,6 +14,13 @@ import {
   clearStoredAdminSession,
 } from "@/repositories/admin/admin-session";
 import {
+  canDeleteAdmin,
+  canReadAdmin,
+  canWriteAdmin,
+  getEffectiveAdminPermissions,
+  hasAdminPermission,
+} from "@/repositories/admin/admin-permissions";
+import {
   loadCurrentAdminUser,
   logoutAdminSession,
   startAdminOtp,
@@ -24,6 +31,11 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   isReady: boolean;
   user: AdminSessionUser | null;
+  permissions: string[];
+  hasPermission: (permission: string) => boolean;
+  canRead: boolean;
+  canWrite: boolean;
+  canDelete: boolean;
   startSignIn: (payload: { email: string }) => Promise<{ sessionId: string; expiresIn: number }>;
   completeSignIn: (payload: { sessionId: string; otp: string }) => Promise<string>;
   signOut: () => void;
@@ -62,6 +74,11 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       isAuthenticated: Boolean(user),
       isReady,
       user,
+      permissions: getEffectiveAdminPermissions(user),
+      hasPermission: (permission: string) => hasAdminPermission(user, permission),
+      canRead: canReadAdmin(user),
+      canWrite: canWriteAdmin(user),
+      canDelete: canDeleteAdmin(user),
       startSignIn: async ({ email }) => {
         const response = await startAdminOtp(email);
         return {
@@ -71,7 +88,9 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       },
       completeSignIn: async ({ sessionId, otp }) => {
         const sessionUser = await verifyAdminOtp(sessionId, otp);
-        setUser(sessionUser);
+        const hydratedSession =
+          (await loadCurrentAdminUser(sessionUser)) ?? sessionUser;
+        setUser(hydratedSession);
         return (
           window.localStorage.getItem(ADMIN_LAST_PATH_KEY) ||
           window.location.search ||

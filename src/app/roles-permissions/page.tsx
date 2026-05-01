@@ -6,20 +6,22 @@ import RolesGrid from "@/components/platform/roles-grid";
 import RolesUsersTable from "@/components/platform/roles-users-table";
 import CreateRoleModal from "@/components/platform/create-role-modal";
 import { useModal } from "@/app/shared/modal-views/use-modal";
+import { useAuth } from "@/components/auth/auth-provider";
 
 export default function RolesPermissionsPage() {
   const { openModal } = useModal();
+  const { canWrite } = useAuth();
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Roles and Permissions "
         breadcrumb={["Dashboard", "Role Management & Permission"]}
-        action={
+        action={canWrite ? (
           <Button onClick={() => openModal({ view: <CreateRoleModal />, customSize: 700 })}>
             Add New Role
           </Button>
-        }
+        ) : null}
       />
       <RolesGrid />
       <RolesUsersTable />

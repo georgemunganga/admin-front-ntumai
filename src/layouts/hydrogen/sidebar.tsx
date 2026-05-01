@@ -8,10 +8,48 @@ import { Title, Collapse } from "rizzui";
 import { cn } from "@/utils/class-names";
 import { PiCaretDownBold } from "react-icons/pi";
 import SimpleBar from "@/components/ui/simplebar";
-import { menuItems } from "@/layouts/hydrogen/menu-items";
+import { menuItems, type MenuItem } from "@/layouts/hydrogen/menu-items";
+import { useAuth } from "@/components/auth/auth-provider";
+import { canAccessAdminPath } from "@/repositories/admin/admin-permissions";
+
+function getVisibleMenuItems(items: MenuItem[], user: ReturnType<typeof useAuth>["user"]) {
+  const visible: MenuItem[] = [];
+  let pendingSection: MenuItem | null = null;
+
+  for (const item of items) {
+    if (!item.href) {
+      pendingSection = item;
+      continue;
+    }
+
+    const visibleDropdownItems = item.dropdownItems?.filter((dropdownItem) =>
+      canAccessAdminPath(dropdownItem.href, user),
+    );
+    const hasVisibleDropdownItems = Boolean(visibleDropdownItems?.length);
+    const canVisitParent = canAccessAdminPath(item.href, user);
+
+    if (!canVisitParent && !hasVisibleDropdownItems) {
+      continue;
+    }
+
+    if (pendingSection) {
+      visible.push(pendingSection);
+      pendingSection = null;
+    }
+
+    visible.push({
+      ...item,
+      dropdownItems: visibleDropdownItems,
+    });
+  }
+
+  return visible;
+}
 
 export default function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const visibleMenuItems = getVisibleMenuItems(menuItems, user);
   return (
     <aside
       className={cn(
@@ -42,7 +80,7 @@ export default function Sidebar({ className }: { className?: string }) {
 
       <SimpleBar className="h-[calc(100%-80px)] bg-primary">
         <div className="mt-4 bg-primary pb-3 3xl:mt-6">
-          {menuItems.map((item, index) => {
+          {visibleMenuItems.map((item, index) => {
             const isActive = pathname === (item?.href as string);
             const pathnameExistInDropdowns: any = item?.dropdownItems?.filter(
               (dropdownItem) => dropdownItem.href === pathname
