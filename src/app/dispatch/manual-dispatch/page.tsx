@@ -23,7 +23,7 @@ import {
   manualDispatchOrderHrefByBooking,
   manualDispatchTrackingHrefByBooking,
 } from "@/components/admin/ops-workflow-links";
-import { assignDispatchJob } from "@/repositories/admin/dispatch";
+import { assignDispatchJob, reassignDispatchJob } from "@/repositories/admin/dispatch";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import { Modal } from "@/components/modal";
@@ -326,6 +326,7 @@ export default function DispatchManualDispatchPage() {
   });
   const prefilledOrderId = searchParams.get("orderId")?.trim() ?? "";
   const prefilledAssignmentId = searchParams.get("assignmentId")?.trim() ?? "";
+  const isReassignFlow = Boolean(prefilledAssignmentId);
 
   useEffect(() => {
     const focusTerms = [prefilledOrderId, prefilledAssignmentId].filter(Boolean);
@@ -645,13 +646,15 @@ export default function DispatchManualDispatchPage() {
             <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-5">
               <div>
                 <Text className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
-                  Assign nearest tasker
+                  {isReassignFlow ? "Reassign tasker" : "Assign nearest tasker"}
                 </Text>
                 <Text className="mt-2 text-2xl font-semibold text-gray-900">
                   {assigningItem.booking} · {assigningItem.rider}
                 </Text>
                 <Text className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-                  Pick the nearest available tasker for this manual dispatch job. The shortlist is ordered around pickup proximity and lane fit.
+                  {isReassignFlow
+                    ? "Pick the replacement tasker for this active assignment. The shortlist is ordered around pickup proximity and lane fit."
+                    : "Pick the nearest available tasker for this manual dispatch job. The shortlist is ordered around pickup proximity and lane fit."}
                 </Text>
               </div>
               <Button
@@ -670,6 +673,9 @@ export default function DispatchManualDispatchPage() {
               <ModalMeta label="Corridor" value={assigningItem.corridor} />
               <ModalMeta label="Override type" value={assigningItem.overrideType} />
               <ModalMeta label="Supply state" value={assigningItem.supply} />
+              {prefilledAssignmentId ? (
+                <ModalMeta label="Assignment" value={prefilledAssignmentId} />
+              ) : null}
             </div>
 
             <div className="mt-6 space-y-3">
@@ -760,6 +766,13 @@ export default function DispatchManualDispatchPage() {
                     setAssigningItem(null);
                     setSelectedTaskerId(null);
                     // Live API call (non-blocking, optimistic update already applied)
+                    if (prefilledAssignmentId) {
+                      reassignDispatchJob(prefilledAssignmentId, {
+                        newDriverId: selectedTasker.id,
+                        reason: "Manual reassignment from live dispatch map",
+                      }).catch(() => {/* silent — optimistic update preserved */});
+                      return;
+                    }
                     assignDispatchJob({
                       orderId: assigningItem.booking,
                       driverId: selectedTasker.id,
@@ -767,7 +780,7 @@ export default function DispatchManualDispatchPage() {
                     }).catch(() => {/* silent — optimistic update preserved */});
                   }}
                 >
-                  Confirm assignment
+                  {isReassignFlow ? "Confirm reassignment" : "Confirm assignment"}
                 </Button>
               </div>
             </div>
