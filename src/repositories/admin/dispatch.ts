@@ -45,6 +45,8 @@ export type DispatchException = {
 export type LiveDispatchEntity = {
   id: string;
   type: "tasker";
+  assignmentId: string;
+  driverId: string;
   label: string;
   status: string;
   orderId: string;
@@ -53,6 +55,12 @@ export type LiveDispatchEntity = {
   vendor: string;
   city: string;
   address: string;
+  lat: number | null;
+  lng: number | null;
+  vehicleType: string | null;
+  heartbeatAt: string | null;
+  pickup: { lat: number; lng: number; label: string } | null;
+  dropoff: { lat: number; lng: number; label: string } | null;
   updatedAt: string;
 };
 

@@ -52,6 +52,22 @@ function normalizeZone(city?: string | null): MapEntity["zone"] {
   return "CBD";
 }
 
+function normalizeVehicleType(value?: string | null): MapEntity["vehicleType"] | undefined {
+  const type = value?.toLowerCase() ?? "";
+  if (type.includes("walk")) return "Walking";
+  if (type.includes("bicycle") || type.includes("bike")) return "Bicycle";
+  if (type.includes("motor")) return "Motorbike";
+  if (type.includes("car") || type.includes("sedan")) return "Car";
+  if (type.includes("van") || type.includes("truck") || type.includes("pickup")) return "Van";
+  return undefined;
+}
+
+function heartbeatSeconds(value?: string | null) {
+  if (!value) return undefined;
+  const diffMs = Date.now() - new Date(value).getTime();
+  return Math.max(1, Math.round(diffMs / 1000));
+}
+
 
 function markerSvg(kind: MarkerTone) {
   if (kind === "tasker") {
@@ -157,12 +173,30 @@ export default function LiveDispatchMap() {
       id: entity.id,
       name: entity.label,
       kind: "tasker" as const,
-      lat: -15.4167 + (Math.random() - 0.5) * 0.08, // approximate until GPS is available
-      lng: 28.2833 + (Math.random() - 0.5) * 0.08,
+      lat: entity.lat ?? -15.4167,
+      lng: entity.lng ?? 28.2833,
       status: entity.status,
       detail: `${entity.orderRef} · ${entity.customer} → ${entity.vendor}`,
       zone: normalizeZone(entity.city),
+      vehicleType: normalizeVehicleType(entity.vehicleType),
+      heartbeatSec: heartbeatSeconds(entity.heartbeatAt),
+      trackingId: entity.orderRef,
       orderId: entity.orderId,
+      pickup: entity.pickup ?? undefined,
+      dropoff: entity.dropoff ?? undefined,
+      routePath:
+        entity.pickup && entity.dropoff
+          ? [
+              { lat: entity.pickup.lat, lng: entity.pickup.lng },
+              { lat: entity.lat ?? -15.4167, lng: entity.lng ?? 28.2833 },
+              { lat: entity.dropoff.lat, lng: entity.dropoff.lng },
+            ]
+          : entity.dropoff
+            ? [
+                { lat: entity.lat ?? -15.4167, lng: entity.lng ?? 28.2833 },
+                { lat: entity.dropoff.lat, lng: entity.dropoff.lng },
+              ]
+            : undefined,
     }));
 
     setMergedEntities([...nonTaskerSeeds, ...liveTaskerEntities]);
