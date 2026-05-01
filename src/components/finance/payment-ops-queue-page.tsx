@@ -19,7 +19,12 @@ import StatusBadge from "@/components/admin/status-badge";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
-import { type PaymentCase, type PaymentLane, usePaymentCases } from "@/repositories/admin/finance";
+import {
+  applyAdminPaymentDecision,
+  type PaymentCase,
+  type PaymentLane,
+  usePaymentCases,
+} from "@/repositories/admin/finance";
 
 type DecisionAction = "retry" | "escalate" | "close";
 
@@ -269,6 +274,9 @@ export default function PaymentOpsQueuePage() {
   }, [filteredCases]);
 
   function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    applyAdminPaymentDecision(id, action, reasonCode, note).catch(() => {
+      // Keep optimistic UI behavior even if the network request fails.
+    });
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;

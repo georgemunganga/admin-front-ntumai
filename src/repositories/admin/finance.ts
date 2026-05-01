@@ -33,6 +33,13 @@ export type RefundCase = AdminRiskCaseBase & {
   sourceSummary: string;
 };
 
+type FinanceDecisionPayload = {
+  action: string;
+  reasonCode?: string | null;
+  note?: string | null;
+  updatedAt?: string;
+} | null;
+
 type PaymentApiItem = {
   id: string;
   reference?: string | null;
@@ -61,6 +68,7 @@ type PaymentApiItem = {
     id: string;
     name?: string | null;
   } | null;
+  latestDecision?: FinanceDecisionPayload;
 };
 
 type PaymentsPayload = {
@@ -99,6 +107,7 @@ type RefundApiItem = {
     id: string;
     name?: string | null;
   } | null;
+  latestDecision?: FinanceDecisionPayload;
 };
 
 type RefundsPayload = {
@@ -404,7 +413,7 @@ function mapPaymentsPayload(payload: unknown): PaymentCase[] {
       lane,
       customerName: item.customer?.fullName ?? item.customer?.email ?? "Unknown customer",
       city: item.address?.city ?? "Unknown",
-      status: mapPaymentStatus(item.status, item.order?.status),
+      status: mapPaymentStatus(item.status, item.order?.status, item.latestDecision?.action),
       amount: formatMoney(item.amount),
       method: normalizeMethod(item.method),
       owner: lane === "retry" ? "Payments ops" : lane === "chargeback" ? "Chargeback desk" : "Ledger reconciliation",
@@ -413,6 +422,17 @@ function mapPaymentsPayload(payload: unknown): PaymentCase[] {
       sourceSummary: buildPaymentSourceSummary(lane, item),
       riskFlags: buildPaymentFlags(lane, item),
       timeline: [
+        ...(item.latestDecision
+          ? [
+              {
+                label: `Finance ${normalizeToken(item.latestDecision.action)}`,
+                detail:
+                  item.latestDecision.note ||
+                  `Finance recorded ${normalizeToken(item.latestDecision.action).toLowerCase()} with reason ${item.latestDecision.reasonCode ?? "n/a"}.`,
+                time: formatTime(item.latestDecision.updatedAt),
+              },
+            ]
+          : []),
         {
           label: "Payment record created",
           detail: `Payment event linked to order ${item.order?.trackingId ?? item.order?.id ?? "unknown"} entered the finance queue.`,
@@ -425,6 +445,9 @@ function mapPaymentsPayload(payload: unknown): PaymentCase[] {
         },
       ],
       notes: [
+        ...(item.latestDecision?.note
+          ? [`Latest finance decision: ${normalizeToken(item.latestDecision.action)}. ${item.latestDecision.note}`]
+          : []),
         "Live payment case loaded from the Nest admin endpoint.",
         lane === "retry"
           ? "Check retry, fallback, or duplicate-capture risk before rerunning payment."
@@ -472,7 +495,7 @@ function mapRefundsPayload(payload: unknown): RefundCase[] {
       lane,
       customerName: item.customer?.fullName ?? item.customer?.email ?? "Unknown customer",
       city: item.address?.city ?? "Unknown",
-      status: mapRefundStatus(item.refundState),
+      status: mapRefundStatus(item.refundState, item.latestDecision?.action),
       amount: formatMoney(item.amount),
       destination: item.payment?.method ? `${normalizeMethod(item.payment.method)} reversal` : "Original order value review",
       owner:
@@ -486,6 +509,17 @@ function mapRefundsPayload(payload: unknown): RefundCase[] {
       sourceSummary: buildRefundSourceSummary(item),
       riskFlags: buildRefundFlags(item),
       timeline: [
+        ...(item.latestDecision
+          ? [
+              {
+                label: `Finance ${normalizeToken(item.latestDecision.action)}`,
+                detail:
+                  item.latestDecision.note ||
+                  `Finance recorded ${normalizeToken(item.latestDecision.action).toLowerCase()} with reason ${item.latestDecision.reasonCode ?? "n/a"}.`,
+                time: formatTime(item.latestDecision.updatedAt),
+              },
+            ]
+          : []),
         {
           label: "Refund case identified",
           detail: `Order ${item.order?.trackingId ?? item.order?.id ?? "unknown"} entered the refund review workflow.`,
@@ -498,6 +532,9 @@ function mapRefundsPayload(payload: unknown): RefundCase[] {
         },
       ],
       notes: [
+        ...(item.latestDecision?.note
+          ? [`Latest finance decision: ${normalizeToken(item.latestDecision.action)}. ${item.latestDecision.note}`]
+          : []),
         item.refundState === "refunded"
           ? "This refund has already been posted from the live payment trail."
           : "Derived refund review case loaded from live order and payment state.",
@@ -535,7 +572,14 @@ function mapPaymentLane(status?: string | null, orderStatus?: string | null): Pa
   return "reconciliation";
 }
 
-function mapPaymentStatus(status?: string | null, orderStatus?: string | null) {
+function mapPaymentStatus(
+  status?: string | null,
+  orderStatus?: string | null,
+  latestAction?: string | null,
+) {
+  if (latestAction === "close") return "stable";
+  if (latestAction === "escalate") return "monitoring";
+  if (latestAction === "retry") return "live";
   if (status === "FAILED") return "review";
   if (status === "PENDING") return "queued";
   if (status === "REFUNDED") return "monitoring";
@@ -549,7 +593,10 @@ function mapRefundLane(item: RefundApiItem): RefundLane {
   return "manual";
 }
 
-function mapRefundStatus(state?: string | null) {
+function mapRefundStatus(state?: string | null, latestAction?: string | null) {
+  if (latestAction === "approve") return "stable";
+  if (latestAction === "hold") return "monitoring";
+  if (latestAction === "deny") return "paused";
   if (state === "refunded") return "stable";
   if (state === "blocked") return "at_risk";
   return "review";
@@ -678,5 +725,29 @@ export async function applyAdminPayoutDecision(
   return patchAdminData<{ id: string; status: string; action: string }>(
     `/api/v1/admin/payouts/${payoutId}`,
     { action, ...(note ? { note } : {}) },
+  );
+}
+
+export async function applyAdminPaymentDecision(
+  paymentId: string,
+  action: "retry" | "escalate" | "close",
+  reasonCode: string,
+  note?: string,
+): Promise<{ id: string; action: string; reasonCode: string } | null> {
+  return patchAdminData<{ id: string; action: string; reasonCode: string }>(
+    `/api/v1/admin/payments/${paymentId}`,
+    { action, reasonCode, ...(note ? { note } : {}) },
+  );
+}
+
+export async function applyAdminRefundDecision(
+  refundId: string,
+  action: "approve" | "hold" | "deny",
+  reasonCode: string,
+  note?: string,
+): Promise<{ id: string; action: string; reasonCode: string } | null> {
+  return patchAdminData<{ id: string; action: string; reasonCode: string }>(
+    `/api/v1/admin/refunds/${refundId}`,
+    { action, reasonCode, ...(note ? { note } : {}) },
   );
 }

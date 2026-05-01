@@ -19,7 +19,12 @@ import StatusBadge from "@/components/admin/status-badge";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
-import { type RefundCase, type RefundLane, useRefundCases } from "@/repositories/admin/finance";
+import {
+  applyAdminRefundDecision,
+  type RefundCase,
+  type RefundLane,
+  useRefundCases,
+} from "@/repositories/admin/finance";
 
 type DecisionAction = "approve" | "hold" | "deny";
 
@@ -269,6 +274,9 @@ export default function RefundApprovalQueuePage() {
   }, [filteredCases]);
 
   function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    applyAdminRefundDecision(id, action, reasonCode, note).catch(() => {
+      // Keep optimistic UI behavior even if the network request fails.
+    });
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
