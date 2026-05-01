@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAdminLiveDispatch } from "@/repositories/admin/dispatch";
 import { Loader } from "@googlemaps/js-api-loader";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Badge, Button, Input, Select, Text, Title } from "rizzui";
@@ -129,10 +130,35 @@ export default function LiveDispatchMap() {
   const [zoneFilter, setZoneFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [liveFollow, setLiveFollow] = useState(true);
+  const [mergedEntities, setMergedEntities] = useState<MapEntity[]>(dispatchEntities);
+
+  // Live dispatch data from backend
+  const { entities: liveEntities } = useAdminLiveDispatch();
+
+  // Merge live backend taskers into the seed entities
+  // Live taskers replace seed taskers by ID; vendors and alerts are preserved
+  useEffect(() => {
+    if (!liveEntities || liveEntities.length === 0) return;
+
+    const nonTaskerSeeds = dispatchEntities.filter((e) => e.kind !== "tasker");
+    const liveTaskerEntities: MapEntity[] = liveEntities.map((entity) => ({
+      id: entity.id,
+      name: entity.label,
+      kind: "tasker" as const,
+      lat: -15.4167 + (Math.random() - 0.5) * 0.08, // approximate until GPS is available
+      lng: 28.2833 + (Math.random() - 0.5) * 0.08,
+      status: entity.status,
+      detail: `${entity.orderRef} · ${entity.customer} → ${entity.vendor}`,
+      zone: entity.city,
+      orderId: entity.orderId,
+    }));
+
+    setMergedEntities([...nonTaskerSeeds, ...liveTaskerEntities]);
+  }, [liveEntities]);
 
   const filteredEntities = useMemo(
     () =>
-      dispatchEntities.filter((entity) => {
+      mergedEntities.filter((entity) => {
         const kindMatch = kindFilter === "all" || entity.kind === kindFilter;
         const vehicleMatch =
           vehicleFilter === "all" ||
@@ -141,7 +167,7 @@ export default function LiveDispatchMap() {
 
         return kindMatch && vehicleMatch && zoneMatch;
       }),
-    [kindFilter, vehicleFilter, zoneFilter],
+    [kindFilter, vehicleFilter, zoneFilter, mergedEntities],
   );
 
   const selectedEntity =
