@@ -180,6 +180,8 @@ export default function LiveDispatchMap({
       kind: "tasker" as const,
       lat: entity.lat ?? -15.4167,
       lng: entity.lng ?? 28.2833,
+      assignmentId: entity.assignmentId,
+      driverId: entity.driverId,
       status: entity.status,
       detail: `${entity.orderRef} · ${entity.customer} → ${entity.vendor}`,
       zone: normalizeZone(entity.city),
@@ -710,7 +712,11 @@ export default function LiveDispatchMap({
                 </Link>
               ) : null}
               {selectedEntity.orderId ? (
-                <Link href={`${routes.dispatch.manualDispatch}?orderId=${encodeURIComponent(selectedEntity.orderId)}`}>
+                <Link
+                  href={`${routes.dispatch.manualDispatch}?orderId=${encodeURIComponent(
+                    selectedEntity.orderId,
+                  )}${selectedEntity.assignmentId ? `&assignmentId=${encodeURIComponent(selectedEntity.assignmentId)}` : ""}`}
+                >
                   <Button size="sm" variant="outline" className="rounded-2xl px-3">
                     <PiArrowClockwiseBold className="me-1.5 h-4 w-4" />
                     Reassign

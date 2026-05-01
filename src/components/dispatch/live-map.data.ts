@@ -8,6 +8,8 @@ export type MapEntity = {
   detail: string;
   lat: number;
   lng: number;
+  assignmentId?: string;
+  driverId?: string;
   vehicleType?: "Walking" | "Bicycle" | "Motorbike" | "Car" | "Van";
   zone: "CBD" | "Roma" | "Woodlands" | "Airport" | "Rhodes Park";
   heartbeatSec?: number;

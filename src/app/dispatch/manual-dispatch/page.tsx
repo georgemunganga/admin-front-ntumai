@@ -324,11 +324,13 @@ export default function DispatchManualDispatchPage() {
     pageSize: 8,
   });
   const prefilledOrderId = searchParams.get("orderId")?.trim() ?? "";
+  const prefilledAssignmentId = searchParams.get("assignmentId")?.trim() ?? "";
 
   useEffect(() => {
-    if (!prefilledOrderId) return;
-    setQuery(prefilledOrderId);
-  }, [prefilledOrderId]);
+    const focusTerms = [prefilledOrderId, prefilledAssignmentId].filter(Boolean);
+    if (!focusTerms.length) return;
+    setQuery(focusTerms.join(" "));
+  }, [prefilledAssignmentId, prefilledOrderId]);
 
   const filteredRows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -472,6 +474,31 @@ export default function DispatchManualDispatchPage() {
       />
 
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        {prefilledOrderId || prefilledAssignmentId ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3">
+            <div className="space-y-1">
+              <Text className="text-sm font-semibold text-gray-900">
+                Live map dispatch focus
+              </Text>
+              <Text className="text-xs text-gray-600">
+                This queue is focused from the live map selection so staff can continue reassignment without searching again.
+              </Text>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {prefilledOrderId ? (
+                <Badge variant="flat" className="rounded-2xl bg-white px-3 py-1.5 text-gray-700">
+                  Order {prefilledOrderId}
+                </Badge>
+              ) : null}
+              {prefilledAssignmentId ? (
+                <Badge variant="flat" className="rounded-2xl bg-white px-3 py-1.5 text-gray-700">
+                  Assignment {prefilledAssignmentId}
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
         <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_240px_220px_auto]">
           <Input
             type="search"
