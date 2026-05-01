@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { salesOrders, type SalesOrder } from "@/components/sales/order-data";
 import type { AdminStatus } from "@/contracts/admin-domain";
-import { useAdminResource } from "@/repositories/admin/admin-api";
+import { useAdminResource, patchAdminData } from "@/repositories/admin/admin-api";
 
 export function listSalesOrders(): SalesOrder[] {
   return salesOrders;
@@ -213,4 +213,25 @@ function formatTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/**
+ * Admin order status mutation — calls PATCH /api/v1/admin/orders/:orderId/status
+ * Valid statuses: CANCELLED, COMPLETED, ACCEPTED, PREPARING, PACKING, OUT_FOR_DELIVERY
+ */
+export async function updateAdminOrderStatus(
+  orderId: string,
+  status: string,
+  reason?: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await patchAdminData<{ item: AdminOrderDetail }>(
+      `/api/v1/admin/orders/${orderId}/status`,
+      { status, reason },
+    );
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to update order status";
+    return { success: false, error: message };
+  }
 }

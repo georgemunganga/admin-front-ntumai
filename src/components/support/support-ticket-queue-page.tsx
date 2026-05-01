@@ -19,7 +19,7 @@ import StatusBadge from "@/components/admin/status-badge";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
-import { type SupportTicketCase as TicketCase, type SupportTicketLane, useSupportTicketCases } from "@/repositories/admin/support";
+import { type SupportTicketCase as TicketCase, type SupportTicketLane, useSupportTicketCases, updateSupportTicket } from "@/repositories/admin/support";
 
 type DecisionAction = "assign" | "escalate" | "resolve";
 
@@ -265,6 +265,7 @@ export default function SupportTicketQueuePage() {
   }, [filteredCases]);
 
   function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    // Optimistic local state update
     setCases((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
@@ -287,6 +288,10 @@ export default function SupportTicketQueuePage() {
         };
       }),
     );
+    // Live API call (non-blocking — optimistic UI already applied above)
+    updateSupportTicket(id, action, reasonCode, note).catch(() => {
+      // Silent fail — optimistic update stays in place for the session
+    });
   }
 
   return (

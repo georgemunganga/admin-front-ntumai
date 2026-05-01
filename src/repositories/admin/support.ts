@@ -1359,3 +1359,31 @@ function mapInboxAgent(category?: string | null) {
       return "Support lead";
   }
 }
+
+/**
+ * Admin support ticket mutation — calls PATCH /api/v1/admin/support/tickets/:id
+ * action: "assign" | "escalate" | "resolve"
+ */
+export async function updateSupportTicket(
+  id: string,
+  action: "assign" | "escalate" | "resolve",
+  reasonCode: string,
+  note: string,
+): Promise<{ success: boolean; error?: string }> {
+  const statusMap: Record<string, string> = {
+    assign: "IN_PROGRESS",
+    escalate: "ESCALATED",
+    resolve: "RESOLVED",
+  };
+  try {
+    await patchAdminData<{ item: unknown }>(`/api/v1/admin/support/tickets/${id}`, {
+      status: statusMap[action] ?? "IN_PROGRESS",
+      resolution: note || reasonCode || undefined,
+      assignedTo: action === "assign" ? "admin" : undefined,
+    });
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to update support ticket";
+    return { success: false, error: message };
+  }
+}

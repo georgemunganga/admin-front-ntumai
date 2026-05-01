@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Button, Text, Title } from "rizzui";
-import { PiArrowLeftBold, PiCheckBold, PiNotePencilBold } from "react-icons/pi";
+import { PiArrowLeftBold, PiCheckBold, PiNotePencilBold, PiXCircleBold, PiCheckCircleBold } from "react-icons/pi";
 import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
+import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
-import { useSalesOrder } from "@/repositories/admin/orders";
+import { useSalesOrder, updateAdminOrderStatus } from "@/repositories/admin/orders";
 
 const orderStatusSteps = [
   "Order Created",
@@ -17,8 +19,33 @@ const orderStatusSteps = [
   "Delivered",
 ];
 
+// Terminal statuses — no mutations allowed
+const TERMINAL_STATUSES = ["at_risk", "stable"]; // at_risk = CANCELLED, stable = DELIVERED/COMPLETED
+
+type ActionType = "cancel" | "force_complete" | null;
+
 export default function OrderDetailPage({ id }: { id: string }) {
   const { data: order, isLoading, isLive, error } = useSalesOrder(id);
+  const [pendingAction, setPendingAction] = useState<ActionType>(null);
+  const [reason, setReason] = useState("");
+  const [isMutating, setIsMutating] = useState(false);
+  const [mutationResult, setMutationResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  async function handleConfirmAction() {
+    if (!order || !pendingAction) return;
+    setIsMutating(true);
+    const status = pendingAction === "cancel" ? "CANCELLED" : "COMPLETED";
+    const result = await updateAdminOrderStatus(order.id, status, reason || undefined);
+    setIsMutating(false);
+    setPendingAction(null);
+    setReason("");
+    setMutationResult({
+      success: result.success,
+      message: result.success
+        ? `Order ${order.orderNumber} has been ${pendingAction === "cancel" ? "cancelled" : "force-completed"} successfully.`
+        : result.error ?? "An unexpected error occurred.",
+    });
+  }
 
   if (!order && isLoading) {
     return (
@@ -56,10 +83,78 @@ export default function OrderDetailPage({ id }: { id: string }) {
     );
   }
 
+  const isTerminal = TERMINAL_STATUSES.includes(order.status);
   const currentStep = order.status === "queued" ? 1 : order.status === "review" ? 2 : order.status === "monitoring" ? 3 : order.status === "live" ? 4 : 5;
 
   return (
     <div className="@container space-y-6">
+      {/* Confirmation modal for admin actions */}
+      <Modal
+        isOpen={pendingAction !== null}
+        onClose={() => { setPendingAction(null); setReason(""); }}
+        size="md"
+        rounded="lg"
+      >
+        <div className="rounded-3xl bg-white p-6 sm:p-7">
+          <Text className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">
+            {order.orderNumber}
+          </Text>
+          <Title as="h3" className="mt-2 text-xl font-semibold text-gray-900">
+            {pendingAction === "cancel" ? "Cancel this order" : "Force-complete this order"}
+          </Title>
+          <Text className="mt-2 text-sm leading-6 text-gray-500">
+            {pendingAction === "cancel"
+              ? "This will move the order to CANCELLED status. The action is irreversible. Provide a reason for the audit trail."
+              : "This will mark the order as COMPLETED regardless of its current delivery state. Use only when the tasker has confirmed handoff but the system has not updated. Provide a reason for the audit trail."}
+          </Text>
+          <div className="mt-5">
+            <Text className="mb-2 text-sm font-medium text-gray-700">Reason (optional but recommended)</Text>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+              placeholder={pendingAction === "cancel" ? "e.g. Customer requested cancellation before dispatch" : "e.g. Tasker confirmed delivery via phone, app not updated"}
+            />
+          </div>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={() => { setPendingAction(null); setReason(""); }}>
+              Cancel
+            </Button>
+            <Button
+              isLoading={isMutating}
+              className={`h-11 rounded-2xl px-4 ${pendingAction === "cancel" ? "bg-red-dark text-white hover:bg-red-dark/90" : "bg-primary text-white hover:bg-primary/90"}`}
+              onClick={handleConfirmAction}
+            >
+              {pendingAction === "cancel" ? "Confirm cancellation" : "Confirm force-complete"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Result feedback modal */}
+      <Modal
+        isOpen={mutationResult !== null}
+        onClose={() => setMutationResult(null)}
+        size="sm"
+        rounded="lg"
+      >
+        <div className="rounded-3xl bg-white p-6 sm:p-7 text-center">
+          {mutationResult?.success ? (
+            <PiCheckCircleBold className="mx-auto mb-3 h-10 w-10 text-green-500" />
+          ) : (
+            <PiXCircleBold className="mx-auto mb-3 h-10 w-10 text-red-500" />
+          )}
+          <Title as="h3" className="text-lg font-semibold text-gray-900">
+            {mutationResult?.success ? "Action applied" : "Action failed"}
+          </Title>
+          <Text className="mt-2 text-sm text-gray-500">{mutationResult?.message}</Text>
+          <Button className="mt-6 h-11 rounded-2xl bg-primary px-6 text-white hover:bg-primary/90" onClick={() => setMutationResult(null)}>
+            Close
+          </Button>
+        </div>
+      </Modal>
+
       <PageHeader
         breadcrumb={["Home", "Sales", "Orders", order.id]}
         eyebrow="Sales Kit"
@@ -84,6 +179,27 @@ export default function OrderDetailPage({ id }: { id: string }) {
                 Open Support
               </Button>
             </Link>
+            {/* Admin intervention buttons — hidden for terminal orders */}
+            {!isTerminal && (
+              <>
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-2xl border-red-300 px-4 text-red-600 hover:bg-red-50"
+                  onClick={() => setPendingAction("cancel")}
+                >
+                  <PiXCircleBold className="me-1.5 h-4 w-4" />
+                  Cancel Order
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-2xl border-green-300 px-4 text-green-700 hover:bg-green-50"
+                  onClick={() => setPendingAction("force_complete")}
+                >
+                  <PiCheckCircleBold className="me-1.5 h-4 w-4" />
+                  Force Complete
+                </Button>
+              </>
+            )}
           </div>
         }
       />
@@ -95,6 +211,11 @@ export default function OrderDetailPage({ id }: { id: string }) {
         <span className="my-2 border-r border-gray-200 px-5 py-0.5 first:ps-0 last:border-r-0">{order.itemCount}</span>
         <span className="my-2 border-r border-gray-200 px-5 py-0.5 first:ps-0 last:border-r-0">Total {order.totalAmount}</span>
         <span className="my-2 ms-5 rounded-3xl bg-green-100 px-2.5 py-1 text-xs text-green-700">{order.paymentState}</span>
+        {isTerminal && (
+          <span className="my-2 ms-2 rounded-3xl bg-gray-100 px-2.5 py-1 text-xs text-gray-500">
+            {order.status === "at_risk" ? "Cancelled" : "Completed"} — no further actions available
+          </span>
+        )}
       </div>
 
       <div className="items-start @5xl:grid @5xl:grid-cols-12 @5xl:gap-7 @6xl:grid-cols-10 @7xl:gap-10">
