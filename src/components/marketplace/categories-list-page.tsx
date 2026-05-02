@@ -16,9 +16,7 @@ import GuardedLink from "@/components/auth/guarded-link";
 import PageHeader from "@/components/admin/page-header";
 import StatusBadge from "@/components/admin/status-badge";
 import {
-  listCategoryGroups,
-  listCategoryStatuses,
-  listMarketplaceCategories,
+  useAdminCategories,
   type MarketplaceCategoryRecord,
 } from "@/repositories/admin/categories";
 
@@ -30,14 +28,26 @@ export default function CategoriesListPage() {
     pageIndex: 0,
     pageSize: 8,
   });
-  const categories = useMemo(() => listMarketplaceCategories(), []);
+  const { data: categories = [], isLoading, error } = useAdminCategories();
   const statusOptions = useMemo(
-    () => [{ label: "All statuses", value: "all" }].concat(listCategoryStatuses().map((value) => ({ label: value, value }))),
-    [],
+    () =>
+      [{ label: "All statuses", value: "all" }].concat(
+        Array.from(new Set(categories.map((category) => category.status))).map((value) => ({
+          label: value,
+          value,
+        })),
+      ),
+    [categories],
   );
   const segmentOptions = useMemo(
-    () => [{ label: "All groups", value: "all" }].concat(listCategoryGroups().map((value) => ({ label: value, value }))),
-    [],
+    () =>
+      [{ label: "All groups", value: "all" }].concat(
+        Array.from(new Set(categories.map((category) => category.group))).map((value) => ({
+          label: value,
+          value,
+        })),
+      ),
+    [categories],
   );
 
   const filteredRows = useMemo(() => {
@@ -126,6 +136,11 @@ export default function CategoriesListPage() {
       />
 
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        {error ? (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        ) : null}
         <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_220px_auto]">
           <Input
             type="search"
@@ -161,7 +176,9 @@ export default function CategoriesListPage() {
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-3">
-          <Text className="text-sm text-gray-500">{filteredRows.length} categories</Text>
+          <Text className="text-sm text-gray-500">
+            {isLoading ? "Loading categories..." : `${filteredRows.length} categories`}
+          </Text>
           <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
             Catalog governed
           </Badge>

@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge, Button, Checkbox, Input, Select, Text, Textarea } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold, PiImageBold, PiUploadBold } from "react-icons/pi";
 import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import type { MarketplaceProductRecord } from "@/repositories/admin/products";
+import {
+  createAdminProduct,
+  updateAdminProduct,
+} from "@/repositories/admin/products";
+import { useAdminCategories } from "@/repositories/admin/categories";
+import { useAdminVendors } from "@/repositories/admin/vendors";
 
 const formSections = [
   { id: "summary", label: "Summary" },
@@ -77,7 +85,10 @@ export default function ProductFormWorkspace({
   mode,
   product,
 }: ProductFormWorkspaceProps) {
+  const router = useRouter();
   const { guardAction } = useAdminActionGuard();
+  const { data: liveCategories = [] } = useAdminCategories();
+  const { data: liveVendors = [] } = useAdminVendors();
   const title = mode === "edit" ? `Edit ${product?.name}` : "Create Product";
   const name = product?.name ?? "Organic tomato basket";
   const sku = product?.sku ?? "GBM-TOM-001";
@@ -97,6 +108,122 @@ export default function ProductFormWorkspace({
   const stockLevel = String(product?.stockLevel ?? 84);
   const price = String(product?.priceValue ?? 95);
   const backHref = mode === "edit" && product ? routes.marketplace.productDetails(product.slug) : routes.marketplace.products;
+  const [form, setForm] = useState({
+    name,
+    vendor,
+    category,
+    subcategory,
+    description,
+    status: status as string,
+    visibility,
+    fulfillment,
+    stockLevel,
+    price,
+    tags: (product?.tags ?? ["Fresh", "Top seller", "Same-day"]).join(", "),
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    setForm({
+      name,
+      vendor,
+      category,
+      subcategory,
+      description,
+      status: status as string,
+      visibility,
+      fulfillment,
+      stockLevel,
+      price,
+      tags: (product?.tags ?? ["Fresh", "Top seller", "Same-day"]).join(", "),
+    });
+  }, [
+    category,
+    description,
+    fulfillment,
+    name,
+    price,
+    product?.tags,
+    status,
+    stockLevel,
+    subcategory,
+    vendor,
+    visibility,
+  ]);
+
+  const vendorSelectOptions = useMemo(() => {
+    if (liveVendors.length) {
+      return liveVendors.map((item) => ({
+        label: item.storeName || item.name,
+        value: item.storeName || item.name,
+      }));
+    }
+    return vendorOptions;
+  }, [liveVendors]);
+
+  const categorySelectOptions = useMemo(() => {
+    if (liveCategories.length) {
+      return liveCategories.map((item) => ({ label: item.name, value: item.name }));
+    }
+    return categoryOptions;
+  }, [liveCategories]);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      const matchedVendor = liveVendors.find(
+        (item) => (item.storeName || item.name) === form.vendor,
+      );
+      if (!matchedVendor?.storeName && mode === "create") {
+        throw new Error("Choose a live vendor store before creating a product.");
+      }
+      const matchedCategory = liveCategories.find((item) => item.name === form.category);
+      const payload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        price: Number(form.price) || 0,
+        stock: Number(form.stockLevel) || 0,
+        isActive: form.visibility !== "Review hold" && form.status !== "Review",
+        categoryId: matchedCategory?.id ?? null,
+        subcategory: form.subcategory.trim() || null,
+        tags: form.tags
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        ...(mode === "create" ? { storeId: matchedVendor?.id } : {}),
+      };
+
+      const result =
+        mode === "create"
+          ? await createAdminProduct(payload)
+          : await updateAdminProduct(product!.id, payload);
+
+      const itemId = result?.item?.id ?? product?.id;
+      setFeedback({
+        type: "success",
+        message:
+          mode === "create"
+            ? "Product created successfully."
+            : "Product updated successfully.",
+      });
+      if (itemId) {
+        router.push(routes.marketplace.productDetails(itemId));
+        router.refresh();
+      }
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to save the product.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div className="@container space-y-6">
@@ -128,10 +255,11 @@ export default function ProductFormWorkspace({
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot create or update marketplace products.",
                 )
               }
@@ -142,6 +270,18 @@ export default function ProductFormWorkspace({
           </div>
         }
       />
+
+      {feedback ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
 
       <div className="sticky top-[68px] z-20 border-b border-gray-300 bg-white/95 py-0 backdrop-blur @2xl:top-[72px] 2xl:top-20">
         <div className="custom-scrollbar overflow-x-auto scroll-smooth">
@@ -165,17 +305,18 @@ export default function ProductFormWorkspace({
           title="Summary"
           description="Set vendor identity, storefront copy, and readiness state for this catalog item."
         >
-          <Input label="Product name" rounded="lg" defaultValue={name} />
-          <SelectField label="Vendor store" options={vendorOptions} value={vendor} />
-          <SelectField label="Main category" options={categoryOptions} value={category} />
-          <SelectField label="Subcategory" options={subcategoryOptions} value={subcategory} />
+          <Input label="Product name" rounded="lg" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
+          <SelectField label="Vendor store" options={vendorSelectOptions} value={form.vendor} onChange={(value) => setForm((current) => ({ ...current, vendor: value }))} />
+          <SelectField label="Main category" options={categorySelectOptions} value={form.category} onChange={(value) => setForm((current) => ({ ...current, category: value }))} />
+          <SelectField label="Subcategory" options={subcategoryOptions} value={form.subcategory} onChange={(value) => setForm((current) => ({ ...current, subcategory: value }))} />
           <Input label="Business type" rounded="lg" defaultValue={product?.businessType ?? "Grocery vendor"} />
-          <SelectField label="Catalog status" options={statusOptions} value={status} />
+          <SelectField label="Catalog status" options={statusOptions} value={form.status} onChange={(value) => setForm((current) => ({ ...current, status: value }))} />
           <Textarea
             label="Description"
             textareaClassName="rounded-2xl"
             className="col-span-full"
-            defaultValue={description}
+            value={form.description}
+            onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
           />
         </FormSection>
 
@@ -205,8 +346,8 @@ export default function ProductFormWorkspace({
           title="Pricing & Inventory"
           description="Set stock, price, fees, and sale readiness for this catalog item."
         >
-          <Input label="Price" rounded="lg" defaultValue={price} prefix="ZMW" />
-          <Input label="Stock level" rounded="lg" defaultValue={stockLevel} />
+          <Input label="Price" rounded="lg" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} prefix="ZMW" />
+          <Input label="Stock level" rounded="lg" value={form.stockLevel} onChange={(event) => setForm((current) => ({ ...current, stockLevel: event.target.value }))} />
           <Input label="Sale price" rounded="lg" defaultValue={status === "Low stock" ? price : String(Math.max(Number(price) - 10, 0))} prefix="ZMW" />
           <Input label="Low-stock threshold" rounded="lg" defaultValue="20" />
           <Input label="Unit label" rounded="lg" defaultValue={unit} />
@@ -231,8 +372,8 @@ export default function ProductFormWorkspace({
           title="Shipping"
           description="Retain the dedicated shipping section, then align it to Ntumai tasker delivery expectations and dispatch promise windows."
         >
-          <SelectField label="Fulfillment" options={fulfillmentOptions} value={fulfillment} />
-          <SelectField label="Visibility" options={visibilityOptions} value={visibility} />
+          <SelectField label="Fulfillment" options={fulfillmentOptions} value={form.fulfillment} onChange={(value) => setForm((current) => ({ ...current, fulfillment: value }))} />
+          <SelectField label="Visibility" options={visibilityOptions} value={form.visibility} onChange={(value) => setForm((current) => ({ ...current, visibility: value }))} />
           <Input label="Pickup SLA" rounded="lg" defaultValue={fulfillment === "Same-day" ? "10 minutes" : "Within slot"} />
           <Input label="Delivery promise" rounded="lg" defaultValue={leadTime} />
           <Checkbox
@@ -274,13 +415,14 @@ export default function ProductFormWorkspace({
           title="Tags & Category"
           description="Place the product in the right categories so it stays searchable, reviewable, and easy to merchandise."
         >
-          <SelectField label="Main category" options={categoryOptions} value={category} />
-          <SelectField label="Subcategory" options={subcategoryOptions} value={subcategory} />
+          <SelectField label="Main category" options={categorySelectOptions} value={form.category} onChange={(value) => setForm((current) => ({ ...current, category: value }))} />
+          <SelectField label="Subcategory" options={subcategoryOptions} value={form.subcategory} onChange={(value) => setForm((current) => ({ ...current, subcategory: value }))} />
           <Textarea
             label="Tags"
             textareaClassName="rounded-2xl"
             className="col-span-full"
-            defaultValue={(product?.tags ?? ["Fresh", "Top seller", "Same-day"]).join(", ")}
+            value={form.tags}
+            onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
           />
         </FormSection>
       </div>
@@ -316,16 +458,19 @@ function SelectField({
   label,
   options,
   value,
+  onChange,
 }: {
   label: string;
   options: Array<{ label: string; value: string }>;
   value: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <Select
       label={label}
       options={options}
       defaultValue={options.find((option) => option.value === value) ?? options[0]}
+      onChange={(option: any) => onChange?.(option?.value ?? "")}
       selectClassName="rounded-2xl"
     />
   );

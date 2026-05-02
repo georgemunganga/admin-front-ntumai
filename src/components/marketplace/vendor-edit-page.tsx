@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Badge, Button, Input, Select, Text, Textarea } from "rizzui";
 import {
   PiArrowLeftBold,
@@ -12,7 +13,12 @@ import {
 import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
-import { getMarketplaceVendorBySlug } from "@/repositories/admin/vendors";
+import { routes } from "@/config/routes";
+import {
+  getMarketplaceVendorBySlug,
+  updateAdminVendor,
+  useAdminVendorDetail,
+} from "@/repositories/admin/vendors";
 
 const statusOptions = [
   { label: "Live", value: "live" },
@@ -41,10 +47,88 @@ const planOptions = [
 ];
 
 export default function VendorEditPage({ slug }: { slug: string }) {
+  const router = useRouter();
   const { guardAction } = useAdminActionGuard();
-  const vendor = getMarketplaceVendorBySlug(slug);
+  const fallback = getMarketplaceVendorBySlug(slug);
+  const { data: liveVendor, isLoading, error } = useAdminVendorDetail(slug);
+  const vendor = liveVendor ?? fallback;
+  const [form, setForm] = useState({
+    name: fallback?.name ?? "",
+    segment: fallback?.segment ?? "",
+    city: fallback?.city ?? "",
+    storeType: fallback?.storeType ?? "",
+    businessHours: fallback?.businessHours ?? "",
+    context: fallback?.context ?? "",
+    status: fallback?.status ?? "live",
+    visibility: fallback?.visibility ?? "Marketplace live",
+    fulfillment: fallback?.fulfillment ?? "Same-day",
+    payoutSchedule: fallback?.payoutSchedule ?? "Weekly",
+    payoutMethod: fallback?.payoutMethod ?? "Mobile money",
+    subscriptionPlan: fallback?.subscriptionPlan ?? "Growth plan",
+    categories: fallback?.categories.join(", ") ?? "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  if (!vendor) notFound();
+  useEffect(() => {
+    if (!vendor) return;
+    setForm({
+      name: vendor.name,
+      segment: vendor.segment,
+      city: vendor.city,
+      storeType: vendor.storeType,
+      businessHours: vendor.businessHours,
+      context: vendor.context,
+      status: vendor.status,
+      visibility: vendor.visibility,
+      fulfillment: vendor.fulfillment,
+      payoutSchedule: vendor.payoutSchedule,
+      payoutMethod: vendor.payoutMethod,
+      subscriptionPlan: vendor.subscriptionPlan,
+      categories: vendor.categories.join(", "),
+    });
+  }, [vendor]);
+
+  if (!vendor && !isLoading) notFound();
+  if (!vendor) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+        Loading vendor...
+      </div>
+    );
+  }
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      await updateAdminVendor(vendor.id, {
+        name: form.name.trim(),
+        segment: form.segment.trim(),
+        city: form.city.trim(),
+        storeType: form.storeType.trim(),
+        businessHours: form.businessHours.trim(),
+        context: form.context.trim(),
+        fulfillment: form.fulfillment,
+        payoutSchedule: form.payoutSchedule,
+        payoutMethod: form.payoutMethod,
+        subscriptionPlan: form.subscriptionPlan,
+        visibility: form.visibility,
+        storeName: form.name.trim(),
+        storeActive: form.visibility !== "Review hold" && form.status !== "review",
+        categories: form.categories.split(",").map((item) => item.trim()).filter(Boolean),
+      });
+      setFeedback({ type: "success", message: "Vendor updated successfully." });
+      router.refresh();
+    } catch (saveError) {
+      setFeedback({
+        type: "error",
+        message: saveError instanceof Error ? saveError.message : "Failed to update vendor.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -55,7 +139,7 @@ export default function VendorEditPage({ slug }: { slug: string }) {
         description="Partner form aligned to onboarding, store readiness, and payout setup."
         action={
           <div className="flex flex-wrap gap-3">
-            <Link href={`/marketplace/vendors/${vendor.slug}`}>
+            <Link href={routes.marketplace.vendorDetails(vendor.slug)}>
               <Button variant="outline" className="h-11 rounded-2xl px-4">
                 <PiArrowLeftBold className="me-1.5 h-4 w-4" />
                 Back
@@ -76,10 +160,11 @@ export default function VendorEditPage({ slug }: { slug: string }) {
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot update marketplace vendors.",
                 )
               }
@@ -91,20 +176,37 @@ export default function VendorEditPage({ slug }: { slug: string }) {
         }
       />
 
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
+      {feedback ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <ShellCard title="Partner information" description="Core marketplace and store fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Vendor name" defaultValue={vendor.name} rounded="lg" />
-            <Input label="Segment" defaultValue={vendor.segment} rounded="lg" />
-            <Input label="City" defaultValue={vendor.city} rounded="lg" />
-            <Input label="Store type" defaultValue={vendor.storeType} rounded="lg" />
+            <Input label="Vendor name" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} rounded="lg" />
+            <Input label="Segment" value={form.segment} onChange={(event) => setForm((current) => ({ ...current, segment: event.target.value }))} rounded="lg" />
+            <Input label="City" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} rounded="lg" />
+            <Input label="Store type" value={form.storeType} onChange={(event) => setForm((current) => ({ ...current, storeType: event.target.value }))} rounded="lg" />
             <Input label="Owner" defaultValue={vendor.owner} rounded="lg" />
-            <Input label="Business hours" defaultValue={vendor.businessHours} rounded="lg" />
+            <Input label="Business hours" value={form.businessHours} onChange={(event) => setForm((current) => ({ ...current, businessHours: event.target.value }))} rounded="lg" />
           </div>
 
           <div className="mt-4">
             <Text className="mb-2 text-sm font-medium text-gray-700">Context</Text>
-            <Textarea defaultValue={vendor.context} rows={4} textareaClassName="rounded-2xl" />
+            <Textarea value={form.context} onChange={(event) => setForm((current) => ({ ...current, context: event.target.value }))} rows={4} textareaClassName="rounded-2xl" />
           </div>
         </ShellCard>
 
@@ -113,16 +215,18 @@ export default function VendorEditPage({ slug }: { slug: string }) {
             <Select
               label="Status"
               options={statusOptions}
-              defaultValue={statusOptions.find((option) => option.value === vendor.status)}
+              defaultValue={statusOptions.find((option) => option.value === form.status)}
+              onChange={(option: any) => setForm((current) => ({ ...current, status: option?.value ?? current.status }))}
               selectClassName="rounded-2xl"
             />
             <Select
               label="Visibility"
               options={visibilityOptions}
-              defaultValue={visibilityOptions.find((option) => option.value === vendor.visibility)}
+              defaultValue={visibilityOptions.find((option) => option.value === form.visibility)}
+              onChange={(option: any) => setForm((current) => ({ ...current, visibility: option?.value ?? current.visibility }))}
               selectClassName="rounded-2xl"
             />
-            <Input label="Fulfillment" defaultValue={vendor.fulfillment} rounded="lg" />
+            <Input label="Fulfillment" value={form.fulfillment} onChange={(event) => setForm((current) => ({ ...current, fulfillment: event.target.value }))} rounded="lg" />
           </div>
         </ShellCard>
       </div>
@@ -130,20 +234,22 @@ export default function VendorEditPage({ slug }: { slug: string }) {
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <ShellCard title="Finance and setup" description="Payout and subscription fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Payout schedule" defaultValue={vendor.payoutSchedule} rounded="lg" />
+            <Input label="Payout schedule" value={form.payoutSchedule} onChange={(event) => setForm((current) => ({ ...current, payoutSchedule: event.target.value }))} rounded="lg" />
             <Select
               label="Payout method"
               options={payoutMethodOptions}
-              defaultValue={payoutMethodOptions.find((option) => option.value === vendor.payoutMethod)}
+              defaultValue={payoutMethodOptions.find((option) => option.value === form.payoutMethod)}
+              onChange={(option: any) => setForm((current) => ({ ...current, payoutMethod: option?.value ?? current.payoutMethod }))}
               selectClassName="rounded-2xl"
             />
             <Select
               label="Subscription plan"
               options={planOptions}
-              defaultValue={planOptions.find((option) => option.value === vendor.subscriptionPlan)}
+              defaultValue={planOptions.find((option) => option.value === form.subscriptionPlan)}
+              onChange={(option: any) => setForm((current) => ({ ...current, subscriptionPlan: option?.value ?? current.subscriptionPlan }))}
               selectClassName="rounded-2xl"
             />
-            <Input label="Categories" defaultValue={vendor.categories.join(", ")} rounded="lg" />
+            <Input label="Categories" value={form.categories} onChange={(event) => setForm((current) => ({ ...current, categories: event.target.value }))} rounded="lg" />
           </div>
         </ShellCard>
 

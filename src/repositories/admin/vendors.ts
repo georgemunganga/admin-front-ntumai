@@ -2,7 +2,11 @@
 
 import { useMemo } from "react";
 import { marketplaceVendors, type MarketplaceVendor } from "@/components/marketplace/vendor-data";
-import { useAdminResource, postAdminData } from "@/repositories/admin/admin-api";
+import {
+  patchAdminData,
+  postAdminData,
+  useAdminResource,
+} from "@/repositories/admin/admin-api";
 import type { AdminStatus } from "@/contracts/admin-domain";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -54,6 +58,20 @@ type VendorApiItem = {
     productCount?: number;
   } | null;
   counts?: { payoutRequests?: number; supportTickets?: number };
+  profile?: {
+    segment?: string | null;
+    city?: string | null;
+    storeType?: string | null;
+    fulfillment?: string | null;
+    payoutSchedule?: string | null;
+    payoutMethod?: string | null;
+    subscriptionPlan?: string | null;
+    businessHours?: string | null;
+    visibility?: string | null;
+    context?: string | null;
+    description?: string | null;
+    categories?: string[];
+  } | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -95,6 +113,40 @@ export function useAdminVendorDetail(userId: string) {
   });
 }
 
+type VendorMutationInput = {
+  name: string;
+  email?: string;
+  phone?: string;
+  segment?: string;
+  city?: string;
+  storeType?: string;
+  fulfillment?: string;
+  payoutSchedule?: string;
+  payoutMethod?: string;
+  subscriptionPlan?: string;
+  businessHours?: string;
+  visibility?: string;
+  context?: string;
+  description?: string;
+  storeName?: string;
+  storeActive?: boolean;
+  categories?: string[];
+};
+
+export async function createAdminVendor(input: VendorMutationInput) {
+  return postAdminData<{ item: VendorApiItem }>(
+    "/api/v1/admin/vendors",
+    sanitizeVendorPayload(input),
+  );
+}
+
+export async function updateAdminVendor(userId: string, input: VendorMutationInput) {
+  return patchAdminData<{ item: VendorApiItem }>(
+    `/api/v1/admin/vendors/${userId}`,
+    sanitizeVendorPayload(input),
+  );
+}
+
 // ─── P0 Mutation — Vendor KYC decision ───────────────────────────────────────
 
 export async function applyVendorKycDecision(
@@ -130,29 +182,35 @@ function mapVendorItemToRecord(item: VendorApiItem): VendorListRecord {
   const payoutCount = item.counts?.payoutRequests ?? 0;
   const supportCount = item.counts?.supportTickets ?? 0;
   const productCount = item.store?.productCount ?? 0;
+  const profile = item.profile ?? {};
   return {
     id: item.id,
     slug: item.id,
     name: item.fullName,
-    segment: item.store ? "Active vendor" : "No store yet",
-    categories: item.store ? [item.store.name] : [],
-    context: item.store
-      ? `${productCount} products in ${item.store.name}.`
-      : "Vendor registered but no store provisioned yet.",
+    segment: profile.segment ?? (item.store ? "Active vendor" : "No store yet"),
+    categories: profile.categories?.length ? profile.categories : item.store ? [item.store.name] : [],
+    context:
+      profile.context ??
+      (item.store
+        ? `${productCount} products in ${item.store.name}.`
+        : "Vendor registered but no store provisioned yet."),
     owner: "Partner ops",
     status: mapVendorStatus(item),
     updatedAt: formatDateTime(item.updatedAt || item.createdAt),
-    city: "Unknown",
-    storeType: item.store ? "Online store" : "Pending",
-    fulfillment: "Platform managed",
-    payoutSchedule: payoutCount > 0 ? `${payoutCount} payout requests` : "No payouts yet",
-    payoutMethod: "Platform wallet",
-    subscriptionPlan: "Standard",
-    businessHours: item.store?.isActive ? "Active" : "Offline",
-    visibility: item.store?.isActive ? "Visible" : "Hidden",
-    description: item.store
-      ? `Vendor store: ${item.store.name}. Rating: ${item.store.averageRating?.toFixed(1) ?? "N/A"}.`
-      : "No store description available.",
+    city: profile.city ?? "Unknown",
+    storeType: profile.storeType ?? (item.store ? "Online store" : "Pending"),
+    fulfillment: profile.fulfillment ?? "Platform managed",
+    payoutSchedule:
+      profile.payoutSchedule ?? (payoutCount > 0 ? `${payoutCount} payout requests` : "No payouts yet"),
+    payoutMethod: profile.payoutMethod ?? "Platform wallet",
+    subscriptionPlan: profile.subscriptionPlan ?? "Standard",
+    businessHours: profile.businessHours ?? (item.store?.isActive ? "Active" : "Offline"),
+    visibility: profile.visibility ?? (item.store?.isActive ? "Marketplace live" : "Review hold"),
+    description:
+      profile.description ??
+      (item.store
+        ? `Vendor store: ${item.store.name}. Rating: ${item.store.averageRating?.toFixed(1) ?? "N/A"}.`
+        : "No store description available."),
     tags: buildVendorTags(item),
     metrics: [
       { label: "Products", value: String(productCount) },
@@ -171,7 +229,7 @@ function mapVendorItemToRecord(item: VendorApiItem): VendorListRecord {
 }
 
 function mapVendorDetailPayload(payload: unknown): MarketplaceVendor | null {
-  const item = (payload as { data?: { item?: VendorApiItem } })?.data?.item;
+  const item = (payload as { item?: VendorApiItem })?.item;
   if (!item) return null;
   return mapVendorItemToRecord(item) as unknown as MarketplaceVendor;
 }
@@ -194,6 +252,34 @@ function buildVendorTags(item: VendorApiItem): string[] {
   else tags.push("No store");
   if ((item.counts?.payoutRequests ?? 0) > 0) tags.push("Finance linked");
   return tags;
+}
+
+function sanitizeVendorPayload(input: VendorMutationInput) {
+  return {
+    name: input.name,
+    ...(input.email !== undefined ? { email: input.email } : {}),
+    ...(input.phone !== undefined ? { phone: input.phone } : {}),
+    ...(input.segment !== undefined ? { segment: input.segment } : {}),
+    ...(input.city !== undefined ? { city: input.city } : {}),
+    ...(input.storeType !== undefined ? { storeType: input.storeType } : {}),
+    ...(input.fulfillment !== undefined ? { fulfillment: input.fulfillment } : {}),
+    ...(input.payoutSchedule !== undefined
+      ? { payoutSchedule: input.payoutSchedule }
+      : {}),
+    ...(input.payoutMethod !== undefined ? { payoutMethod: input.payoutMethod } : {}),
+    ...(input.subscriptionPlan !== undefined
+      ? { subscriptionPlan: input.subscriptionPlan }
+      : {}),
+    ...(input.businessHours !== undefined
+      ? { businessHours: input.businessHours }
+      : {}),
+    ...(input.visibility !== undefined ? { visibility: input.visibility } : {}),
+    ...(input.context !== undefined ? { context: input.context } : {}),
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.storeName !== undefined ? { storeName: input.storeName } : {}),
+    ...(input.storeActive !== undefined ? { storeActive: input.storeActive } : {}),
+    ...(input.categories !== undefined ? { categories: input.categories } : {}),
+  };
 }
 
 function mapFixtureToVendorRecords(): VendorListRecord[] {

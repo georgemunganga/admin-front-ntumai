@@ -8,13 +8,24 @@ import PageHeader from "@/components/admin/page-header";
 import GuardedLink from "@/components/auth/guarded-link";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getMarketplaceProductBySlug, listMarketplaceProducts } from "@/repositories/admin/products";
+import {
+  getMarketplaceProductBySlug,
+  listMarketplaceProducts,
+  useAdminProductDetail,
+  useAdminProducts,
+} from "@/repositories/admin/products";
 
 export default function ProductDetailPage({ slug }: { slug: string }) {
-  const product = getMarketplaceProductBySlug(slug);
+  const fallback = getMarketplaceProductBySlug(slug);
+  const { data: liveProduct, isLoading, error } = useAdminProductDetail(slug);
+  const { data: liveProducts = [] } = useAdminProducts();
+  const product = liveProduct ?? fallback;
   if (!product) notFound();
 
-  const related = listMarketplaceProducts().filter((item) => item.slug !== product.slug).slice(0, 3);
+  const relatedSource = liveProducts.length ? liveProducts : listMarketplaceProducts();
+  const related = relatedSource
+    .filter((item) => item.slug !== product.slug)
+    .slice(0, 3);
 
   return (
     <div className="@container space-y-6">
@@ -40,6 +51,17 @@ export default function ProductDetailPage({ slug }: { slug: string }) {
           </div>
         }
       />
+
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
+      {isLoading ? (
+        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+          Refreshing live product details...
+        </div>
+      ) : null}
 
       <div className="@3xl:grid @3xl:grid-cols-12">
         <div className="col-span-7 mb-7 @container @lg:mb-10 @3xl:pe-10">

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import {
   PiArrowLeftBold,
@@ -20,7 +22,12 @@ import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getMarketplaceCategoryById } from "@/repositories/admin/categories";
+import {
+  deleteAdminCategory,
+  getMarketplaceCategoryById,
+  updateAdminCategory,
+  useAdminCategoryDetail,
+} from "@/repositories/admin/categories";
 
 const groupOptions = [
   { label: "Grocery", value: "Grocery" },
@@ -64,9 +71,80 @@ const reviewOwnerOptions = [
 ];
 
 export default function CategoryEditPage({ id }: { id: string }) {
+  const router = useRouter();
   const { guardAction } = useAdminActionGuard();
-  const category = getMarketplaceCategoryById(id);
-  if (!category) notFound();
+  const fallback = getMarketplaceCategoryById(id);
+  const { data: liveCategory, isLoading, error } = useAdminCategoryDetail(id);
+  const category = liveCategory ?? fallback;
+  const [form, setForm] = useState({
+    name: fallback?.name ?? "",
+    group: fallback?.group ?? groupOptions[0].value,
+    status: fallback?.status ?? statusOptions[0].value,
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!category) return;
+    setForm({
+      name: category.name,
+      group: category.group,
+      status: category.status,
+    });
+  }, [category]);
+
+  if (!category && !isLoading) notFound();
+  if (!category) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+        Loading category...
+      </div>
+    );
+  }
+  const categoryId = category.id;
+
+  const saveMessage = useMemo(
+    () => (isLoading ? "Refreshing live category..." : null),
+    [isLoading],
+  );
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      await updateAdminCategory(categoryId, {
+        name: form.name.trim(),
+        iconKey: form.group.toLowerCase().replace(/\s+/g, "_"),
+        isActive: form.status !== "queued" && form.status !== "review",
+      });
+      setFeedback({ type: "success", message: "Category updated successfully." });
+      router.refresh();
+    } catch (saveError) {
+      setFeedback({
+        type: "error",
+        message: saveError instanceof Error ? saveError.message : "Failed to update category.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleArchive() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      await deleteAdminCategory(categoryId);
+      router.push(routes.marketplace.categories);
+      router.refresh();
+    } catch (saveError) {
+      setFeedback({
+        type: "error",
+        message: saveError instanceof Error ? saveError.message : "Failed to archive category.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   const isRegulated = category.group === "Regulated";
   const storefrontTone = category.visibility === "Review hold" ? "warning" : "live";
@@ -106,10 +184,11 @@ export default function CategoryEditPage({ id }: { id: string }) {
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot save category changes from this marketplace surface.",
                 )
               }
@@ -120,6 +199,28 @@ export default function CategoryEditPage({ id }: { id: string }) {
           </div>
         }
       />
+
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
+      {saveMessage ? (
+        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+          {saveMessage}
+        </div>
+      ) : null}
+      {feedback ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
 
       <ShellCard className="overflow-hidden border-0 bg-gradient-to-br from-[#f5efe4] via-white to-[#edf7f4] shadow-[0_18px_48px_-24px_rgba(15,23,42,0.34)]">
         <div className="grid gap-6 xl:grid-cols-[1.4fr_0.85fr]">
@@ -215,7 +316,7 @@ export default function CategoryEditPage({ id }: { id: string }) {
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
         <ShellCard title="Core identity" description="Fields that define category naming, ownership, and customer-facing copy.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Category name" rounded="lg" defaultValue={category.name} />
+            <Input label="Category name" rounded="lg" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
             <Input label="Display label" rounded="lg" defaultValue={category.name} />
             <Input label="Category ID" rounded="lg" defaultValue={category.id} />
             <Input label="Slug / handle" rounded="lg" defaultValue={category.slug.toLowerCase()} />
@@ -223,6 +324,7 @@ export default function CategoryEditPage({ id }: { id: string }) {
               label="Group"
               options={groupOptions}
               defaultValue={groupOptions.find((option) => option.value === category.group)}
+              onChange={(option: any) => setForm((current) => ({ ...current, group: option?.value ?? current.group }))}
               selectClassName="rounded-2xl"
             />
             <Select
@@ -243,6 +345,7 @@ export default function CategoryEditPage({ id }: { id: string }) {
               label="Status"
               options={statusOptions}
               defaultValue={statusOptions.find((option) => option.value === category.status)}
+              onChange={(option: any) => setForm((current) => ({ ...current, status: option?.value ?? current.status }))}
               selectClassName="rounded-2xl"
             />
             <Select
@@ -378,7 +481,7 @@ export default function CategoryEditPage({ id }: { id: string }) {
               onClick={() =>
                 void guardAction(
                   "delete",
-                  () => undefined,
+                  handleArchive,
                   "Your staff role cannot archive marketplace categories.",
                 )
               }
@@ -387,10 +490,11 @@ export default function CategoryEditPage({ id }: { id: string }) {
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot save category changes from this marketplace surface.",
                 )
               }

@@ -14,12 +14,24 @@ import {
 import PageHeader from "@/components/admin/page-header";
 import GuardedLink from "@/components/auth/guarded-link";
 import ShellCard from "@/components/admin/shell-card";
-import { getMarketplaceVendorBySlug } from "@/repositories/admin/vendors";
+import {
+  getMarketplaceVendorBySlug,
+  useAdminVendorDetail,
+} from "@/repositories/admin/vendors";
 
 export default function VendorDetailPage({ slug }: { slug: string }) {
-  const vendor = getMarketplaceVendorBySlug(slug);
+  const fallback = getMarketplaceVendorBySlug(slug);
+  const { data: liveVendor, isLoading, error } = useAdminVendorDetail(slug);
+  const vendor = liveVendor ?? fallback;
 
-  if (!vendor) notFound();
+  if (!vendor && !isLoading) notFound();
+  if (!vendor) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+        Loading vendor...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -45,6 +57,12 @@ export default function VendorDetailPage({ slug }: { slug: string }) {
           </div>
         }
       />
+
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <ShellCard title="Partner summary" description="Core vendor details.">

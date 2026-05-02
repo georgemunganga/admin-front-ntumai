@@ -17,8 +17,7 @@ import StatCard from "@/components/admin/stat-card";
 import GuardedLink from "@/components/auth/guarded-link";
 import { routes } from "@/config/routes";
 import {
-  listMarketplaceProducts,
-  listProductStatuses,
+  useAdminProducts,
   type MarketplaceProductRecord,
 } from "@/repositories/admin/products";
 
@@ -29,10 +28,16 @@ export default function ProductsListPage() {
     pageIndex: 0,
     pageSize: 6,
   });
-  const products = useMemo(() => listMarketplaceProducts(), []);
+  const { data: products = [], isLoading, error } = useAdminProducts();
   const statusOptions = useMemo(
-    () => [{ label: "All statuses", value: "all" }].concat(listProductStatuses().map((value) => ({ label: value, value }))),
-    [],
+    () =>
+      [{ label: "All statuses", value: "all" }].concat(
+        Array.from(new Set(products.map((product) => product.status))).map((value) => ({
+          label: value,
+          value,
+        })),
+      ),
+    [products],
   );
 
   const filteredProducts = useMemo(() => {
@@ -177,6 +182,11 @@ export default function ProductsListPage() {
       </div>
 
       <div className="rounded-[26px] border border-gray-200 bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,23,42,0.24)]">
+        {error ? (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        ) : null}
         <div className="mb-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_260px_auto]">
           <Input
             type="search"
@@ -194,7 +204,7 @@ export default function ProductsListPage() {
           />
           <div className="flex items-center justify-end">
             <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-2 text-primary">
-              {filteredProducts.length} results
+              {isLoading ? "Loading..." : `${filteredProducts.length} results`}
             </Badge>
           </div>
         </div>

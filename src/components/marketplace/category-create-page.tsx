@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge, Button, Input, Select, Text, Textarea } from "rizzui";
 import {
   PiArrowLeftBold,
@@ -11,6 +13,8 @@ import {
 import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
+import { routes } from "@/config/routes";
+import { createAdminCategory } from "@/repositories/admin/categories";
 
 const groupOptions = [
   { label: "Grocery", value: "Grocery" },
@@ -40,7 +44,38 @@ const rulePresetOptions = [
 ];
 
 export default function CategoryCreatePage() {
+  const router = useRouter();
   const { guardAction } = useAdminActionGuard();
+  const [form, setForm] = useState({
+    name: "Fresh produce",
+    group: groupOptions[0].value,
+    status: statusOptions[0].value,
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      const result = await createAdminCategory({
+        name: form.name.trim(),
+        iconKey: form.group.toLowerCase().replace(/\s+/g, "_"),
+        isActive: form.status !== "queued" && form.status !== "review",
+      });
+      setFeedback({ type: "success", message: "Category created successfully." });
+      router.push(routes.marketplace.editCategory(result?.item?.id ?? ""));
+      router.refresh();
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to create category.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -71,10 +106,11 @@ export default function CategoryCreatePage() {
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot create marketplace categories.",
                 )
               }
@@ -86,15 +122,28 @@ export default function CategoryCreatePage() {
         }
       />
 
+      {feedback ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <ShellCard title="Category information" description="Core catalog fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Category name" rounded="lg" defaultValue="Fresh produce" />
+            <Input label="Category name" rounded="lg" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
             <Input label="Category ID" rounded="lg" defaultValue="CAT-1105" />
             <Select
               label="Group"
               options={groupOptions}
               defaultValue={groupOptions[0]}
+              onChange={(option: any) => setForm((current) => ({ ...current, group: option?.value ?? groupOptions[0].value }))}
               selectClassName="rounded-2xl"
             />
             <Input label="Owner" rounded="lg" defaultValue="Catalog ops" />
@@ -115,6 +164,7 @@ export default function CategoryCreatePage() {
               label="Status"
               options={statusOptions}
               defaultValue={statusOptions[0]}
+              onChange={(option: any) => setForm((current) => ({ ...current, status: option?.value ?? statusOptions[0].value }))}
               selectClassName="rounded-2xl"
             />
             <Select

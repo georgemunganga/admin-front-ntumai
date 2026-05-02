@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge, Button, Input, Select, Text, Textarea } from "rizzui";
 import {
   PiArrowLeftBold,
@@ -11,6 +13,8 @@ import {
 import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
+import { routes } from "@/config/routes";
+import { createAdminVendor } from "@/repositories/admin/vendors";
 
 const statusOptions = [
   { label: "Live", value: "live" },
@@ -39,7 +43,62 @@ const planOptions = [
 ];
 
 export default function VendorCreatePage() {
+  const router = useRouter();
   const { guardAction } = useAdminActionGuard();
+  const [form, setForm] = useState({
+    name: "Green Basket Market",
+    segment: "Fresh produce",
+    city: "Lusaka",
+    storeType: "Grocery",
+    businessHours: "06:00 - 20:00",
+    context: "Daily produce catalog with same-day neighborhood delivery.",
+    status: "live",
+    visibility: "Marketplace live",
+    fulfillment: "Same-day",
+    payoutSchedule: "Weekly",
+    payoutMethod: "Mobile money",
+    subscriptionPlan: "Growth plan",
+    categories: "Fresh produce, Household",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      const result = await createAdminVendor({
+        name: form.name.trim(),
+        segment: form.segment.trim(),
+        city: form.city.trim(),
+        storeType: form.storeType.trim(),
+        businessHours: form.businessHours.trim(),
+        context: form.context.trim(),
+        fulfillment: form.fulfillment,
+        payoutSchedule: form.payoutSchedule,
+        payoutMethod: form.payoutMethod,
+        subscriptionPlan: form.subscriptionPlan,
+        visibility: form.visibility,
+        storeName: form.name.trim(),
+        storeActive: form.visibility !== "Review hold" && form.status !== "review",
+        categories: form.categories.split(",").map((item) => item.trim()).filter(Boolean),
+      });
+      setFeedback({ type: "success", message: "Vendor created successfully." });
+      const nextId = result?.item?.id;
+      if (nextId) {
+        router.push(routes.marketplace.vendorDetails(nextId));
+        router.refresh();
+      }
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to create vendor.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -70,10 +129,11 @@ export default function VendorCreatePage() {
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot create marketplace vendors.",
                 )
               }
@@ -85,15 +145,27 @@ export default function VendorCreatePage() {
         }
       />
 
+      {feedback ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <ShellCard title="Partner information" description="Core marketplace and store fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Vendor name" rounded="lg" defaultValue="Green Basket Market" />
-            <Input label="Segment" rounded="lg" defaultValue="Fresh produce" />
-            <Input label="City" rounded="lg" defaultValue="Lusaka" />
-            <Input label="Store type" rounded="lg" defaultValue="Grocery" />
+            <Input label="Vendor name" rounded="lg" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
+            <Input label="Segment" rounded="lg" value={form.segment} onChange={(event) => setForm((current) => ({ ...current, segment: event.target.value }))} />
+            <Input label="City" rounded="lg" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} />
+            <Input label="Store type" rounded="lg" value={form.storeType} onChange={(event) => setForm((current) => ({ ...current, storeType: event.target.value }))} />
             <Input label="Owner" rounded="lg" defaultValue="Partner ops" />
-            <Input label="Business hours" rounded="lg" defaultValue="06:00 - 20:00" />
+            <Input label="Business hours" rounded="lg" value={form.businessHours} onChange={(event) => setForm((current) => ({ ...current, businessHours: event.target.value }))} />
           </div>
 
           <div className="mt-4">
@@ -101,7 +173,8 @@ export default function VendorCreatePage() {
             <Textarea
               rows={4}
               textareaClassName="rounded-2xl"
-              defaultValue="Daily produce catalog with same-day neighborhood delivery."
+              value={form.context}
+              onChange={(event) => setForm((current) => ({ ...current, context: event.target.value }))}
             />
           </div>
         </ShellCard>
@@ -112,15 +185,17 @@ export default function VendorCreatePage() {
               label="Status"
               options={statusOptions}
               defaultValue={statusOptions[0]}
+              onChange={(option: any) => setForm((current) => ({ ...current, status: option?.value ?? current.status }))}
               selectClassName="rounded-2xl"
             />
             <Select
               label="Visibility"
               options={visibilityOptions}
               defaultValue={visibilityOptions[0]}
+              onChange={(option: any) => setForm((current) => ({ ...current, visibility: option?.value ?? current.visibility }))}
               selectClassName="rounded-2xl"
             />
-            <Input label="Fulfillment" rounded="lg" defaultValue="Same-day" />
+            <Input label="Fulfillment" rounded="lg" value={form.fulfillment} onChange={(event) => setForm((current) => ({ ...current, fulfillment: event.target.value }))} />
           </div>
         </ShellCard>
       </div>
@@ -128,20 +203,22 @@ export default function VendorCreatePage() {
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <ShellCard title="Finance and setup" description="Payout and subscription fields.">
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Payout schedule" rounded="lg" defaultValue="Weekly" />
+            <Input label="Payout schedule" rounded="lg" value={form.payoutSchedule} onChange={(event) => setForm((current) => ({ ...current, payoutSchedule: event.target.value }))} />
             <Select
               label="Payout method"
               options={payoutMethodOptions}
               defaultValue={payoutMethodOptions[0]}
+              onChange={(option: any) => setForm((current) => ({ ...current, payoutMethod: option?.value ?? current.payoutMethod }))}
               selectClassName="rounded-2xl"
             />
             <Select
               label="Subscription plan"
               options={planOptions}
               defaultValue={planOptions[1]}
+              onChange={(option: any) => setForm((current) => ({ ...current, subscriptionPlan: option?.value ?? current.subscriptionPlan }))}
               selectClassName="rounded-2xl"
             />
-            <Input label="Categories" rounded="lg" defaultValue="Fresh produce, Household" />
+            <Input label="Categories" rounded="lg" value={form.categories} onChange={(event) => setForm((current) => ({ ...current, categories: event.target.value }))} />
           </div>
         </ShellCard>
 
