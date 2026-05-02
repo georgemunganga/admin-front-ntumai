@@ -2,6 +2,10 @@ export type AdminSessionUser = {
   id?: string;
   name: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  avatar?: string | null;
   role: string;
   activeRole?: string;
   roles?: string[];

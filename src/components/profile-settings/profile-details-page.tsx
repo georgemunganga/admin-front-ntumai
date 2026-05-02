@@ -1,131 +1,208 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { Avatar, Button, Checkbox, Input, Select, Text, Textarea, Title } from "rizzui";
+import { useEffect, useMemo, useState } from "react";
+import { Avatar, Button, Input, Text, Title } from "rizzui";
 import ProfileHeader from "@/components/profile-settings/profile-header";
 import ProfileSettingsNav from "@/components/profile-settings/profile-settings-nav";
 import FormGroup from "@/components/profile-settings/form-group";
-import { routes } from "@/config/routes";
+import { useAuth } from "@/components/auth/auth-provider";
+import { updateAdminProfile } from "@/repositories/admin/profile-settings";
 
-const roleOptions = [
-  { label: "Operations Lead", value: "operations" },
-  { label: "Dispatch Manager", value: "dispatch" },
-  { label: "Support Supervisor", value: "support" },
-  { label: "Finance Reviewer", value: "finance" },
-];
+type ProfileFormState = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  avatarUrl: string;
+};
+
+function toFormState(user: ReturnType<typeof useAuth>["user"]): ProfileFormState {
+  return {
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    avatarUrl: user?.avatar || "",
+  };
+}
 
 export default function ProfileDetailsPage() {
-  const [role, setRole] = useState("operations");
+  const { user, syncUser } = useAuth();
+  const [form, setForm] = useState<ProfileFormState>(() => toFormState(user));
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    setForm(toFormState(user));
+  }, [user]);
+
+  const displayName = useMemo(() => {
+    const fullName = [form.firstName, form.lastName].filter(Boolean).join(" ").trim();
+    return fullName || user?.name || "Ntumai Admin";
+  }, [form.firstName, form.lastName, user?.name]);
+
+  const hasChanges =
+    form.firstName !== (user?.firstName || "") ||
+    form.lastName !== (user?.lastName || "") ||
+    form.email !== (user?.email || "") ||
+    form.phone !== (user?.phone || "") ||
+    form.avatarUrl !== (user?.avatar || "");
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+
+    try {
+      const nextUser = await updateAdminProfile({
+        firstName: form.firstName.trim() || undefined,
+        lastName: form.lastName.trim() || undefined,
+        email: form.email.trim() || undefined,
+        phone: form.phone.trim() || undefined,
+        avatarUrl: form.avatarUrl.trim() || undefined,
+      });
+
+      syncUser(nextUser);
+      setFeedback({ type: "success", message: "Profile updated successfully." });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to update your profile.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <>
       <ProfileHeader
-        title="Ntumai Ops"
-        description="Update your photo and personal details."
-        action={
-          <Link href={routes.profileSettings.profile}>
-            <Button as="span">View Profile</Button>
-          </Link>
-        }
+        title={displayName}
+        description={user?.activeRole ? `${user.activeRole} account` : "Admin account"}
       />
       <ProfileSettingsNav />
       <div className="@container mx-auto mb-10 w-full max-w-screen-2xl">
         <div className="grid gap-7 divide-y divide-dashed divide-gray-200 @2xl:gap-9 @3xl:gap-11">
-          <FormGroup title="Username" className="pt-7 @2xl:pt-9 @3xl:pt-11">
-            <Input
-              className="col-span-full"
-              prefix="https://ntumai.com/"
-              placeholder="ntumai-ops"
-              prefixClassName="relative pe-2.5 before:absolute before:-top-[9px] before:right-0 before:h-[38px] before:w-[1px] before:bg-gray-300"
-              defaultValue="ntumai-ops"
-            />
-          </FormGroup>
-
-          <FormGroup title="Website" className="pt-7 @2xl:pt-9 @3xl:pt-11">
-            <Input
-              type="url"
-              className="col-span-full"
-              prefix="https://"
-              prefixClassName="relative pe-2.5 before:absolute before:-top-[9px] before:right-0 before:h-[38px] before:w-[1px] before:bg-gray-300"
-              placeholder="admin.ntumai.com"
-              defaultValue="admin.ntumai.com"
-            />
-          </FormGroup>
-
           <FormGroup
-            title="Your Photo"
-            description="This will be displayed on your profile."
+            title="Profile photo"
+            description="This avatar is shown in the admin header and profile menu."
             className="pt-7 @2xl:pt-9 @3xl:pt-11"
           >
             <div className="flex flex-col items-start gap-4 @xl:flex-row">
               <Avatar
-                name="Ntumai Ops"
-                src="https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-11.webp"
+                name={displayName}
+                src={form.avatarUrl || undefined}
                 className="!h-20 !w-20"
               />
-              <div className="flex flex-wrap gap-3">
-                <Button variant="outline">Upload new photo</Button>
-                <Button variant="text">Remove</Button>
+              <div className="w-full max-w-2xl">
+                <Input
+                  placeholder="https://cdn.ntumai.com/avatars/admin.jpg"
+                  value={form.avatarUrl}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, avatarUrl: event.target.value }))
+                  }
+                />
+                <Text className="mt-2 text-sm text-gray-500">
+                  Paste an image URL. File upload is not wired on this admin surface yet.
+                </Text>
               </div>
             </div>
           </FormGroup>
 
-          <FormGroup title="Your Bio" className="pt-7 @2xl:pt-9 @3xl:pt-11">
-            <Textarea
-              placeholder="Write a short profile summary"
-              defaultValue="Operations admin focused on dispatch, support, and merchant readiness across the Ntumai platform."
-              className="[&_textarea]:min-h-[120px]"
-            />
-          </FormGroup>
-
-          <FormGroup title="Job Title" className="pt-7 @2xl:pt-9 @3xl:pt-11">
-            <div className="space-y-3">
-              <Select
-                dropdownClassName="!z-10 h-auto"
-                inPortal={false}
-                placeholder="Select Role"
-                options={roleOptions}
-                onChange={(option: any) => setRole(option)}
-                value={role}
-                getOptionValue={(option) => option.value}
-                displayValue={(selected) =>
-                  roleOptions.find((r) => r.value === selected)?.label ?? ""
+          <FormGroup
+            title="Personal details"
+            description="These fields are saved to the live auth profile."
+            className="pt-7 @2xl:pt-9 @3xl:pt-11"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input
+                label="First name"
+                placeholder="First name"
+                value={form.firstName}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, firstName: event.target.value }))
                 }
               />
-              <Checkbox label="Show my job title in my profile" defaultChecked />
+              <Input
+                label="Last name"
+                placeholder="Last name"
+                value={form.lastName}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, lastName: event.target.value }))
+                }
+              />
+              <Input
+                type="email"
+                label="Email"
+                placeholder="info@ntumai.com"
+                value={form.email}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, email: event.target.value }))
+                }
+              />
+              <Input
+                label="Phone"
+                placeholder="+260970000000"
+                value={form.phone}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, phone: event.target.value }))
+                }
+              />
             </div>
           </FormGroup>
 
           <FormGroup
-            title="Alternative contact email"
-            description="Enter an alternative email if you'd like to be contacted via a different email."
+            title="Account context"
+            description="These values are shown for reference and are managed through staff roles, not profile editing."
             className="pt-7 @2xl:pt-9 @3xl:pt-11"
           >
-            <Input type="email" placeholder="ops@ntumai.com" defaultValue="ops@ntumai.com" />
-          </FormGroup>
-
-          <FormGroup
-            title="Portfolio Projects"
-            description="Share a few snippets of your work"
-            className="pt-7 @2xl:pt-9 @3xl:pt-11"
-          >
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-              <Title as="h4" className="text-base font-semibold text-gray-900">
-                Upload operations snapshots
-              </Title>
-              <Text className="mt-2 text-sm text-gray-500">
-                Drag and drop reports, deck screenshots, or process documents here.
-              </Text>
-              <Button className="mt-4" variant="outline">
-                Choose files
-              </Button>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Active role</Text>
+                <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
+                  {user?.activeRole || user?.role || "admin"}
+                </Title>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Access permissions</Text>
+                <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
+                  {user?.permissions?.join(", ") || "Inherited"}
+                </Title>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Login email</Text>
+                <Title as="h4" className="mt-2 text-base font-semibold text-gray-900">
+                  {user?.email || "Not available"}
+                </Title>
+              </div>
             </div>
           </FormGroup>
         </div>
+
+        {feedback ? (
+          <div
+            className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${
+              feedback.type === "success"
+                ? "border-green-200 bg-green-50 text-green-800"
+                : "border-red-200 bg-red-50 text-red-800"
+            }`}
+          >
+            {feedback.message}
+          </div>
+        ) : null}
+
         <div className="mt-8 flex items-center justify-end gap-3">
-          <Button variant="outline">Cancel</Button>
-          <Button>Save</Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setForm(toFormState(user));
+              setFeedback(null);
+            }}
+          >
+            Reset
+          </Button>
+          <Button disabled={!hasChanges || isSaving} isLoading={isSaving} onClick={handleSave}>
+            Save Profile
+          </Button>
         </div>
       </div>
     </>

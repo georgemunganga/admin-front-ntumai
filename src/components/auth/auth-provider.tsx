@@ -12,6 +12,7 @@ import {
   readStoredAdminSession,
   type AdminSessionUser,
   clearStoredAdminSession,
+  writeStoredAdminSession,
 } from "@/repositories/admin/admin-session";
 import {
   canDeleteAdmin,
@@ -39,6 +40,8 @@ type AuthContextValue = {
   startSignIn: (payload: { email: string }) => Promise<{ sessionId: string; expiresIn: number }>;
   completeSignIn: (payload: { sessionId: string; otp: string }) => Promise<string>;
   signOut: () => void;
+  syncUser: (patch: Partial<AdminSessionUser>) => void;
+  refreshUser: () => Promise<AdminSessionUser | null>;
   setLastPath: (path: string) => void;
   getLastPath: () => string;
 };
@@ -100,6 +103,22 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       signOut: () => {
         logoutAdminSession(user);
         setUser(null);
+      },
+      syncUser: (patch) => {
+        setUser((current) => {
+          if (!current) return current;
+          const nextUser = { ...current, ...patch };
+          writeStoredAdminSession(nextUser);
+          return nextUser;
+        });
+      },
+      refreshUser: async () => {
+        const nextSession = await loadCurrentAdminUser(user ?? undefined);
+        if (nextSession) {
+          setUser(nextSession);
+          return nextSession;
+        }
+        return null;
       },
       setLastPath: (path: string) => {
         window.localStorage.setItem(ADMIN_LAST_PATH_KEY, path);

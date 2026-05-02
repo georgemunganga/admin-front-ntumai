@@ -1,46 +1,58 @@
 "use client";
 
-import { Button, Password, Text, Title } from "rizzui";
-import { PiDesktop } from "react-icons/pi";
+import Link from "next/link";
+import { Button, Text, Title } from "rizzui";
+import { PiArrowSquareOutBold, PiDesktop } from "react-icons/pi";
 import ProfileHeader from "@/components/profile-settings/profile-header";
 import ProfileSettingsNav from "@/components/profile-settings/profile-settings-nav";
 import FormGroup from "@/components/profile-settings/form-group";
+import { useAuth } from "@/components/auth/auth-provider";
+import { routes } from "@/config/routes";
 
 export default function PasswordSettingsPage() {
+  const { user } = useAuth();
+
   return (
     <>
-      <ProfileHeader title="Ntumai Ops" description="admin@ntumai.com" />
+      <ProfileHeader
+        title={user?.name || "Ntumai Ops"}
+        description="Password changes currently use the OTP recovery flow."
+      />
       <ProfileSettingsNav />
-      <div className="mx-auto w-full max-w-screen-2xl">
-        <div className="space-y-8 py-8">
-          <FormGroup title="Current Password">
-            <Password placeholder="Enter your password" />
-          </FormGroup>
-          <FormGroup title="New Password">
-            <Password
-              placeholder="Enter your password"
-              helperText="Your current password must be more than 8 characters"
-            />
-          </FormGroup>
-          <FormGroup title="Confirm New Password">
-            <Password placeholder="Enter your password" />
-          </FormGroup>
-        </div>
-        <div className="mt-6 flex w-auto items-center justify-end gap-3">
-          <Button type="button" variant="outline">
-            Cancel
-          </Button>
-          <Button type="submit" variant="solid">
-            Update Password
-          </Button>
-        </div>
+      <div className="mx-auto w-full max-w-screen-2xl py-8">
+        <FormGroup
+          title="Password reset"
+          description="This admin does not have a dedicated change-password endpoint yet. Use the same OTP reset flow used on sign-in."
+        >
+          <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-5">
+            <Title as="h3" className="text-base font-semibold text-gray-900">
+              Reset via OTP
+            </Title>
+            <Text className="mt-2 text-sm leading-6 text-gray-500">
+              Start the OTP recovery flow with your admin email, confirm the code, then return to sign in with the updated password.
+            </Text>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href={routes.auth.forgotPassword1}>
+                <Button as="span" className="rounded-2xl bg-primary text-white hover:bg-primary/90">
+                  Start OTP Reset
+                  <PiArrowSquareOutBold className="ms-1.5 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href={routes.auth.signIn}>
+                <Button as="span" variant="outline" className="rounded-2xl">
+                  Back to Sign In
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </FormGroup>
 
         <div className="mt-10 border-b border-dashed border-muted pb-6">
           <Title as="h2" className="mb-3 text-xl font-bold text-gray-900">
-            Where you&apos;re logged in
+            Current session context
           </Title>
           <Text className="text-sm text-gray-500">
-            We&apos;ll alert you via admin@ntumai.com if there is any unusual activity on your account.
+            We&apos;ll use your current admin identity and OTP flow for password recovery until a dedicated self-service password endpoint is added.
           </Text>
         </div>
         <div className="flex items-center gap-6 border-b border-dashed border-muted py-6">
@@ -48,7 +60,7 @@ export default function PasswordSettingsPage() {
           <div>
             <div className="mb-2 flex items-center gap-2">
               <Title as="h3" className="text-base font-medium text-gray-900">
-                Dispatch workstation
+                Current admin session
               </Title>
               <Text
                 as="span"
@@ -57,23 +69,10 @@ export default function PasswordSettingsPage() {
                 Active Now
               </Text>
             </div>
-            <div className="flex items-center gap-2">
-              <Text className="text-sm text-gray-500">Lusaka, Zambia</Text>
-              <span className="h-1 w-1 rounded-full bg-gray-600" />
-              <Text className="text-sm text-gray-500">29 Apr at 11:20am</Text>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-6 py-6">
-          <PiDesktop className="h-7 w-7 text-gray-500" />
-          <div>
-            <Title as="h3" className="mb-2 text-base font-medium text-gray-900">
-              Finance review machine
-            </Title>
-            <div className="flex items-center gap-2">
-              <Text className="text-sm text-gray-500">Lusaka, Zambia</Text>
-              <span className="h-1 w-1 rounded-full bg-gray-600" />
-              <Text className="text-sm text-gray-500">28 Apr at 7:40pm</Text>
+            <div className="flex flex-wrap items-center gap-2">
+              <Text className="text-sm text-gray-500">{user?.email || "Admin session"}</Text>
+              <span className="hidden h-1 w-1 rounded-full bg-gray-600 sm:block" />
+              <Text className="text-sm text-gray-500">{user?.activeRole || user?.role || "admin"}</Text>
             </div>
           </div>
         </div>

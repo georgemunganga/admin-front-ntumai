@@ -1,162 +1,172 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Checkbox, Radio, RadioGroup, Switch, Text, Title } from "rizzui";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Switch, Text } from "rizzui";
 import ProfileHeader from "@/components/profile-settings/profile-header";
 import ProfileSettingsNav from "@/components/profile-settings/profile-settings-nav";
 import FormGroup from "@/components/profile-settings/form-group";
+import DataSourceState from "@/components/admin/data-source-state";
+import { useAuth } from "@/components/auth/auth-provider";
+import {
+  type AdminUserPreferences,
+  updateAdminProfilePreferences,
+  useAdminProfilePreferences,
+} from "@/repositories/admin/profile-settings";
 
-const generalOptions = [
-  "I'm mentioned in a message",
-  "Someone replies to any message",
-  "I'm assigned a task",
-  "A task is overdue",
-  "A task status is updated",
+const groups: Array<{
+  title: string;
+  description: string;
+  section: keyof AdminUserPreferences;
+  options: Array<{ key: string; label: string; helper: string }>;
+}> = [
+  {
+    title: "General notifications",
+    description: "Core platform notifications that affect the admin account itself.",
+    section: "notifications",
+    options: [
+      { key: "orderUpdates", label: "Order updates", helper: "Order state changes and delivery progress notices." },
+      { key: "promotions", label: "Promotions", helper: "Campaign and offer visibility updates." },
+      { key: "newRestaurants", label: "New vendors", helper: "New marketplace vendor or catalog onboarding activity." },
+      { key: "priceDrops", label: "Price drops", helper: "Pricing or fee movement that affects active commerce flows." },
+    ],
+  },
+  {
+    title: "Tasker operations",
+    description: "Signals relevant to tasker supply, job availability, and earnings activity.",
+    section: "taskerNotifications",
+    options: [
+      { key: "newJobs", label: "New jobs", helper: "Fresh job offers and job supply movement." },
+      { key: "jobReminders", label: "Job reminders", helper: "Follow-up reminders on accepted or pending jobs." },
+      { key: "earningsUpdates", label: "Earnings updates", helper: "Tasker earnings changes, adjustments, and summaries." },
+      { key: "weeklyReport", label: "Weekly report", helper: "A weekly operations digest for tasker performance." },
+    ],
+  },
+  {
+    title: "Vendor operations",
+    description: "Store and marketplace notifications that matter for vendor management.",
+    section: "vendorNotifications",
+    options: [
+      { key: "newOrders", label: "New orders", helper: "New marketplace order creation against vendor stores." },
+      { key: "orderReminders", label: "Order reminders", helper: "Operational reminders on pending prep and handoff." },
+      { key: "lowStock", label: "Low stock", helper: "Inventory warnings that may block marketplace readiness." },
+      { key: "dailyReport", label: "Daily report", helper: "A daily summary of vendor activity." },
+      { key: "customerReviews", label: "Customer reviews", helper: "Ratings and review events from marketplace orders." },
+    ],
+  },
 ];
 
-const summaryOptions = ["Daily summary", "Weekly summary", "Monthly summary", "Quarterly summary"];
-const buttonOptions = ["None", "In-app", "Email"];
-
-function ButtonGroup() {
-  const [selected, setSelected] = useState<string>("In-app");
-
-  return (
-    <div className="inline-flex gap-1">
-      {buttonOptions.map((option) => (
-        <Button
-          key={option}
-          variant={selected === option ? "solid" : "outline"}
-          onClick={() => setSelected(option)}
-        >
-          {option}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
 export default function NotificationSettingsPage() {
-  const [reminderValue, setReminderValue] = useState("important_only");
-  const [activityValue, setActivityValue] = useState("all_reminder_activity");
+  const { user } = useAuth();
+  const { data, isLoading, isLive, error, refresh } = useAdminProfilePreferences();
+  const [form, setForm] = useState<AdminUserPreferences>(data);
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    setForm(data);
+  }, [data]);
+
+  const hasChanges = useMemo(() => JSON.stringify(form) !== JSON.stringify(data), [form, data]);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+
+    try {
+      const next = await updateAdminProfilePreferences(form);
+      setForm(next);
+      setFeedback({ type: "success", message: "Notification settings updated successfully." });
+      refresh();
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to update notification settings.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <>
       <ProfileHeader
-        title="Ntumai Ops"
-        description="Select when and how you will be notified."
+        title={user?.name || "Ntumai Ops"}
+        description="Select which admin and operations notifications you want to receive."
       />
       <ProfileSettingsNav />
       <div className="@container mx-auto w-full max-w-screen-2xl py-8">
-        <FormGroup
-          title="General notifications"
-          description="Select when you'll be notified when the following changes occur."
-          className="border-b border-dashed border-muted pb-8"
-        >
-          <div className="space-y-0">
-            {generalOptions.map((title) => (
-              <div key={title} className="flex items-center justify-between border-b border-muted py-6 last:border-none last:pb-0">
-                <Text className="text-sm font-medium text-gray-900">{title}</Text>
-                <ButtonGroup />
+        <div className="mb-6 flex justify-end">
+          <DataSourceState isLoading={isLoading} isLive={isLive} error={error} />
+        </div>
+
+        <div className="space-y-8">
+          {groups.map((group, groupIndex) => (
+            <FormGroup
+              key={group.title}
+              title={group.title}
+              description={group.description}
+              className={groupIndex === groups.length - 1 ? "border-0 py-0" : "border-b border-dashed border-muted pb-8"}
+            >
+              <div className="space-y-0 rounded-2xl border border-gray-100 bg-white">
+                {group.options.map((option, optionIndex) => {
+                  const checked = form[group.section][option.key as keyof typeof form[typeof group.section]] as boolean;
+                  return (
+                    <div
+                      key={option.key}
+                      className={`flex items-start justify-between gap-5 px-5 py-5 ${
+                        optionIndex === group.options.length - 1 ? "" : "border-b border-gray-100"
+                      }`}
+                    >
+                      <div className="pr-4">
+                        <Text className="text-sm font-medium text-gray-900">{option.label}</Text>
+                        <Text className="mt-2 text-sm leading-6 text-gray-500">{option.helper}</Text>
+                      </div>
+                      <Switch
+                        checked={checked}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            [group.section]: {
+                              ...current[group.section],
+                              [option.key]: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </FormGroup>
+          ))}
+        </div>
+
+        {feedback ? (
+          <div
+            className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${
+              feedback.type === "success"
+                ? "border-green-200 bg-green-50 text-green-800"
+                : "border-red-200 bg-red-50 text-red-800"
+            }`}
+          >
+            {feedback.message}
           </div>
-        </FormGroup>
+        ) : null}
 
-        <FormGroup
-          title="Summary notifications"
-          description="Select when you'll be notified when the following summaries or reports are ready."
-          className="border-b border-dashed border-muted py-8"
-        >
-          <div className="space-y-0">
-            {summaryOptions.map((title) => (
-              <div key={title} className="flex items-center justify-between border-b border-muted py-6 last:border-none last:pb-0">
-                <Text className="text-sm font-medium text-gray-900">{title}</Text>
-                <ButtonGroup />
-              </div>
-            ))}
-          </div>
-        </FormGroup>
-
-        <FormGroup
-          title="Comments"
-          description="These are notifications for comments on your posts and replies to your comments."
-          className="border-b border-dashed border-muted py-8"
-        >
-          <div className="space-y-5">
-            <Switch label="Do not notify me" variant="flat" labelClassName="font-medium text-sm text-gray-900" />
-            <Switch label="Mentions only" variant="flat" labelClassName="font-medium text-sm text-gray-900" />
-            <Switch label="All comments" variant="flat" labelClassName="font-medium text-sm text-gray-900" />
-          </div>
-        </FormGroup>
-
-        <FormGroup
-          title="Notifications from us"
-          description="These are notifications for updates and product research invitations."
-          className="border-b border-dashed border-muted py-8"
-        >
-          <div className="space-y-5">
-            <div>
-              <Checkbox label="News and updates" />
-              <Text className="mt-2 ms-8 text-sm text-gray-500">
-                News about product and feature updates.
-              </Text>
-            </div>
-            <div>
-              <Checkbox label="Tips and tutorials" />
-              <Text className="mt-2 ms-8 text-sm text-gray-500">
-                Tips on getting more out of Ntumai admin.
-              </Text>
-            </div>
-            <div>
-              <Checkbox label="User research" />
-              <Text className="mt-2 ms-8 text-sm text-gray-500">
-                Participate in beta testing and product research.
-              </Text>
-            </div>
-          </div>
-        </FormGroup>
-
-        <FormGroup
-          title="Reminders"
-          description="These are notifications to remind you of updates you might have missed."
-          className="border-b border-dashed border-muted py-8"
-        >
-          <RadioGroup value={reminderValue} setValue={setReminderValue}>
-            <div className="flex w-full flex-col">
-              <Radio name="reminders" label="Do not notify me" value="do_not_notify" className="mb-5" />
-              <div className="mb-5">
-                <Radio name="reminders" label="Important reminders only" value="important_only" />
-                <Text className="mt-2 ms-8 text-sm text-gray-500">
-                  Only notify me if the reminder is tagged as important.
-                </Text>
-              </div>
-              <div>
-                <Radio name="reminders" value="all_reminder" label="All reminders" />
-                <Text className="mt-2 ms-8 text-sm text-gray-500">
-                  Notify me for all reminders.
-                </Text>
-              </div>
-            </div>
-          </RadioGroup>
-        </FormGroup>
-
-        <FormGroup
-          title="More activity about you"
-          description="These are notifications for posts on your profile, likes and other reactions to your posts, and more."
-          className="border-0 py-8 pb-0"
-        >
-          <RadioGroup value={activityValue} setValue={setActivityValue}>
-            <div className="flex w-full flex-col">
-              <Radio name="activity" label="Do not notify me" value="do_not_notify_activity" className="mb-5" />
-              <div>
-                <Radio name="activity" value="all_reminder_activity" label="All reminders" />
-                <Text className="mt-2 ms-8 text-sm text-gray-500">
-                  Notify me for all reminders.
-                </Text>
-              </div>
-            </div>
-          </RadioGroup>
-        </FormGroup>
+        <div className="mt-8 flex items-center justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setForm(data);
+              setFeedback(null);
+            }}
+          >
+            Reset
+          </Button>
+          <Button disabled={!hasChanges || isSaving} isLoading={isSaving} onClick={handleSave}>
+            Save Notifications
+          </Button>
+        </div>
       </div>
     </>
   );

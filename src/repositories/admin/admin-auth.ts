@@ -40,8 +40,10 @@ type AuthVerifyPayload = {
   user: {
     id: string;
     email?: string;
+    phone?: string;
     firstName?: string;
     lastName?: string;
+    avatar?: string | null;
     role?: string;
     activeRole?: string;
     roles?: string[];
@@ -52,8 +54,10 @@ type AuthMePayload = {
   user: {
     id: string;
     email?: string;
+    phone?: string;
     firstName?: string;
     lastName?: string;
+    avatar?: string | null;
     role?: string;
     activeRole?: string;
     roles?: string[];
@@ -207,6 +211,10 @@ export async function loadCurrentAdminUser(session = readStoredAdminSession()) {
     id: user.id,
     name: [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || session.name,
     email: user.email || session.email,
+    firstName: user.firstName || session.firstName,
+    lastName: user.lastName || session.lastName,
+    phone: user.phone || session.phone,
+    avatar: user.avatar ?? session.avatar ?? null,
     role: user.role || session.role,
     activeRole: user.activeRole || session.activeRole,
     roles: user.roles || session.roles,
@@ -242,6 +250,10 @@ function toStoredSession(
     id: user.id,
     name: [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || user.email || "Ntumai Admin",
     email: user.email || "",
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    avatar: user.avatar ?? null,
     role: user.role || "admin",
     activeRole: user.activeRole || user.role || "admin",
     roles: user.roles || [user.role || "admin"],

@@ -27,22 +27,28 @@ const menuItems = [
 function DropdownMenu({
   onSignOut,
   items,
+  userName,
+  userEmail,
+  userAvatar,
 }: {
   onSignOut: () => void;
   items: typeof menuItems;
+  userName: string;
+  userEmail: string;
+  userAvatar?: string | null;
 }) {
   return (
     <div className="w-64 text-left rtl:text-right">
       <div className="flex items-center border-b border-gray-300 px-6 pb-5 pt-6">
         <Avatar
-          src="https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-11.webp"
-          name="Ntumai Admin"
+          src={userAvatar ?? undefined}
+          name={userName}
         />
         <div className="ms-3">
           <Title as="h6" className="font-semibold">
-            Ntumai Ops
+            {userName}
           </Title>
-          <Text className="text-gray-600">admin@ntumai.com</Text>
+          <Text className="text-gray-600">{userEmail}</Text>
         </div>
       </div>
       <div className="grid px-3.5 py-3.5 font-medium text-gray-700">
@@ -85,6 +91,9 @@ export default function ProfileMenu({
   const visibleMenuItems = menuItems.filter((item) =>
     canAccessAdminPath(item.href, user),
   );
+  const userName = user?.name || "Ntumai Ops";
+  const userEmail = user?.email || "admin@ntumai.com";
+  const userAvatar = user?.avatar;
 
   useEffect(() => {
     setIsOpen(false);
@@ -110,13 +119,13 @@ export default function ProfileMenu({
           )}
         >
           <Avatar
-            src="https://isomorphic-furyroad.s3.amazonaws.com/public/avatars/avatar-11.webp"
-            name="Ntumai Admin"
+            src={userAvatar ?? undefined}
+            name={userName}
             className={cn("!h-9 w-9 sm:!h-10 sm:!w-10", avatarClassName)}
           />
           {!!username && (
             <span className="username hidden text-gray-200 md:inline-flex dark:text-gray-700">
-              Ntumai Ops
+              {userName}
             </span>
           )}
         </button>
@@ -126,6 +135,9 @@ export default function ProfileMenu({
         <DropdownMenu
           onSignOut={handleSignOut}
           items={visibleMenuItems}
+          userName={userName}
+          userEmail={userEmail}
+          userAvatar={userAvatar}
         />
       </Popover.Content>
     </Popover>
