@@ -24,6 +24,7 @@ import {
   manualDispatchTrackingHrefByBooking,
 } from "@/components/admin/ops-workflow-links";
 import DataSourceState from "@/components/admin/data-source-state";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import {
   assignDispatchJob,
   reassignDispatchJob,
@@ -217,6 +218,7 @@ const statusOptions = [
 ] as const;
 
 export default function DispatchManualDispatchPage() {
+  const { guardAction } = useAdminActionGuard();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -405,10 +407,16 @@ export default function DispatchManualDispatchPage() {
               <Button
                 variant="text"
                 className="h-auto p-0 text-primary"
-                onClick={() => {
-                  setAssigningItem(row.original);
-                  setSelectedTaskerId(null);
-                }}
+                onClick={() =>
+                  guardAction(
+                    "write",
+                    () => {
+                      setAssigningItem(row.original);
+                      setSelectedTaskerId(null);
+                    },
+                    "Your staff role can view the manual dispatch queue, but it cannot assign or reassign taskers.",
+                  )
+                }
               >
                 Assign
               </Button>
@@ -455,7 +463,17 @@ export default function DispatchManualDispatchPage() {
         description="Manual override list for dispatch-controlled bookings, reassignment decisions, and protected trips."
         action={
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role can view the manual dispatch queue, but it cannot export dispatch override data.",
+                )
+              }
+            >
               <PiDownloadSimpleBold className="me-1.5 h-[17px] w-[17px]" />
               Export
             </Button>
@@ -741,31 +759,35 @@ export default function DispatchManualDispatchPage() {
                   onClick={async () => {
                     const selectedTasker = taskerOptions.find((tasker) => tasker.id === selectedTaskerId);
                     if (!selectedTasker || !assigningItem) return;
-                    // Optimistic UI update
-                    setLocalAssignments((current) => ({
-                      ...current,
-                      [assigningItem.id]: {
-                        assignedTasker: selectedTasker.name,
-                        supply: `${selectedTasker.vehicle} assigned`,
-                        updatedAt: "Just now",
-                        status: "live",
+                    await guardAction(
+                      "write",
+                      async () => {
+                        setLocalAssignments((current) => ({
+                          ...current,
+                          [assigningItem.id]: {
+                            assignedTasker: selectedTasker.name,
+                            supply: `${selectedTasker.vehicle} assigned`,
+                            updatedAt: "Just now",
+                            status: "live",
+                          },
+                        }));
+                        setAssigningItem(null);
+                        setSelectedTaskerId(null);
+                        if (currentAssignmentId) {
+                          reassignDispatchJob(currentAssignmentId, {
+                            newDriverId: selectedTasker.id,
+                            reason: "Manual reassignment from live dispatch map",
+                          }).catch(() => {/* silent — optimistic update preserved */});
+                          return;
+                        }
+                        assignDispatchJob({
+                          orderId: assigningItem.id,
+                          driverId: selectedTasker.id,
+                          note: `Manual assignment by admin`,
+                        }).catch(() => {/* silent — optimistic update preserved */});
                       },
-                    }));
-                    setAssigningItem(null);
-                    setSelectedTaskerId(null);
-                    // Live API call (non-blocking, optimistic update already applied)
-                    if (currentAssignmentId) {
-                      reassignDispatchJob(currentAssignmentId, {
-                        newDriverId: selectedTasker.id,
-                        reason: "Manual reassignment from live dispatch map",
-                      }).catch(() => {/* silent — optimistic update preserved */});
-                      return;
-                    }
-                    assignDispatchJob({
-                      orderId: assigningItem.id,
-                      driverId: selectedTasker.id,
-                      note: `Manual assignment by admin`,
-                    }).catch(() => {/* silent — optimistic update preserved */});
+                      "Your staff role can view manual dispatch, but it cannot commit assignment changes.",
+                    );
                   }}
                 >
                   {isReassignFlow ? "Confirm reassignment" : "Confirm assignment"}

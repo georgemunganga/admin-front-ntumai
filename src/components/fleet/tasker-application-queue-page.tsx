@@ -15,6 +15,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 import {
@@ -462,9 +463,10 @@ function TaskerApplicationDrawer({
   onApplyDecision,
 }: {
   application: TaskerApplication;
-  onApplyDecision: (applicationId: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (applicationId: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -586,19 +588,19 @@ function TaskerApplicationDrawer({
           <Button
             variant="outline"
             className="h-11 rounded-2xl border-red-200 px-4 text-red-dark hover:border-red-dark hover:bg-red-lighter/50"
-            onClick={() => setDecision("reject")}
+            onClick={() => guardAction("write", () => setDecision("reject"))}
           >
             Reject
           </Button>
           <Button
             className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90"
-            onClick={() => setDecision("changes")}
+            onClick={() => guardAction("write", () => setDecision("changes"))}
           >
             Request changes
           </Button>
           <Button
             className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-            onClick={() => setDecision("approve")}
+            onClick={() => guardAction("write", () => setDecision("approve"))}
           >
             Approve
           </Button>
@@ -611,8 +613,8 @@ function TaskerApplicationDrawer({
             application={application}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(application.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(application.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -634,6 +636,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function TaskerApplicationQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { data: liveTaskers, isLoading, isLive, error } = useAdminTaskers();
   const [applications, setApplications] = useState(applicationsSeed);
   const [activeTab, setActiveTab] = useState<(typeof stageTabs)[number]["value"]>("all");
@@ -677,6 +680,75 @@ export default function TaskerApplicationQueuePage() {
     [applications],
   );
 
+  async function applyDecision(applicationId: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        const kycStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "pending_review";
+        applyTaskerKycDecision(applicationId, kycStatus, reasonCode, note).catch(() => {
+          // Silent fail — the local state update still provides feedback to the user
+        });
+        setApplications((current) =>
+          current.map((item) => {
+            if (item.id !== applicationId) return item;
+            if (action === "approve") {
+              return {
+                ...item,
+                status: "live",
+                blockers: ["Activation complete"],
+                tags: [...item.tags.filter((tag) => tag !== "Ready to activate"), "Activated"],
+                owner: "Fleet activated",
+                notes: [`Approved with reason code ${reasonCode}. ${note}`.trim(), ...item.notes],
+                timeline: [
+                  {
+                    label: "Application approved",
+                    detail: note || `Approved by fleet using reason code ${reasonCode}.`,
+                    time: "Now",
+                  },
+                  ...item.timeline,
+                ],
+              };
+            }
+            if (action === "changes") {
+              return {
+                ...item,
+                stage: "resubmission",
+                status: "review",
+                blockers: ["Awaiting candidate resubmission"],
+                owner: "Candidate follow-up",
+                notes: [`Sent back for changes: ${reasonCode}. ${note}`.trim(), ...item.notes],
+                timeline: [
+                  {
+                    label: "Changes requested",
+                    detail: note || `Sent back using reason code ${reasonCode}.`,
+                    time: "Now",
+                  },
+                  ...item.timeline,
+                ],
+              };
+            }
+            return {
+              ...item,
+              status: "paused",
+              blockers: ["Application rejected"],
+              owner: "Closed by risk",
+              notes: [`Rejected: ${reasonCode}. ${note}`.trim(), ...item.notes],
+              timeline: [
+                {
+                  label: "Application rejected",
+                  detail: note || `Rejected using reason code ${reasonCode}.`,
+                  time: "Now",
+                },
+                ...item.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can review tasker applications, but it cannot change application outcomes.",
+    );
+  }
+
   const openApplication = (application: TaskerApplication) => {
     openDrawer({
       placement: "right",
@@ -684,69 +756,7 @@ export default function TaskerApplicationQueuePage() {
       view: (
         <TaskerApplicationDrawer
           application={application}
-          onApplyDecision={(applicationId, action, reasonCode, note) => {
-            // Fire the live API call (non-blocking — optimistic UI handles the UX)
-            const kycStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "pending_review";
-            applyTaskerKycDecision(applicationId, kycStatus, reasonCode, note).catch(() => {
-              // Silent fail — the local state update still provides feedback to the user
-            });
-            setApplications((current) =>
-              current.map((item) => {
-                if (item.id !== applicationId) return item;
-                if (action === "approve") {
-                  return {
-                    ...item,
-                    status: "live",
-                    blockers: ["Activation complete"],
-                    tags: [...item.tags.filter((tag) => tag !== "Ready to activate"), "Activated"],
-                    owner: "Fleet activated",
-                    notes: [`Approved with reason code ${reasonCode}. ${note}`.trim(), ...item.notes],
-                    timeline: [
-                      {
-                        label: "Application approved",
-                        detail: note || `Approved by fleet using reason code ${reasonCode}.`,
-                        time: "Now",
-                      },
-                      ...item.timeline,
-                    ],
-                  };
-                }
-                if (action === "changes") {
-                  return {
-                    ...item,
-                    stage: "resubmission",
-                    status: "review",
-                    blockers: ["Awaiting candidate resubmission"],
-                    owner: "Candidate follow-up",
-                    notes: [`Sent back for changes: ${reasonCode}. ${note}`.trim(), ...item.notes],
-                    timeline: [
-                      {
-                        label: "Changes requested",
-                        detail: note || `Sent back using reason code ${reasonCode}.`,
-                        time: "Now",
-                      },
-                      ...item.timeline,
-                    ],
-                  };
-                }
-                return {
-                  ...item,
-                  status: "paused",
-                  blockers: ["Application rejected"],
-                  owner: "Closed by risk",
-                  notes: [`Rejected: ${reasonCode}. ${note}`.trim(), ...item.notes],
-                  timeline: [
-                    {
-                      label: "Application rejected",
-                      detail: note || `Rejected using reason code ${reasonCode}.`,
-                      time: "Now",
-                    },
-                    ...item.timeline,
-                  ],
-                };
-              }),
-            );
-          }}
+          onApplyDecision={applyDecision}
         />
       ),
     });

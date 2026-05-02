@@ -14,6 +14,7 @@ import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
 
@@ -310,9 +311,10 @@ function TaskerDocumentDrawer({
   onApplyDecision,
 }: {
   item: TaskerDocumentCase;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -419,19 +421,19 @@ function TaskerDocumentDrawer({
           <Button
             variant="outline"
             className="h-11 rounded-2xl border-red-200 px-4 text-red-dark hover:border-red-dark hover:bg-red-lighter/50"
-            onClick={() => setDecision("suspend")}
+            onClick={() => guardAction("write", () => setDecision("suspend"))}
           >
             Suspend
           </Button>
           <Button
             className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90"
-            onClick={() => setDecision("changes")}
+            onClick={() => guardAction("write", () => setDecision("changes"))}
           >
             Request re-upload
           </Button>
           <Button
             className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-            onClick={() => setDecision("approve")}
+            onClick={() => guardAction("write", () => setDecision("approve"))}
           >
             Approve
           </Button>
@@ -444,8 +446,8 @@ function TaskerDocumentDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -467,6 +469,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function TaskerDocumentQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [cases, setCases] = useState(casesSeed);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("all");
   const [query, setQuery] = useState("");
@@ -504,6 +507,57 @@ export default function TaskerDocumentQueuePage() {
     [cases],
   );
 
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        setCases((current) =>
+          current.map((entry) => {
+            if (entry.id !== id) return entry;
+            if (action === "approve") {
+              return {
+                ...entry,
+                status: "live",
+                owner: "Compliance cleared",
+                issue: "Document review completed and cleared for active use.",
+                notes: [`Approved: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Document approved", detail: note || `Approved with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            if (action === "changes") {
+              return {
+                ...entry,
+                status: "review",
+                owner: "Waiting on tasker",
+                issue: "A corrected document upload is required before compliance can close this case.",
+                notes: [`Re-upload requested: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Re-upload requested", detail: note || `Requested with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            return {
+              ...entry,
+              status: "paused",
+              owner: "Compliance hold",
+              issue: "Tasker account should remain blocked until this compliance case is resolved.",
+              notes: [`Suspended: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+              timeline: [
+                { label: "Compliance suspension applied", detail: note || `Suspended with reason code ${reasonCode}.`, time: "Now" },
+                ...entry.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can view tasker documents, but it cannot change document review outcomes.",
+    );
+  }
+
   const openCase = (item: TaskerDocumentCase) => {
     openDrawer({
       placement: "right",
@@ -511,50 +565,7 @@ export default function TaskerDocumentQueuePage() {
       view: (
         <TaskerDocumentDrawer
           item={item}
-          onApplyDecision={(id, action, reasonCode, note) => {
-            setCases((current) =>
-              current.map((entry) => {
-                if (entry.id !== id) return entry;
-                if (action === "approve") {
-                  return {
-                    ...entry,
-                    status: "live",
-                    owner: "Compliance cleared",
-                    issue: "Document review completed and cleared for active use.",
-                    notes: [`Approved: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Document approved", detail: note || `Approved with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                if (action === "changes") {
-                  return {
-                    ...entry,
-                    status: "review",
-                    owner: "Waiting on tasker",
-                    issue: "A corrected document upload is required before compliance can close this case.",
-                    notes: [`Re-upload requested: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Re-upload requested", detail: note || `Requested with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                return {
-                  ...entry,
-                  status: "paused",
-                  owner: "Compliance hold",
-                  issue: "Tasker account should remain blocked until this compliance case is resolved.",
-                  notes: [`Suspended: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                  timeline: [
-                    { label: "Compliance suspension applied", detail: note || `Suspended with reason code ${reasonCode}.`, time: "Now" },
-                    ...entry.timeline,
-                  ],
-                };
-              }),
-            );
-          }}
+          onApplyDecision={applyDecision}
         />
       ),
     });

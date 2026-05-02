@@ -10,6 +10,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
@@ -435,9 +436,10 @@ function VendorApplicationDrawer({
   onApplyDecision,
 }: {
   item: VendorApplication;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -546,19 +548,19 @@ function VendorApplicationDrawer({
           <Button
             variant="outline"
             className="h-11 rounded-2xl border-red-200 px-4 text-red-dark hover:border-red-dark hover:bg-red-lighter/50"
-            onClick={() => setDecision("reject")}
+            onClick={() => guardAction("write", () => setDecision("reject"))}
           >
             Reject
           </Button>
           <Button
             className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90"
-            onClick={() => setDecision("changes")}
+            onClick={() => guardAction("write", () => setDecision("changes"))}
           >
             Request changes
           </Button>
           <Button
             className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-            onClick={() => setDecision("approve")}
+            onClick={() => guardAction("write", () => setDecision("approve"))}
           >
             Approve
           </Button>
@@ -571,8 +573,8 @@ function VendorApplicationDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -594,6 +596,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function VendorApplicationQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { data: liveVendors, isLoading, isLive, error } = useAdminVendors();
   const [applications, setApplications] = useState(seed);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("all");
@@ -638,6 +641,67 @@ export default function VendorApplicationQueuePage() {
     [applications],
   );
 
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        const kycStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "pending_review";
+        applyVendorKycDecision(id, kycStatus, reasonCode, note).catch(() => {
+          // Silent fail — the local state update still provides feedback to the user
+        });
+        setApplications((current) =>
+          current.map((entry) => {
+            if (entry.id !== id) return entry;
+            if (action === "approve") {
+              return {
+                ...entry,
+                status: "live",
+                stage: "final_launch",
+                owner: "Marketplace launched",
+                issue: "Application approved and ready for merchant launch or immediate go-live.",
+                blockers: ["Launch complete"],
+                tags: [...entry.tags.filter((tag) => tag !== "Ready to launch"), "Launched"],
+                notes: [`Approved: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Application approved", detail: note || `Approved with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            if (action === "changes") {
+              return {
+                ...entry,
+                stage: "resubmission",
+                status: "review",
+                owner: "Merchant follow-up",
+                issue: "Merchant changes are required before the application can return to launch flow.",
+                blockers: ["Waiting on merchant resubmission"],
+                notes: [`Changes requested: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Changes requested", detail: note || `Requested with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            return {
+              ...entry,
+              status: "paused",
+              owner: "Compliance closed",
+              issue: "Application rejected and removed from launch flow until a new compliant submission is made.",
+              blockers: ["Application rejected"],
+              notes: [`Rejected: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+              timeline: [
+                { label: "Application rejected", detail: note || `Rejected with reason code ${reasonCode}.`, time: "Now" },
+                ...entry.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can view vendor applications, but it cannot change application outcomes.",
+    );
+  }
+
   const openApplication = (item: VendorApplication) => {
     openDrawer({
       placement: "right",
@@ -645,61 +709,7 @@ export default function VendorApplicationQueuePage() {
       view: (
         <VendorApplicationDrawer
           item={item}
-          onApplyDecision={(id, action, reasonCode, note) => {
-            // Fire the live API call (non-blocking — optimistic UI handles the UX)
-            const kycStatus = action === "approve" ? "approved" : action === "reject" ? "rejected" : "pending_review";
-            applyVendorKycDecision(id, kycStatus, reasonCode, note).catch(() => {
-              // Silent fail — the local state update still provides feedback to the user
-            });
-            setApplications((current) =>
-              current.map((entry) => {
-                if (entry.id !== id) return entry;
-                if (action === "approve") {
-                  return {
-                    ...entry,
-                    status: "live",
-                    stage: "final_launch",
-                    owner: "Marketplace launched",
-                    issue: "Application approved and ready for merchant launch or immediate go-live.",
-                    blockers: ["Launch complete"],
-                    tags: [...entry.tags.filter((tag) => tag !== "Ready to launch"), "Launched"],
-                    notes: [`Approved: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Application approved", detail: note || `Approved with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                if (action === "changes") {
-                  return {
-                    ...entry,
-                    stage: "resubmission",
-                    status: "review",
-                    owner: "Merchant follow-up",
-                    issue: "Merchant changes are required before the application can return to launch flow.",
-                    blockers: ["Waiting on merchant resubmission"],
-                    notes: [`Changes requested: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Changes requested", detail: note || `Requested with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                return {
-                  ...entry,
-                  status: "paused",
-                  owner: "Compliance closed",
-                  issue: "Application rejected and removed from launch flow until a new compliant submission is made.",
-                  blockers: ["Application rejected"],
-                  notes: [`Rejected: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                  timeline: [
-                    { label: "Application rejected", detail: note || `Rejected with reason code ${reasonCode}.`, time: "Now" },
-                    ...entry.timeline,
-                  ],
-                };
-              }),
-            );
-          }}
+          onApplyDecision={applyDecision}
         />
       ),
     });

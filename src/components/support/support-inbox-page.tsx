@@ -134,7 +134,16 @@ export default function SupportInboxPage() {
         title="Support Inbox"
         description="Template-aligned inbox workspace for support conversations, triage, and reply flow."
         action={
-          <Button className="mt-4 w-full rounded-2xl @lg:mt-0 @lg:w-auto">
+          <Button
+            className="mt-4 w-full rounded-2xl @lg:mt-0 @lg:w-auto"
+            onClick={() =>
+              guardAction(
+                "write",
+                () => undefined,
+                "Your staff role can view the support inbox, but it cannot create new tickets from this workspace.",
+              )
+            }
+          >
             <PiPlusBold className="me-1.5 h-[17px] w-[17px]" />
             Create Ticket
           </Button>
@@ -304,7 +313,19 @@ export default function SupportInboxPage() {
                     suffix={<PiCaretDownBold className="h-3 w-3" />}
                     className="w-auto"
                   />
-                  <Button variant="outline" className="h-9 rounded-2xl px-3">Actions</Button>
+                  <Button
+                    variant="outline"
+                    className="h-9 rounded-2xl px-3"
+                    onClick={() =>
+                      guardAction(
+                        "write",
+                        () => undefined,
+                        "Your staff role can read inbox threads, but it cannot run inbox actions from this panel.",
+                      )
+                    }
+                  >
+                    Actions
+                  </Button>
                 </div>
               </header>
 
@@ -370,7 +391,17 @@ export default function SupportInboxPage() {
                 />
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Button variant="outline" className="h-10 rounded-2xl px-4">
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-2xl px-4"
+                      onClick={() =>
+                        guardAction(
+                          "write",
+                          () => undefined,
+                          "Your staff role can view inbox threads, but it cannot attach files from this workspace.",
+                        )
+                      }
+                    >
                       <PiPaperclipBold className="me-1.5 h-4 w-4" />
                       Attach
                     </Button>
