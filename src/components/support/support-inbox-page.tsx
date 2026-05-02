@@ -11,6 +11,7 @@ import {
 } from "react-icons/pi";
 import DataSourceState from "@/components/admin/data-source-state";
 import PageHeader from "@/components/admin/page-header";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import {
   sendSupportInboxMessage,
   useSupportInboxMessages,
@@ -46,6 +47,7 @@ const priorityOptions = [
 ];
 
 export default function SupportInboxPage() {
+  const { guardAction } = useAdminActionGuard();
   const { data: messages, isLoading, isLive, error } = useSupportInboxMessages();
   const [category, setCategory] = useState<SupportInboxCategory>("unassigned");
   const [bucket, setBucket] = useState<SupportInboxBucket>("open");
@@ -108,15 +110,20 @@ export default function SupportInboxPage() {
 
   async function handleSendReply() {
     if (!selectedThreadId || !replyBody.trim()) return;
-    setIsSending(true);
-
-    try {
-      await sendSupportInboxMessage(selectedThreadId, replyBody.trim());
-      setReplyBody("");
-      setRefreshKey((current) => current + 1);
-    } finally {
-      setIsSending(false);
-    }
+    await guardAction(
+      "write",
+      async () => {
+        setIsSending(true);
+        try {
+          await sendSupportInboxMessage(selectedThreadId, replyBody.trim());
+          setReplyBody("");
+          setRefreshKey((current) => current + 1);
+        } finally {
+          setIsSending(false);
+        }
+      },
+      "Your staff role can view the support inbox, but it cannot send reply actions.",
+    );
   }
 
   return (

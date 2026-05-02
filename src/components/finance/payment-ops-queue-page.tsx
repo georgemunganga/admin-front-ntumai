@@ -16,6 +16,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { routes } from "@/config/routes";
 import { Modal } from "@/components/modal";
@@ -118,9 +119,10 @@ function PaymentDrawer({
   onApplyDecision,
 }: {
   item: PaymentCase;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -206,13 +208,13 @@ function PaymentDrawer({
 
       <div className="border-t border-gray-100 px-6 py-5">
         <div className="flex flex-wrap gap-3">
-          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => setDecision("retry")}>
+          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => guardAction("write", () => setDecision("retry"))}>
             Release retry
           </Button>
-          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => setDecision("escalate")}>
+          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => guardAction("write", () => setDecision("escalate"))}>
             Escalate
           </Button>
-          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => setDecision("close")}>
+          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => guardAction("write", () => setDecision("close"))}>
             Close case
           </Button>
           <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={closeDrawer}>
@@ -227,8 +229,8 @@ function PaymentDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -241,6 +243,7 @@ function PaymentDrawer({
 
 export default function PaymentOpsQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { data, isLoading, isLive, error } = usePaymentCases();
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
@@ -273,31 +276,37 @@ export default function PaymentOpsQueuePage() {
     return { open, urgent, chargebacks };
   }, [filteredCases]);
 
-  function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
-    applyAdminPaymentDecision(id, action, reasonCode, note).catch(() => {
-      // Keep optimistic UI behavior even if the network request fails.
-    });
-    setCases((current) =>
-      current.map((item) => {
-        if (item.id !== id) return item;
-        const status: AdminStatus = action === "retry" ? "live" : action === "escalate" ? "monitoring" : "paused";
-        const timelineLabel =
-          action === "retry" ? "Retry released" : action === "escalate" ? "Case escalated" : "Case closed";
-        return {
-          ...item,
-          status,
-          owner: action === "escalate" ? "Finance and risk" : item.owner,
-          notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
-          timeline: [
-            {
-              label: timelineLabel,
-              detail: `Operator action saved with code ${reasonCode}.`,
-              time: "Just now",
-            },
-            ...item.timeline,
-          ],
-        };
-      }),
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        applyAdminPaymentDecision(id, action, reasonCode, note).catch(() => {
+          // Keep optimistic UI behavior even if the network request fails.
+        });
+        setCases((current) =>
+          current.map((item) => {
+            if (item.id !== id) return item;
+            const status: AdminStatus = action === "retry" ? "live" : action === "escalate" ? "monitoring" : "paused";
+            const timelineLabel =
+              action === "retry" ? "Retry released" : action === "escalate" ? "Case escalated" : "Case closed";
+            return {
+              ...item,
+              status,
+              owner: action === "escalate" ? "Finance and risk" : item.owner,
+              notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
+              timeline: [
+                {
+                  label: timelineLabel,
+                  detail: `Operator action saved with code ${reasonCode}.`,
+                  time: "Just now",
+                },
+                ...item.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can view payment cases, but it cannot change payment decisions.",
     );
   }
 

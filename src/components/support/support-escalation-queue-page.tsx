@@ -16,6 +16,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
@@ -130,9 +131,10 @@ function EscalationDrawer({
   onApplyDecision,
 }: {
   item: EscalationCase;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -218,13 +220,13 @@ function EscalationDrawer({
 
       <div className="border-t border-gray-100 px-6 py-5">
         <div className="flex flex-wrap gap-3">
-          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => setDecision("assign")}>
+          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => guardAction("write", () => setDecision("assign"))}>
             Assign
           </Button>
-          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => setDecision("escalate")}>
+          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => guardAction("write", () => setDecision("escalate"))}>
             Escalate
           </Button>
-          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => setDecision("close")}>
+          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => guardAction("write", () => setDecision("close"))}>
             Close
           </Button>
           <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={closeDrawer}>
@@ -253,6 +255,7 @@ function EscalationDrawer({
 
 export default function SupportEscalationQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { data, isLoading, isLive, error } = useSupportEscalationCases();
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
@@ -286,36 +289,42 @@ export default function SupportEscalationQueuePage() {
   }, [filteredCases]);
 
   async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
-    if (isLive) {
-      try {
-        await saveSupportEscalationDecision(id, action, reasonCode, note);
-      } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Failed to save the escalation action.");
-        return;
-      }
-    }
+    await guardAction(
+      "write",
+      async () => {
+        if (isLive) {
+          try {
+            await saveSupportEscalationDecision(id, action, reasonCode, note);
+          } catch (error) {
+            window.alert(error instanceof Error ? error.message : "Failed to save the escalation action.");
+            return;
+          }
+        }
 
-    setCases((current) =>
-      current.map((item) => {
-        if (item.id !== id) return item;
-        const status: AdminStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
-        const timelineLabel =
-          action === "assign" ? "Escalation assigned" : action === "escalate" ? "Cross-team escalation sent" : "Escalation closed";
-        return {
-          ...item,
-          status,
-          owner: action === "escalate" ? "Cross-team escalation" : item.owner,
-          notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
-          timeline: [
-            {
-              label: timelineLabel,
-              detail: `Operator action saved with code ${reasonCode}.`,
-              time: "Just now",
-            },
-            ...item.timeline,
-          ],
-        };
-      }),
+        setCases((current) =>
+          current.map((item) => {
+            if (item.id !== id) return item;
+            const status: AdminStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
+            const timelineLabel =
+              action === "assign" ? "Escalation assigned" : action === "escalate" ? "Cross-team escalation sent" : "Escalation closed";
+            return {
+              ...item,
+              status,
+              owner: action === "escalate" ? "Cross-team escalation" : item.owner,
+              notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
+              timeline: [
+                {
+                  label: timelineLabel,
+                  detail: `Operator action saved with code ${reasonCode}.`,
+                  time: "Just now",
+                },
+                ...item.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can view escalations, but it cannot change escalation outcomes.",
     );
   }
 

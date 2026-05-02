@@ -48,16 +48,16 @@ export function useAdminActionGuard() {
     });
   }
 
-  function guardAction(
+  async function guardAction<T>(
     requirement: GuardRequirement,
-    onAllowed: () => void,
+    onAllowed: () => T | Promise<T>,
     deniedMessage?: string,
-  ) {
+  ): Promise<T | undefined> {
     if (isAllowed(requirement)) {
-      onAllowed();
-      return;
+      return await onAllowed();
     }
     openDeniedModal(requirement, deniedMessage);
+    return undefined;
   }
 
   return {

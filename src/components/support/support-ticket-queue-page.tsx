@@ -16,6 +16,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
@@ -113,9 +114,10 @@ function TicketDrawer({
   onApplyDecision,
 }: {
   item: TicketCase;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -197,13 +199,13 @@ function TicketDrawer({
 
       <div className="border-t border-gray-100 px-6 py-5">
         <div className="flex flex-wrap gap-3">
-          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => setDecision("assign")}>
+          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => guardAction("write", () => setDecision("assign"))}>
             Assign
           </Button>
-          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => setDecision("escalate")}>
+          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => guardAction("write", () => setDecision("escalate"))}>
             Escalate
           </Button>
-          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => setDecision("resolve")}>
+          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => guardAction("write", () => setDecision("resolve"))}>
             Resolve
           </Button>
           <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={closeDrawer}>
@@ -218,8 +220,8 @@ function TicketDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -232,6 +234,7 @@ function TicketDrawer({
 
 export default function SupportTicketQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { data, isLoading, isLive, error } = useSupportTicketCases();
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
@@ -264,34 +267,38 @@ export default function SupportTicketQueuePage() {
     return { open, sla, merchant };
   }, [filteredCases]);
 
-  function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
-    // Optimistic local state update
-    setCases((current) =>
-      current.map((item) => {
-        if (item.id !== id) return item;
-        const status: AdminStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
-        const timelineLabel =
-          action === "assign" ? "Ticket assigned" : action === "escalate" ? "Ticket escalated" : "Ticket resolved";
-        return {
-          ...item,
-          status,
-          owner: action === "escalate" ? "Specialist follow-up" : item.owner,
-          notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
-          timeline: [
-            {
-              label: timelineLabel,
-              detail: `Operator action saved with code ${reasonCode}.`,
-              time: "Just now",
-            },
-            ...item.timeline,
-          ],
-        };
-      }),
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        setCases((current) =>
+          current.map((item) => {
+            if (item.id !== id) return item;
+            const status: AdminStatus = action === "assign" ? "live" : action === "escalate" ? "monitoring" : "paused";
+            const timelineLabel =
+              action === "assign" ? "Ticket assigned" : action === "escalate" ? "Ticket escalated" : "Ticket resolved";
+            return {
+              ...item,
+              status,
+              owner: action === "escalate" ? "Specialist follow-up" : item.owner,
+              notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
+              timeline: [
+                {
+                  label: timelineLabel,
+                  detail: `Operator action saved with code ${reasonCode}.`,
+                  time: "Just now",
+                },
+                ...item.timeline,
+              ],
+            };
+          }),
+        );
+        updateSupportTicket(id, action, reasonCode, note).catch(() => {
+          // Silent fail — optimistic update stays in place for the session
+        });
+      },
+      "Your staff role can view support tickets, but it cannot change ticket outcomes.",
     );
-    // Live API call (non-blocking — optimistic UI already applied above)
-    updateSupportTicket(id, action, reasonCode, note).catch(() => {
-      // Silent fail — optimistic update stays in place for the session
-    });
   }
 
   return (

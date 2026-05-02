@@ -9,6 +9,7 @@ import {
   PiWarningCircleBold,
 } from "react-icons/pi";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -236,9 +237,10 @@ function PayoutDrawer({
   onApplyDecision,
 }: {
   item: PayoutCase;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -311,19 +313,19 @@ function PayoutDrawer({
           <Button
             variant="outline"
             className="h-11 rounded-2xl border-red-200 px-4 text-red-dark hover:border-red-dark hover:bg-red-lighter/50"
-            onClick={() => setDecision("reject")}
+            onClick={() => guardAction("write", () => setDecision("reject"))}
           >
             Reject
           </Button>
           <Button
             className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90"
-            onClick={() => setDecision("hold")}
+            onClick={() => guardAction("write", () => setDecision("hold"))}
           >
             Hold
           </Button>
           <Button
             className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-            onClick={() => setDecision("approve")}
+            onClick={() => guardAction("write", () => setDecision("approve"))}
           >
             Approve
           </Button>
@@ -336,8 +338,8 @@ function PayoutDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -359,6 +361,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function PayoutApprovalQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [cases, setCases] = useState(seed);
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("all");
   const [query, setQuery] = useState("");
@@ -398,6 +401,61 @@ export default function PayoutApprovalQueuePage() {
     [cases],
   );
 
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        const decisionValue = action === "approve" ? "approve" : action === "reject" ? "reject" : "hold";
+        applyAdminPayoutDecision(id, decisionValue, note || reasonCode).catch(() => {
+          // Silent fail — the local state update still provides feedback to the user
+        });
+        setCases((current) =>
+          current.map((entry) => {
+            if (entry.id !== id) return entry;
+            if (action === "approve") {
+              return {
+                ...entry,
+                status: "live",
+                owner: "Treasury released",
+                issue: "Payout approved and ready for release or transfer execution.",
+                notes: [`Approved: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Payout approved", detail: note || `Approved with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            if (action === "hold") {
+              return {
+                ...entry,
+                status: "monitoring",
+                owner: "Manual finance hold",
+                issue: "Payout remains open but is now waiting on manual finance follow-up.",
+                notes: [`Held: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Payout hold placed", detail: note || `Held with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            return {
+              ...entry,
+              status: "paused",
+              owner: "Rejected by finance",
+              issue: "Payout should not proceed until a new compliant settlement path is prepared.",
+              notes: [`Rejected: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+              timeline: [
+                { label: "Payout rejected", detail: note || `Rejected with reason code ${reasonCode}.`, time: "Now" },
+                ...entry.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can view payout cases, but it cannot change payout decisions.",
+    );
+  }
+
   const openCase = (item: PayoutCase) => {
     openDrawer({
       placement: "right",
@@ -405,55 +463,7 @@ export default function PayoutApprovalQueuePage() {
       view: (
         <PayoutDrawer
           item={item}
-          onApplyDecision={(id, action, reasonCode, note) => {
-            // Fire the live API call (non-blocking — optimistic UI handles the UX)
-            const decisionValue = action === "approve" ? "approve" : action === "reject" ? "reject" : "hold";
-            applyAdminPayoutDecision(id, decisionValue, note || reasonCode).catch(() => {
-              // Silent fail — the local state update still provides feedback to the user
-            });
-            setCases((current) =>
-              current.map((entry) => {
-                if (entry.id !== id) return entry;
-                if (action === "approve") {
-                  return {
-                    ...entry,
-                    status: "live",
-                    owner: "Treasury released",
-                    issue: "Payout approved and ready for release or transfer execution.",
-                    notes: [`Approved: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Payout approved", detail: note || `Approved with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                if (action === "hold") {
-                  return {
-                    ...entry,
-                    status: "monitoring",
-                    owner: "Manual finance hold",
-                    issue: "Payout remains open but is now waiting on manual finance follow-up.",
-                    notes: [`Held: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Payout hold placed", detail: note || `Held with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                return {
-                  ...entry,
-                  status: "paused",
-                  owner: "Rejected by finance",
-                  issue: "Payout should not proceed until a new compliant settlement path is prepared.",
-                  notes: [`Rejected: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                  timeline: [
-                    { label: "Payout rejected", detail: note || `Rejected with reason code ${reasonCode}.`, time: "Now" },
-                    ...entry.timeline,
-                  ],
-                };
-              }),
-            );
-          }}
+          onApplyDecision={applyDecision}
         />
       ),
     });

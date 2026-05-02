@@ -11,6 +11,7 @@ import {
 } from "react-icons/pi";
 import { vendorDetailHrefByName } from "@/components/admin/ops-workflow-links";
 import { useDrawer } from "@/app/shared/drawer-views/use-drawer";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
@@ -279,9 +280,10 @@ function DispatchExceptionDrawer({
   onApplyDecision,
 }: {
   item: DispatchException;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -365,19 +367,19 @@ function DispatchExceptionDrawer({
           <Button
             variant="outline"
             className="h-11 rounded-2xl border-red-200 px-4 text-red-dark hover:border-red-dark hover:bg-red-lighter/50"
-            onClick={() => setDecision("cancel")}
+            onClick={() => guardAction("write", () => setDecision("cancel"))}
           >
             Cancel
           </Button>
           <Button
             className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90"
-            onClick={() => setDecision("escalate")}
+            onClick={() => guardAction("write", () => setDecision("escalate"))}
           >
             Escalate
           </Button>
           <Button
             className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-            onClick={() => setDecision("reassign")}
+            onClick={() => guardAction("write", () => setDecision("reassign"))}
           >
             Reassign
           </Button>
@@ -390,8 +392,8 @@ function DispatchExceptionDrawer({
             item={item}
             action={decision}
             onClose={() => setDecision(null)}
-            onSubmit={({ reasonCode, note }) => {
-              onApplyDecision(item.id, decision, reasonCode, note);
+            onSubmit={async ({ reasonCode, note }) => {
+              await onApplyDecision(item.id, decision, reasonCode, note);
               setDecision(null);
               closeDrawer();
             }}
@@ -413,6 +415,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 
 export default function DispatchExceptionQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { exceptions: liveExceptions, loading: exceptionsLoading } = useAdminDispatchExceptions();
   const [exceptions, setExceptions] = useState(seed);
 
@@ -459,6 +462,57 @@ export default function DispatchExceptionQueuePage() {
     [exceptions],
   );
 
+  async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
+    await guardAction(
+      "write",
+      async () => {
+        setExceptions((current) =>
+          current.map((entry) => {
+            if (entry.id !== id) return entry;
+            if (action === "reassign") {
+              return {
+                ...entry,
+                status: "monitoring",
+                owner: "Dispatch reassignment",
+                issue: "Manual reassignment or route recovery is now in progress.",
+                notes: [`Reassigned: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Reassignment action taken", detail: note || `Reassigned with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            if (action === "escalate") {
+              return {
+                ...entry,
+                status: "review",
+                owner: "Cross-team escalation",
+                issue: "Case is now waiting on another ops team with dispatch context attached.",
+                notes: [`Escalated: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+                timeline: [
+                  { label: "Cross-team escalation sent", detail: note || `Escalated with reason code ${reasonCode}.`, time: "Now" },
+                  ...entry.timeline,
+                ],
+              };
+            }
+            return {
+              ...entry,
+              status: "paused",
+              owner: "Dispatch closed",
+              issue: "Operational flow was cancelled and should now follow the downstream resolution path.",
+              notes: [`Cancelled: ${reasonCode}. ${note}`.trim(), ...entry.notes],
+              timeline: [
+                { label: "Operational cancellation applied", detail: note || `Cancelled with reason code ${reasonCode}.`, time: "Now" },
+                ...entry.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can view dispatch exceptions, but it cannot change dispatch outcomes.",
+    );
+  }
+
   const openException = (item: DispatchException) => {
     openDrawer({
       placement: "right",
@@ -466,50 +520,7 @@ export default function DispatchExceptionQueuePage() {
       view: (
         <DispatchExceptionDrawer
           item={item}
-          onApplyDecision={(id, action, reasonCode, note) => {
-            setExceptions((current) =>
-              current.map((entry) => {
-                if (entry.id !== id) return entry;
-                if (action === "reassign") {
-                  return {
-                    ...entry,
-                    status: "monitoring",
-                    owner: "Dispatch reassignment",
-                    issue: "Manual reassignment or route recovery is now in progress.",
-                    notes: [`Reassigned: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Reassignment action taken", detail: note || `Reassigned with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                if (action === "escalate") {
-                  return {
-                    ...entry,
-                    status: "review",
-                    owner: "Cross-team escalation",
-                    issue: "Case is now waiting on another ops team with dispatch context attached.",
-                    notes: [`Escalated: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                    timeline: [
-                      { label: "Cross-team escalation sent", detail: note || `Escalated with reason code ${reasonCode}.`, time: "Now" },
-                      ...entry.timeline,
-                    ],
-                  };
-                }
-                return {
-                  ...entry,
-                  status: "paused",
-                  owner: "Dispatch closed",
-                  issue: "Operational flow was cancelled and should now follow the downstream resolution path.",
-                  notes: [`Cancelled: ${reasonCode}. ${note}`.trim(), ...entry.notes],
-                  timeline: [
-                    { label: "Operational cancellation applied", detail: note || `Cancelled with reason code ${reasonCode}.`, time: "Now" },
-                    ...entry.timeline,
-                  ],
-                };
-              }),
-            );
-          }}
+          onApplyDecision={applyDecision}
         />
       ),
     });

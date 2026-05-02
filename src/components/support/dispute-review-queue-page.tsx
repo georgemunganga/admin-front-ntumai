@@ -16,6 +16,7 @@ import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import type { AdminStatus } from "@/contracts/admin-domain";
 import { Modal } from "@/components/modal";
 import { routes } from "@/config/routes";
@@ -131,9 +132,10 @@ function DisputeDrawer({
   onApplyDecision,
 }: {
   item: DisputeCase;
-  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => void;
+  onApplyDecision: (id: string, action: DecisionAction, reasonCode: string, note: string) => Promise<void> | void;
 }) {
   const { closeDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const [decision, setDecision] = useState<DecisionAction | null>(null);
 
   return (
@@ -221,13 +223,13 @@ function DisputeDrawer({
 
       <div className="border-t border-gray-100 px-6 py-5">
         <div className="flex flex-wrap gap-3">
-          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => setDecision("refund")}>
+          <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90" onClick={() => guardAction("write", () => setDecision("refund"))}>
             Approve recovery
           </Button>
-          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => setDecision("escalate")}>
+          <Button className="h-11 rounded-2xl bg-secondary px-4 text-secondary-foreground hover:bg-secondary/90" onClick={() => guardAction("write", () => setDecision("escalate"))}>
             Escalate
           </Button>
-          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => setDecision("deny")}>
+          <Button className="h-11 rounded-2xl bg-red-dark px-4 text-white hover:bg-red-dark/90" onClick={() => guardAction("write", () => setDecision("deny"))}>
             Deny claim
           </Button>
           <Button variant="outline" className="h-11 rounded-2xl px-4" onClick={closeDrawer}>
@@ -256,6 +258,7 @@ function DisputeDrawer({
 
 export default function DisputeReviewQueuePage() {
   const { openDrawer } = useDrawer();
+  const { guardAction } = useAdminActionGuard();
   const { data, isLoading, isLive, error } = useSupportDisputeCases();
   const [lane, setLane] = useState<(typeof tabs)[number]["value"]>("all");
   const [owner, setOwner] = useState("all");
@@ -301,40 +304,46 @@ export default function DisputeReviewQueuePage() {
   }, [filteredCases]);
 
   async function applyDecision(id: string, action: DecisionAction, reasonCode: string, note: string) {
-    if (isLive) {
-      try {
-        await saveSupportDisputeDecision(id, action, reasonCode, note);
-      } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Failed to save the dispute action.");
-        return;
-      }
-    }
+    await guardAction(
+      "write",
+      async () => {
+        if (isLive) {
+          try {
+            await saveSupportDisputeDecision(id, action, reasonCode, note);
+          } catch (error) {
+            window.alert(error instanceof Error ? error.message : "Failed to save the dispute action.");
+            return;
+          }
+        }
 
-    setCases((current) =>
-      current.map((item) => {
-        if (item.id !== id) return item;
+        setCases((current) =>
+          current.map((item) => {
+            if (item.id !== id) return item;
 
-        const status: AdminStatus =
-          action === "refund" ? "live" : action === "deny" ? "paused" : "monitoring";
+            const status: AdminStatus =
+              action === "refund" ? "live" : action === "deny" ? "paused" : "monitoring";
 
-        const timelineLabel =
-          action === "refund" ? "Recovery approved" : action === "deny" ? "Claim denied" : "Dispute escalated";
+            const timelineLabel =
+              action === "refund" ? "Recovery approved" : action === "deny" ? "Claim denied" : "Dispute escalated";
 
-        return {
-          ...item,
-          status,
-          owner: action === "escalate" ? "Policy and trust" : item.owner,
-          notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
-          timeline: [
-            {
-              label: timelineLabel,
-              detail: `Operator action saved with code ${reasonCode}.`,
-              time: "Just now",
-            },
-            ...item.timeline,
-          ],
-        };
-      }),
+            return {
+              ...item,
+              status,
+              owner: action === "escalate" ? "Policy and trust" : item.owner,
+              notes: [note || `Decision recorded: ${reasonCode}.`, ...item.notes],
+              timeline: [
+                {
+                  label: timelineLabel,
+                  detail: `Operator action saved with code ${reasonCode}.`,
+                  time: "Just now",
+                },
+                ...item.timeline,
+              ],
+            };
+          }),
+        );
+      },
+      "Your staff role can review disputes, but it cannot change dispute outcomes.",
     );
   }
 
