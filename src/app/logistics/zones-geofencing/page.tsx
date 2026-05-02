@@ -15,6 +15,7 @@ import {
   PiWaveTriangleBold,
 } from "react-icons/pi";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { Modal } from "@/components/modal";
@@ -139,6 +140,7 @@ const versionRows: VersionRow[] = [
 ];
 
 export default function LogisticsZonesGeofencingPage() {
+  const { guardAction } = useAdminActionGuard();
   const { openDrawer, closeDrawer } = useDrawer();
   const [query, setQuery] = useState("");
   const [selectedZoneId, setSelectedZoneId] = useState(zones[0].id);
@@ -216,10 +218,16 @@ export default function LogisticsZonesGeofencingPage() {
             <div className="flex flex-wrap items-center gap-3 xl:justify-end">
               <Button
                 className="h-10 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-                onClick={() => {
-                  setWizardStep(1);
-                  setIsCreateOpen(true);
-                }}
+                onClick={() =>
+                  void guardAction(
+                    "write",
+                    () => {
+                      setWizardStep(1);
+                      setIsCreateOpen(true);
+                    },
+                    "Your staff role cannot create or stage new geofencing zones.",
+                  )
+                }
               >
                 <PiPlusBold className="me-1.5 h-4 w-4" />
                 Create New Zone
@@ -571,6 +579,7 @@ function ZoneCreateWizard({
   onStepChange: (step: number) => void;
   onClose: () => void;
 }) {
+  const { guardAction } = useAdminActionGuard();
   return (
     <div className="rounded-[30px] bg-white p-6 sm:p-7">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-5">
@@ -696,13 +705,15 @@ function ZoneCreateWizard({
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-              onClick={() => {
-                if (step === 3) {
-                  onClose();
-                  return;
-                }
-                onStepChange(step + 1);
-              }}
+              onClick={() =>
+                step === 3
+                  ? void guardAction(
+                      "write",
+                      onClose,
+                      "Your staff role cannot publish or finish new geofencing zones.",
+                    )
+                  : onStepChange(step + 1)
+              }
             >
               {step === 3 ? "Finish zone" : "Continue"}
             </Button>
@@ -745,6 +756,7 @@ function InfoBlock({ title, detail }: { title: string; detail: string }) {
 }
 
 function ZoneDetailDrawer({ zone, onClose }: { zone: Zone; onClose: () => void }) {
+  const { guardAction } = useAdminActionGuard();
   return (
     <div className="flex h-full flex-col bg-white">
       <div className="border-b border-gray-100 px-6 py-5">
@@ -800,10 +812,29 @@ function ZoneDetailDrawer({ zone, onClose }: { zone: Zone; onClose: () => void }
             Zone configuration
           </Title>
           <div className="mt-4 space-y-3">
-            <Button className="h-11 w-full rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 w-full rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot edit zone configuration from this logistics surface.",
+                )
+              }
+            >
               Edit Zone Configuration
             </Button>
-            <Button variant="outline" className="h-11 w-full rounded-2xl border-red-200 px-4 text-red-700 hover:bg-red-50">
+            <Button
+              variant="outline"
+              className="h-11 w-full rounded-2xl border-red-200 px-4 text-red-700 hover:bg-red-50"
+              onClick={() =>
+                void guardAction(
+                  "delete",
+                  () => undefined,
+                  "Your staff role cannot archive zones from this logistics surface.",
+                )
+              }
+            >
               Archive Zone
             </Button>
           </div>

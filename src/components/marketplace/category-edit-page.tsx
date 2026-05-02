@@ -16,6 +16,7 @@ import {
   PiTrashBold,
   PiWarningCircleBold,
 } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
@@ -63,6 +64,7 @@ const reviewOwnerOptions = [
 ];
 
 export default function CategoryEditPage({ id }: { id: string }) {
+  const { guardAction } = useAdminActionGuard();
   const category = getMarketplaceCategoryById(id);
   if (!category) notFound();
 
@@ -88,11 +90,30 @@ export default function CategoryEditPage({ id }: { id: string }) {
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "read",
+                  () => undefined,
+                  "Your staff role cannot preview this category surface.",
+                )
+              }
+            >
               <PiEyeBold className="me-1.5 h-4 w-4" />
               Preview
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save category changes from this marketplace surface.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               Save Changes
             </Button>
@@ -338,13 +359,42 @@ export default function CategoryEditPage({ id }: { id: string }) {
             </Text>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save category drafts from this marketplace surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button variant="outline" className="h-11 rounded-2xl px-4 text-red-dark">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4 text-red-dark"
+              onClick={() =>
+                void guardAction(
+                  "delete",
+                  () => undefined,
+                  "Your staff role cannot archive marketplace categories.",
+                )
+              }
+            >
               Archive
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save category changes from this marketplace surface.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               Save Changes
             </Button>

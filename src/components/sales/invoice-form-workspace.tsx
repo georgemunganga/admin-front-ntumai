@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import type { SalesInvoiceRecord } from "@/repositories/admin/invoices";
@@ -29,6 +30,7 @@ export default function InvoiceFormWorkspace({
   mode,
   invoice,
 }: InvoiceFormWorkspaceProps) {
+  const { guardAction } = useAdminActionGuard();
   const id = invoice?.id ?? "INV-4022";
   const customer = invoice?.customer ?? "Green Basket Market";
   const destination = invoice?.destination ?? "MTN MoMo •• 9084";
@@ -63,10 +65,29 @@ export default function InvoiceFormWorkspace({
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save invoice drafts from this finance surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot create or update invoices from this finance surface.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               {mode === "edit" ? "Update Invoice" : "Create Invoice"}
             </Button>

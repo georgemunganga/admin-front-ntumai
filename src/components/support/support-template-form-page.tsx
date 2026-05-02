@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Button, Input, Select, Text, Textarea, Title } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import { getSupportTemplateById } from "@/repositories/admin/support-templates";
@@ -35,6 +36,7 @@ export default function SupportTemplateFormPage({
   mode: "create" | "edit";
   id?: string;
 }) {
+  const { guardAction } = useAdminActionGuard();
   const template = mode === "edit" ? getSupportTemplateById(id ?? "") : null;
   if (mode === "edit" && !template) notFound();
 
@@ -58,10 +60,29 @@ export default function SupportTemplateFormPage({
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save support template drafts.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot create or update support templates.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               {mode === "create" ? "Create Template" : "Save Changes"}
             </Button>

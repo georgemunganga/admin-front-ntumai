@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge, Button, Checkbox, Input, Select, Text, Textarea } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold, PiImageBold, PiUploadBold } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import type { MarketplaceProductRecord } from "@/repositories/admin/products";
@@ -76,6 +77,7 @@ export default function ProductFormWorkspace({
   mode,
   product,
 }: ProductFormWorkspaceProps) {
+  const { guardAction } = useAdminActionGuard();
   const title = mode === "edit" ? `Edit ${product?.name}` : "Create Product";
   const name = product?.name ?? "Organic tomato basket";
   const sku = product?.sku ?? "GBM-TOM-001";
@@ -111,10 +113,29 @@ export default function ProductFormWorkspace({
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save product drafts from this marketplace surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot create or update marketplace products.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               {mode === "edit" ? "Update Product" : "Create Product"}
             </Button>
@@ -311,6 +332,7 @@ function SelectField({
 }
 
 function UploadTile() {
+  const { guardAction } = useAdminActionGuard();
   return (
     <div className="col-span-full rounded-[24px] border border-dashed border-gray-300 bg-gray-50/80 p-5">
       <div className="flex items-start gap-4">
@@ -323,7 +345,17 @@ function UploadTile() {
             Use product cover, detail shots, and packaging frames that make the mobile storefront easier to browse and trust.
           </Text>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button variant="outline" className="rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot upload or replace product media.",
+                )
+              }
+            >
               <PiImageBold className="me-1.5 h-4 w-4" />
               Select files
             </Button>

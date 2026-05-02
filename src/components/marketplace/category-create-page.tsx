@@ -8,6 +8,7 @@ import {
   PiFloppyDiskBold,
   PiWarningCircleBold,
 } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 
@@ -39,6 +40,7 @@ const rulePresetOptions = [
 ];
 
 export default function CategoryCreatePage() {
+  const { guardAction } = useAdminActionGuard();
   return (
     <div className="space-y-6">
       <PageHeader
@@ -54,10 +56,29 @@ export default function CategoryCreatePage() {
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save category drafts from this marketplace surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot create marketplace categories.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               Create Category
             </Button>

@@ -20,6 +20,7 @@ import {
   PiShoppingBagBold,
   PiStorefrontBold,
 } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/admin/status-badge";
@@ -165,6 +166,7 @@ const statusOptions = [
 ] as const;
 
 export default function DispatchScheduledRidesPage() {
+  const { guardAction } = useAdminActionGuard();
   const [query, setQuery] = useState("");
   const [day, setDay] = useState("all");
   const [service, setService] = useState("all");
@@ -308,7 +310,13 @@ export default function DispatchScheduledRidesPage() {
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
-              onClick={() => setIsWizardOpen(true)}
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => setIsWizardOpen(true),
+                  "Your staff role cannot create or plan scheduled rides from this dispatch surface.",
+                )
+              }
             >
               <PiCalendarPlusBold className="me-1.5 h-[17px] w-[17px]" />
               New scheduled ride
@@ -481,6 +489,7 @@ export default function DispatchScheduledRidesPage() {
 }
 
 function ScheduledRideWizard({ onClose }: { onClose: () => void }) {
+  const { guardAction } = useAdminActionGuard();
   const [step, setStep] = useState(1);
   const [bookingType, setBookingType] = useState<BookingType>("delivery");
   const [customerMode, setCustomerMode] = useState<CustomerMode>("existing");
@@ -726,7 +735,17 @@ function ScheduledRideWizard({ onClose }: { onClose: () => void }) {
           Previous
         </Button>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" className="h-11 rounded-2xl px-4">
+          <Button
+            variant="outline"
+            className="h-11 rounded-2xl px-4"
+            onClick={() =>
+              void guardAction(
+                "write",
+                () => undefined,
+                "Your staff role cannot save scheduled ride drafts.",
+              )
+            }
+          >
             Save Draft
           </Button>
           {step < 4 ? (
@@ -737,7 +756,16 @@ function ScheduledRideWizard({ onClose }: { onClose: () => void }) {
               Next
             </Button>
           ) : (
-            <Button className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90" onClick={onClose}>
+            <Button
+              className="h-11 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  onClose,
+                  "Your staff role cannot create scheduled rides from this dispatch surface.",
+                )
+              }
+            >
               Create scheduled ride
             </Button>
           )}

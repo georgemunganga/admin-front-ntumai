@@ -9,6 +9,7 @@ import {
   PiFloppyDiskBold,
   PiWarningCircleBold,
 } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { getMarketplaceVendorBySlug } from "@/repositories/admin/vendors";
@@ -40,6 +41,7 @@ const planOptions = [
 ];
 
 export default function VendorEditPage({ slug }: { slug: string }) {
+  const { guardAction } = useAdminActionGuard();
   const vendor = getMarketplaceVendorBySlug(slug);
 
   if (!vendor) notFound();
@@ -59,10 +61,29 @@ export default function VendorEditPage({ slug }: { slug: string }) {
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save vendor drafts from this marketplace surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot update marketplace vendors.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               Save Changes
             </Button>

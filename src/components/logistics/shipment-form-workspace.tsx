@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge, Button, Checkbox, Input, Select, Text, Textarea } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold, PiUploadBold } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import type { LogisticsShipment } from "@/components/logistics/shipment-data";
@@ -79,6 +80,7 @@ export default function ShipmentFormWorkspace({
   mode,
   shipment,
 }: ShipmentFormWorkspaceProps) {
+  const { guardAction } = useAdminActionGuard();
   const shipmentId = shipment?.id ?? "SHP-50013";
   const trackingId = shipment?.trackingId ?? "TRK-50013-LSK";
   const customer = shipment?.customer ?? "Mwaka Tembo";
@@ -117,10 +119,29 @@ export default function ShipmentFormWorkspace({
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save shipment drafts from this logistics surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot create or update shipments from this logistics surface.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               {mode === "edit" ? "Update Shipment" : "Create Shipment"}
             </Button>
@@ -330,6 +351,7 @@ function SelectField({
 }
 
 function UploadTile({ label = "Shipping attachment" }: { label?: string }) {
+  const { guardAction } = useAdminActionGuard();
   return (
     <div className="col-span-full rounded-[22px] border border-dashed border-gray-300 bg-gray-50/70 p-5">
       <div className="flex items-start gap-4">
@@ -342,7 +364,17 @@ function UploadTile({ label = "Shipping attachment" }: { label?: string }) {
             Upload delivery proof, package notes, or shipment paperwork that operations and support may need later.
           </Text>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button variant="outline" className="rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot upload shipment attachments from this logistics surface.",
+                )
+              }
+            >
               Upload file
             </Button>
             <Badge variant="flat" className="rounded-2xl bg-gray-900 px-3 py-1.5 text-white">

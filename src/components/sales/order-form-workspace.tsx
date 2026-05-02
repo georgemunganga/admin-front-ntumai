@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge, Button, Checkbox, Input, Select, Text, Textarea, Title } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold } from "react-icons/pi";
+import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
@@ -47,6 +48,7 @@ export default function OrderFormWorkspace({
   mode,
   order,
 }: OrderFormWorkspaceProps) {
+  const { guardAction } = useAdminActionGuard();
   const orderNumber = order?.orderNumber ?? "#MK-90015";
   const customer = order?.customer ?? "Mwaka Tembo";
   const customerPhone = order?.customerPhone ?? "+260 97 300 1142";
@@ -82,10 +84,29 @@ export default function OrderFormWorkspace({
                 Back
               </Button>
             </Link>
-            <Button variant="outline" className="h-11 rounded-2xl px-4">
+            <Button
+              variant="outline"
+              className="h-11 rounded-2xl px-4"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot save order drafts from this admin surface.",
+                )
+              }
+            >
               Save Draft
             </Button>
-            <Button className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90">
+            <Button
+              className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              onClick={() =>
+                void guardAction(
+                  "write",
+                  () => undefined,
+                  "Your staff role cannot create or update orders from this admin surface.",
+                )
+              }
+            >
               <PiFloppyDiskBold className="me-1.5 h-4 w-4" />
               {mode === "edit" ? "Update Order" : "Create Order"}
             </Button>
