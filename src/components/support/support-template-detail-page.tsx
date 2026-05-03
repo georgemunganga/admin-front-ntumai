@@ -8,11 +8,23 @@ import PageHeader from "@/components/admin/page-header";
 import GuardedLink from "@/components/auth/guarded-link";
 import ShellCard from "@/components/admin/shell-card";
 import { routes } from "@/config/routes";
-import { getSupportTemplateById } from "@/repositories/admin/support-templates";
+import {
+  getSupportTemplateById,
+  useAdminSupportTemplateDetail,
+} from "@/repositories/admin/support-templates";
 
 export default function SupportTemplateDetailPage({ id }: { id: string }) {
-  const template = getSupportTemplateById(id);
-  if (!template) notFound();
+  const fallback = getSupportTemplateById(id);
+  const { data: liveTemplate, isLoading, error } = useAdminSupportTemplateDetail(id);
+  const template = liveTemplate ?? fallback;
+  if (!template && !isLoading) notFound();
+  if (!template) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+        Loading template...
+      </div>
+    );
+  }
 
   return (
     <div className="@container space-y-6">
@@ -38,6 +50,12 @@ export default function SupportTemplateDetailPage({ id }: { id: string }) {
           </div>
         }
       />
+
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
         <ShellCard title="Template Content" description="Current live or draft message body.">

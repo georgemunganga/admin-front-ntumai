@@ -97,12 +97,13 @@ export default function VendorEditPage({ slug }: { slug: string }) {
       </div>
     );
   }
+  const currentVendor = vendor;
 
   async function handleSave() {
     setIsSaving(true);
     setFeedback(null);
     try {
-      await updateAdminVendor(vendor.id, {
+      await updateAdminVendor(currentVendor.id, {
         name: form.name.trim(),
         segment: form.segment.trim(),
         city: form.city.trim(),
@@ -135,11 +136,11 @@ export default function VendorEditPage({ slug }: { slug: string }) {
       <PageHeader
         breadcrumb={["Home", "Marketplace", "Vendors", vendor.id, "Edit"]}
         eyebrow="Marketplace Kit"
-        title={`Edit ${vendor.name}`}
+        title={`Edit ${currentVendor.name}`}
         description="Partner form aligned to onboarding, store readiness, and payout setup."
         action={
           <div className="flex flex-wrap gap-3">
-            <Link href={routes.marketplace.vendorDetails(vendor.slug)}>
+            <Link href={routes.marketplace.vendorDetails(currentVendor.slug)}>
               <Button variant="outline" className="h-11 rounded-2xl px-4">
                 <PiArrowLeftBold className="me-1.5 h-4 w-4" />
                 Back
@@ -261,10 +262,10 @@ export default function VendorEditPage({ slug }: { slug: string }) {
                   <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
                     Store readiness
                   </Text>
-                  <Text className="mt-2 font-semibold text-gray-900">{vendor.visibility}</Text>
+                  <Text className="mt-2 font-semibold text-gray-900">{currentVendor.visibility}</Text>
                 </div>
                 <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-1.5 text-primary">
-                  {vendor.storeType}
+                  {currentVendor.storeType}
                 </Badge>
               </div>
             </div>
@@ -278,7 +279,7 @@ export default function VendorEditPage({ slug }: { slug: string }) {
               title="Payout setup required"
               detail="Payout method and subscription state should be visible before vendor finance actions begin."
             />
-            {vendor.timeline.map((item) => (
+            {currentVendor.timeline.map((item) => (
               <div key={`${item.label}-${item.time}`} className="rounded-[20px] border border-gray-100 bg-gray-50/70 p-4">
                 <Text className="font-semibold text-gray-900">{item.label}</Text>
                 <Text className="mt-1 text-sm text-gray-500">{item.detail}</Text>

@@ -10,28 +10,22 @@ import StatCard from "@/components/admin/stat-card";
 import { routes } from "@/config/routes";
 import {
   listSupportTemplateChannels,
-  listSupportTemplates,
+  useAdminSupportTemplates,
 } from "@/repositories/admin/support-templates";
 
 export default function SupportTemplatesListPage() {
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState("all");
-  const templates = useMemo(() => listSupportTemplates(), []);
+  const { data: templates = [], isLoading, error } = useAdminSupportTemplates({
+    search: query,
+    channel,
+  });
   const channelOptions = useMemo(
     () => [{ label: "All channels", value: "all" }].concat(listSupportTemplateChannels().map((value) => ({ label: value, value }))),
     [],
   );
 
-  const rows = useMemo(() => {
-    return templates.filter((item) => {
-      const channelMatch = channel === "all" || item.channel === channel;
-      const q = query.trim().toLowerCase();
-      const queryMatch =
-        q.length === 0 ||
-        [item.name, item.audience, item.subject, item.owner].join(" ").toLowerCase().includes(q);
-      return channelMatch && queryMatch;
-    });
-  }, [channel, query, templates]);
+  const rows = templates;
 
   const liveCount = templates.filter((item) => item.status === "live").length;
   const reviewCount = templates.filter((item) => item.status === "review").length;
@@ -59,6 +53,12 @@ export default function SupportTemplatesListPage() {
           </div>
         }
       />
+
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total templates" value={String(templates.length).padStart(2, "0")} change="Workspace" tone="neutral" detail="All customer, vendor, tasker, and internal communication templates." />
@@ -88,7 +88,7 @@ export default function SupportTemplatesListPage() {
               />
             </div>
             <Badge variant="flat" className="rounded-2xl bg-primary/10 px-3 py-2 text-primary">
-              {rows.length} shown
+              {isLoading ? "Loading..." : `${rows.length} shown`}
             </Badge>
           </div>
         </div>
