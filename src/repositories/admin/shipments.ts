@@ -3,7 +3,11 @@
 import { useMemo } from "react";
 import { logisticsShipments, type LogisticsShipment } from "@/components/logistics/shipment-data";
 import type { AdminStatus } from "@/contracts/admin-domain";
-import { useAdminResource } from "@/repositories/admin/admin-api";
+import {
+  patchAdminData,
+  postAdminData,
+  useAdminResource,
+} from "@/repositories/admin/admin-api";
 
 export function listLogisticsShipments(): LogisticsShipment[] {
   return logisticsShipments;
@@ -68,6 +72,37 @@ type AdminShipmentDetail = AdminShipmentSummary & {
   }>;
 };
 
+type ShipmentMutationInput = {
+  senderName: string;
+  senderEmail?: string;
+  senderPhone?: string;
+  pickupAddress: string;
+  recipientName: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+  dropoffAddress: string;
+  country?: string;
+  agency?: string;
+  officeOrigin?: string;
+  shippingMethod?: string;
+  packageType?: string;
+  courierLane?: string;
+  deliveryTime?: string;
+  paidBy?: string;
+  paymentMethod?: string;
+  amount?: number;
+  packageWeight?: string;
+  notes?: string;
+  giftOption?: string;
+  giftFrom?: string;
+  giftTo?: string;
+  giftMessage?: string;
+  status?: string;
+  vehicleType?: string;
+  isScheduled?: boolean;
+  scheduledAt?: string;
+};
+
 type AdminShipmentsPayload = {
   items: AdminShipmentSummary[];
 };
@@ -114,6 +149,20 @@ export function useShipmentTracking(id: string) {
   });
 }
 
+export async function createAdminShipment(input: ShipmentMutationInput) {
+  return postAdminData<{ item: AdminShipmentDetail }>(
+    "/api/v1/admin/shipments",
+    sanitizeShipmentPayload(input),
+  );
+}
+
+export async function updateAdminShipment(id: string, input: ShipmentMutationInput) {
+  return patchAdminData<{ item: AdminShipmentDetail }>(
+    `/api/v1/admin/shipments/${id}`,
+    sanitizeShipmentPayload(input),
+  );
+}
+
 function mapShipmentsPayload(payload: unknown): LogisticsShipment[] {
   const items = (payload as AdminShipmentsPayload)?.items ?? [];
   return items.map((item) => toShipmentRecord(item));
@@ -129,15 +178,30 @@ function toShipmentRecord(item: AdminShipmentSummary | AdminShipmentDetail): Log
   const pickupAddress = formatAddress(item.pickup?.address);
   const dropoffAddress = formatAddress(item.dropoff?.address);
   const orderValue = detailItem.linkedOrder?.totalAmount ?? 0;
+  const metadata = detailItem.metadata ?? null;
+  const packageType =
+    typeof metadata?.package_type === "string" ? metadata.package_type : item.vehicleType ? capitalize(item.vehicleType) : "General shipment";
+  const packageWeight =
+    typeof metadata?.package_weight === "string"
+      ? metadata.package_weight
+      : detailItem.metadata?.parcel_size
+        ? String(detailItem.metadata.parcel_size)
+        : "Not set";
+  const shipmentEta =
+    typeof metadata?.delivery_time === "string"
+      ? metadata.delivery_time
+      : item.scheduledAt
+        ? formatDateTime(item.scheduledAt)
+        : "Live ETA unavailable";
 
   return {
     id: item.id,
     trackingId: item.trackingId || item.id,
-    customer: detailItem.customer?.fullName ?? "Unknown customer",
-    customerPhone: detailItem.customer?.phone ?? "No phone",
+    customer: detailItem.customer?.fullName ?? (typeof metadata?.sender_name === "string" ? metadata.sender_name : "Unknown customer"),
+    customerPhone: detailItem.customer?.phone ?? (typeof metadata?.sender_phone === "string" ? metadata.sender_phone : "No phone"),
     pickup: pickupAddress || "Pickup address unavailable",
     dropoff: dropoffAddress || "Drop-off address unavailable",
-    recipient: item.dropoff?.contact_name ?? "Recipient",
+    recipient: item.dropoff?.contact_name ?? (typeof metadata?.recipient_name === "string" ? metadata.recipient_name : "Recipient"),
     lane: buildShipmentLane(item),
     owner: item.placedByRole ? `${capitalize(item.placedByRole)} ops` : "Logistics ops",
     status: mapShipmentStatus(item.status),
@@ -146,9 +210,9 @@ function toShipmentRecord(item: AdminShipmentSummary | AdminShipmentDetail): Log
     tasker: detailItem.tasker?.fullName ?? "Unassigned",
     notes: buildShipmentNotes(item),
     items: [
-      { label: "Package type", value: item.vehicleType ? capitalize(item.vehicleType) : "General shipment" },
-      { label: "Weight", value: detailItem.metadata?.parcel_size ? String(detailItem.metadata.parcel_size) : "Not set" },
-      { label: "ETA", value: item.scheduledAt ? formatDateTime(item.scheduledAt) : "Live ETA unavailable" },
+      { label: "Package type", value: packageType },
+      { label: "Weight", value: packageWeight },
+      { label: "ETA", value: shipmentEta },
     ],
     timeline: buildShipmentTimeline(detailItem),
   };
@@ -239,4 +303,37 @@ function formatTime(value?: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function sanitizeShipmentPayload(input: ShipmentMutationInput) {
+  return {
+    senderName: input.senderName,
+    ...(input.senderEmail !== undefined ? { senderEmail: input.senderEmail } : {}),
+    ...(input.senderPhone !== undefined ? { senderPhone: input.senderPhone } : {}),
+    pickupAddress: input.pickupAddress,
+    recipientName: input.recipientName,
+    ...(input.recipientEmail !== undefined ? { recipientEmail: input.recipientEmail } : {}),
+    ...(input.recipientPhone !== undefined ? { recipientPhone: input.recipientPhone } : {}),
+    dropoffAddress: input.dropoffAddress,
+    ...(input.country !== undefined ? { country: input.country } : {}),
+    ...(input.agency !== undefined ? { agency: input.agency } : {}),
+    ...(input.officeOrigin !== undefined ? { officeOrigin: input.officeOrigin } : {}),
+    ...(input.shippingMethod !== undefined ? { shippingMethod: input.shippingMethod } : {}),
+    ...(input.packageType !== undefined ? { packageType: input.packageType } : {}),
+    ...(input.courierLane !== undefined ? { courierLane: input.courierLane } : {}),
+    ...(input.deliveryTime !== undefined ? { deliveryTime: input.deliveryTime } : {}),
+    ...(input.paidBy !== undefined ? { paidBy: input.paidBy } : {}),
+    ...(input.paymentMethod !== undefined ? { paymentMethod: input.paymentMethod } : {}),
+    ...(input.amount !== undefined ? { amount: input.amount } : {}),
+    ...(input.packageWeight !== undefined ? { packageWeight: input.packageWeight } : {}),
+    ...(input.notes !== undefined ? { notes: input.notes } : {}),
+    ...(input.giftOption !== undefined ? { giftOption: input.giftOption } : {}),
+    ...(input.giftFrom !== undefined ? { giftFrom: input.giftFrom } : {}),
+    ...(input.giftTo !== undefined ? { giftTo: input.giftTo } : {}),
+    ...(input.giftMessage !== undefined ? { giftMessage: input.giftMessage } : {}),
+    ...(input.status !== undefined ? { status: input.status } : {}),
+    ...(input.vehicleType !== undefined ? { vehicleType: input.vehicleType } : {}),
+    ...(input.isScheduled !== undefined ? { isScheduled: input.isScheduled } : {}),
+    ...(input.scheduledAt !== undefined ? { scheduledAt: input.scheduledAt } : {}),
+  };
 }

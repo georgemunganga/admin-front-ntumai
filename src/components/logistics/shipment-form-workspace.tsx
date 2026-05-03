@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Badge, Button, Checkbox, Input, Select, Text, Textarea } from "rizzui";
 import { PiArrowLeftBold, PiFloppyDiskBold, PiUploadBold } from "react-icons/pi";
 import { useAdminActionGuard } from "@/components/auth/use-admin-action-guard";
 import PageHeader from "@/components/admin/page-header";
 import { routes } from "@/config/routes";
 import type { LogisticsShipment } from "@/components/logistics/shipment-data";
+import {
+  createAdminShipment,
+  updateAdminShipment,
+} from "@/repositories/admin/shipments";
 
 const formSections = [
   { id: "shipping-info", label: "Shipping Info" },
@@ -80,6 +86,7 @@ export default function ShipmentFormWorkspace({
   mode,
   shipment,
 }: ShipmentFormWorkspaceProps) {
+  const router = useRouter();
   const { guardAction } = useAdminActionGuard();
   const shipmentId = shipment?.id ?? "SHP-50013";
   const trackingId = shipment?.trackingId ?? "TRK-50013-LSK";
@@ -103,6 +110,138 @@ export default function ShipmentFormWorkspace({
     "Use the Isomorphic shipment form structure, then align sender, routing, payment, and package details to Ntumai delivery flows.";
   const backHref =
     mode === "edit" ? routes.logistics.shipmentDetails(shipmentId) : routes.logistics.shipments;
+  const [form, setForm] = useState({
+    country: "zambia",
+    agency: "ntumai_logistics",
+    officeOrigin: "lusaka_dispatch_hub",
+    shippingMethod: shipment?.status === "queued" ? "scheduled" : "same_day",
+    packageType: mapPackageType(packageType),
+    courierLane: mapCourier(lane),
+    deliveryTime: shipment?.status === "queued" ? "scheduled_slot" : "15_minutes",
+    senderName: customer,
+    senderAddress: pickup,
+    senderEmail: toEmail(customer),
+    senderPhone: customerPhone,
+    recipientName: recipient,
+    recipientAddress: dropoff,
+    recipientEmail: toEmail(recipient),
+    recipientPhone: customerPhone,
+    paidBy: "customer",
+    paymentMethod: "mobile_money",
+    amount: value.replace("ZMW ", ""),
+    packageWeight,
+    notes,
+    giftFrom: customer,
+    giftTo: recipient,
+    giftMessage: `Tracking: ${trackingId}. Lane: ${lane}. Assigned tasker: ${tasker}. Updated ${updatedAt}. ETA: ${eta}.`,
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    setForm({
+      country: "zambia",
+      agency: "ntumai_logistics",
+      officeOrigin: "lusaka_dispatch_hub",
+      shippingMethod: shipment?.status === "queued" ? "scheduled" : "same_day",
+      packageType: mapPackageType(packageType),
+      courierLane: mapCourier(lane),
+      deliveryTime: shipment?.status === "queued" ? "scheduled_slot" : "15_minutes",
+      senderName: customer,
+      senderAddress: pickup,
+      senderEmail: toEmail(customer),
+      senderPhone: customerPhone,
+      recipientName: recipient,
+      recipientAddress: dropoff,
+      recipientEmail: toEmail(recipient),
+      recipientPhone: customerPhone,
+      paidBy: "customer",
+      paymentMethod: "mobile_money",
+      amount: value.replace("ZMW ", ""),
+      packageWeight,
+      notes,
+      giftFrom: customer,
+      giftTo: recipient,
+      giftMessage: `Tracking: ${trackingId}. Lane: ${lane}. Assigned tasker: ${tasker}. Updated ${updatedAt}. ETA: ${eta}.`,
+    });
+  }, [
+    customer,
+    customerPhone,
+    dropoff,
+    eta,
+    lane,
+    notes,
+    packageType,
+    packageWeight,
+    pickup,
+    recipient,
+    shipment?.status,
+    tasker,
+    trackingId,
+    updatedAt,
+    value,
+  ]);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      const payload = {
+        senderName: form.senderName.trim(),
+        senderEmail: form.senderEmail.trim(),
+        senderPhone: form.senderPhone.trim(),
+        pickupAddress: form.senderAddress.trim(),
+        recipientName: form.recipientName.trim(),
+        recipientEmail: form.recipientEmail.trim(),
+        recipientPhone: form.recipientPhone.trim(),
+        dropoffAddress: form.recipientAddress.trim(),
+        country: form.country,
+        agency: form.agency,
+        officeOrigin: form.officeOrigin,
+        shippingMethod: form.shippingMethod,
+        packageType: form.packageType,
+        courierLane: form.courierLane,
+        deliveryTime: form.deliveryTime,
+        paidBy: form.paidBy,
+        paymentMethod: form.paymentMethod,
+        amount: Number(form.amount) || 0,
+        packageWeight: form.packageWeight.trim(),
+        notes: form.notes.trim(),
+        giftOption: "gift_wrap",
+        giftFrom: form.giftFrom.trim(),
+        giftTo: form.giftTo.trim(),
+        giftMessage: form.giftMessage.trim(),
+        isScheduled: form.shippingMethod === "scheduled",
+        status: form.shippingMethod === "scheduled" ? "booked" : "delivery",
+      };
+
+      const result =
+        mode === "create"
+          ? await createAdminShipment(payload)
+          : await updateAdminShipment(shipment!.id, payload);
+
+      const nextId = result?.item?.id ?? shipment?.id;
+      setFeedback({
+        type: "success",
+        message:
+          mode === "create"
+            ? "Shipment created successfully."
+            : "Shipment updated successfully.",
+      });
+      if (nextId) {
+        router.push(routes.logistics.shipmentDetails(nextId));
+        router.refresh();
+      }
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to save shipment.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div className="@container space-y-6">
@@ -134,10 +273,11 @@ export default function ShipmentFormWorkspace({
             </Button>
             <Button
               className="h-11 rounded-2xl bg-primary px-4 text-white hover:bg-primary/90"
+              isLoading={isSaving}
               onClick={() =>
                 void guardAction(
                   "write",
-                  () => undefined,
+                  handleSave,
                   "Your staff role cannot create or update shipments from this logistics surface.",
                 )
               }
@@ -148,6 +288,18 @@ export default function ShipmentFormWorkspace({
           </div>
         }
       />
+
+      {feedback ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-red-200 bg-red-50 text-red-800"
+          }`}
+        >
+          {feedback.message}
+        </div>
+      ) : null}
 
       <div className="sticky top-[68px] z-20 border-b border-gray-300 bg-white/95 py-0 backdrop-blur @2xl:top-[72px] 2xl:top-20">
         <div className="custom-scrollbar overflow-x-auto scroll-smooth">
@@ -171,20 +323,22 @@ export default function ShipmentFormWorkspace({
           title="Shipping Info"
           description="Add the shipment lane, market, and dispatch timing details used by Ntumai routing."
         >
-          <SelectField label="Country Name" options={countryOptions} value="zambia" />
-          <SelectField label="Agency List" options={agencyOptions} value="ntumai_logistics" />
-          <SelectField label="Office Origin" options={officeOptions} value="lusaka_dispatch_hub" />
-          <SelectField label="Shipping Method" options={shippingMethodOptions} value={shipment?.status === "queued" ? "scheduled" : "same_day"} />
+          <SelectField label="Country Name" options={countryOptions} value={form.country} onChange={(value) => setForm((current) => ({ ...current, country: value }))} />
+          <SelectField label="Agency List" options={agencyOptions} value={form.agency} onChange={(value) => setForm((current) => ({ ...current, agency: value }))} />
+          <SelectField label="Office Origin" options={officeOptions} value={form.officeOrigin} onChange={(value) => setForm((current) => ({ ...current, officeOrigin: value }))} />
+          <SelectField label="Shipping Method" options={shippingMethodOptions} value={form.shippingMethod} onChange={(value) => setForm((current) => ({ ...current, shippingMethod: value }))} />
           <SelectField
             label="Packaging Type"
             options={packagingTypeOptions}
-            value={mapPackageType(packageType)}
+            value={form.packageType}
+            onChange={(value) => setForm((current) => ({ ...current, packageType: value }))}
           />
-          <SelectField label="Courier Company" options={courierOptions} value={mapCourier(lane)} />
+          <SelectField label="Courier Company" options={courierOptions} value={form.courierLane} onChange={(value) => setForm((current) => ({ ...current, courierLane: value }))} />
           <SelectField
             label="Delivery Time"
             options={deliveryTimeOptions}
-            value={shipment?.status === "queued" ? "scheduled_slot" : "15_minutes"}
+            value={form.deliveryTime}
+            onChange={(value) => setForm((current) => ({ ...current, deliveryTime: value }))}
           />
           <UploadTile />
         </FormSection>
@@ -194,10 +348,10 @@ export default function ShipmentFormWorkspace({
           title="Sender's Info"
           description="Use the marketplace order owner, customer, or internal desk that originated the shipment."
         >
-          <Input label="Name" rounded="lg" defaultValue={customer} />
-          <Input label="Address" rounded="lg" defaultValue={pickup} />
-          <Input label="Email" rounded="lg" defaultValue={toEmail(customer)} />
-          <Input label="Phone Number" rounded="lg" defaultValue={customerPhone} />
+          <Input label="Name" rounded="lg" value={form.senderName} onChange={(event) => setForm((current) => ({ ...current, senderName: event.target.value }))} />
+          <Input label="Address" rounded="lg" value={form.senderAddress} onChange={(event) => setForm((current) => ({ ...current, senderAddress: event.target.value }))} />
+          <Input label="Email" rounded="lg" value={form.senderEmail} onChange={(event) => setForm((current) => ({ ...current, senderEmail: event.target.value }))} />
+          <Input label="Phone Number" rounded="lg" value={form.senderPhone} onChange={(event) => setForm((current) => ({ ...current, senderPhone: event.target.value }))} />
           <div className="col-span-full">
             <Checkbox
               label={<span className="text-sm text-gray-700">Notify via SMS</span>}
@@ -213,10 +367,10 @@ export default function ShipmentFormWorkspace({
           title="Recipient's Info"
           description="Capture the final customer, store handoff point, or returns destination receiving this shipment."
         >
-          <Input label="Name" rounded="lg" defaultValue={recipient} />
-          <Input label="Address" rounded="lg" defaultValue={dropoff} />
-          <Input label="Email" rounded="lg" defaultValue={toEmail(recipient)} />
-          <Input label="Phone Number" rounded="lg" defaultValue={customerPhone} />
+          <Input label="Name" rounded="lg" value={form.recipientName} onChange={(event) => setForm((current) => ({ ...current, recipientName: event.target.value }))} />
+          <Input label="Address" rounded="lg" value={form.recipientAddress} onChange={(event) => setForm((current) => ({ ...current, recipientAddress: event.target.value }))} />
+          <Input label="Email" rounded="lg" value={form.recipientEmail} onChange={(event) => setForm((current) => ({ ...current, recipientEmail: event.target.value }))} />
+          <Input label="Phone Number" rounded="lg" value={form.recipientPhone} onChange={(event) => setForm((current) => ({ ...current, recipientPhone: event.target.value }))} />
           <div className="col-span-full">
             <Checkbox
               label={<span className="text-sm text-gray-700">Notify via SMS</span>}
@@ -232,8 +386,8 @@ export default function ShipmentFormWorkspace({
           title="Payment Method Info"
           description="Settle the shipment against mobile money, wallet, card, or cash collection rules."
         >
-          <SelectField label="Paid By" options={paidByOptions} value="customer" />
-          <SelectField label="Payment Method" options={paymentMethodOptions} value="mobile_money" />
+          <SelectField label="Paid By" options={paidByOptions} value={form.paidBy} onChange={(value) => setForm((current) => ({ ...current, paidBy: value }))} />
+          <SelectField label="Payment Method" options={paymentMethodOptions} value={form.paymentMethod} onChange={(value) => setForm((current) => ({ ...current, paymentMethod: value }))} />
           <div className="col-span-full grid gap-4 @lg:grid-cols-2">
             <PaymentOption
               title="Pay Now"
@@ -246,10 +400,10 @@ export default function ShipmentFormWorkspace({
               active={shipment?.status === "queued"}
             />
           </div>
-          <Input label="Payee Name" rounded="lg" defaultValue={customer} />
-          <SelectField label="Country" options={countryOptions} value="zambia" />
-          <Input label="City" rounded="lg" defaultValue={extractCity(pickup)} />
-          <Input label="Street Address" rounded="lg" defaultValue={pickup} />
+          <Input label="Payee Name" rounded="lg" value={form.senderName} onChange={(event) => setForm((current) => ({ ...current, senderName: event.target.value }))} />
+          <SelectField label="Country" options={countryOptions} value={form.country} onChange={(value) => setForm((current) => ({ ...current, country: value }))} />
+          <Input label="City" rounded="lg" value={extractCity(form.senderAddress)} readOnly />
+          <Input label="Street Address" rounded="lg" value={form.senderAddress} onChange={(event) => setForm((current) => ({ ...current, senderAddress: event.target.value }))} />
         </FormSection>
 
         <FormSection
@@ -257,18 +411,19 @@ export default function ShipmentFormWorkspace({
           title="Package Information"
           description="Describe the parcel, grocery bundle, return, or marketplace order being moved through this lane."
         >
-          <Input label="Amount" rounded="lg" defaultValue={value.replace("ZMW ", "")} />
+          <Input label="Amount" rounded="lg" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} />
           <div className="col-span-full grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Input label="Width" rounded="lg" defaultValue="24cm" />
             <Input label="Height" rounded="lg" defaultValue="18cm" />
             <Input label="Length" rounded="lg" defaultValue="32cm" />
-            <Input label="Weight" rounded="lg" defaultValue={packageWeight} />
+            <Input label="Weight" rounded="lg" value={form.packageWeight} onChange={(event) => setForm((current) => ({ ...current, packageWeight: event.target.value }))} />
           </div>
           <Textarea
             label="Package Description"
             textareaClassName="rounded-2xl"
             className="col-span-full"
-            defaultValue={notes}
+            value={form.notes}
+            onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
           />
           <UploadTile label="Package attachment" />
           <div className="col-span-full rounded-[22px] border border-gray-200 bg-gray-50/80 p-5">
@@ -293,13 +448,14 @@ export default function ShipmentFormWorkspace({
             <PaymentOption title="Gift Wrap" detail="Flag the package for careful presentation and protected packing." active />
             <PaymentOption title="Write A Message" detail="Include a customer note or delivery instruction in the handoff." />
           </div>
-          <Input label="From" rounded="lg" defaultValue={customer} />
-          <Input label="To" rounded="lg" defaultValue={recipient} />
+          <Input label="From" rounded="lg" value={form.giftFrom} onChange={(event) => setForm((current) => ({ ...current, giftFrom: event.target.value }))} />
+          <Input label="To" rounded="lg" value={form.giftTo} onChange={(event) => setForm((current) => ({ ...current, giftTo: event.target.value }))} />
           <Textarea
             label="Message"
             textareaClassName="rounded-2xl"
             className="col-span-full"
-            defaultValue={`Tracking: ${trackingId}. Lane: ${lane}. Assigned tasker: ${tasker}. Updated ${updatedAt}. ETA: ${eta}.`}
+            value={form.giftMessage}
+            onChange={(event) => setForm((current) => ({ ...current, giftMessage: event.target.value }))}
           />
         </FormSection>
       </div>
@@ -335,16 +491,19 @@ function SelectField({
   label,
   options,
   value,
+  onChange,
 }: {
   label: string;
   options: Array<{ label: string; value: string }>;
   value: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <Select
       label={label}
       options={options}
       defaultValue={options.find((option) => option.value === value) ?? options[0]}
+      onChange={(option: any) => onChange?.(option?.value ?? "")}
       selectClassName="rounded-2xl"
     />
   );
